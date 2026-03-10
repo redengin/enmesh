@@ -1,0 +1,15 @@
+[target.xtensa-esp32s3-none-elf]
+runner = "espflash flash --monitor --chip esp32s3 --flash-size 8mb --baud 460800 -T src/bin/storage/partitions.csv"
+
+
+[env]
+ESP_LOG="info"
+
+[build]
+target = "xtensa-esp32s3-none-elf"
+rustflags = [
+  "-C", "link-arg=-nostartfiles",
+]
+
+[unstable]
+build-std = ["core", "alloc"] # alloc required for radio use

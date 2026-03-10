@@ -1,0 +1,28 @@
+[package]
+name = "enmesh"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = false
+
+[dependencies]
+# TODO do we want iso3166
+# rust_iso3166 = "*"
+
+# embedded support
+embedded-graphics = "*"
+embedded-layout = "*"
+embassy-time = "*"
+
+[dev-dependencies]
+# ux example support
+embedded-graphics-simulator = { version = "*", default-features = false, features = ["with-sdl"] }
+
+
+[features]
+std = [
+
+]
+
+# ux choice for demonstrations
+ux-heltec = []

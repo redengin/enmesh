@@ -1,0 +1,46 @@
+[package]
+name = "enmesh-firmware-heltec-v3"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = false
+
+[dependencies]
+common = { path = "../../common" }
+soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
+enmesh-firmware = { path = "../../enmesh" }
+# meshcore-firmware = { path = "../../meshcore" }
+
+# FIXME local crates necessary for build (should be imported form soc_esp32)
+embassy-executor = { version = "*", features = ["log"] }
+[dependencies.esp-rtos]
+git = "https://github.com/esp-rs/esp-hal"
+features = ["embassy", "esp-radio", "esp-alloc"]
+
+#-------------------------------------------------------------------------------
+
+[features]
+
+# support ble connection for companion app (mobile phones, etc.)
+ble-companion = ["esp-radio"]
+
+# node will use local wifi network to connect to enmesh endpoints
+wifi-bridge = ["esp-radio"]
+
+# esp-radio is used
+esp-radio = []
+
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1        # LLVM can perform better optimizations using a single thread
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false

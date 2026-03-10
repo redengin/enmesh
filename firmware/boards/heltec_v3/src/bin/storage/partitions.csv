@@ -1,0 +1,25 @@
+# ESP-IDF Partition Table (sectors are 4K)
+# https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/partition-tables.html
+
+# Name,             Type,   SubType,    Offset,   Size,     Flags
+# nvs required by esp_hal (must be at least one sector)
+  nvs,              data,   nvs,        0x9000,   4K,
+# otadata required by esp_hal (must be at least two sectors)
+  otadata,          data,   ota,        ,         8K,
+
+# nvs for enmesh settings
+  app.settings,     data,   nvs,        ,         4K,
+# settings used for ota update app
+# required by esp_hal (must be at least one sector)
+#settings_ota,       data,   nvs,        ,         4K,
+
+# partitions for app (names required by esp_hal)
+# bootloader handles switching between upon boot
+# TODO determine the expected app size
+  factory,          app,    factory,    ,         1M,
+  ota_1,            app,    ota_1,      ,         1M,
+  ota_2,            app,    ota_2,      ,         1M,
+
+# application data
+# TODO use all the remaining space
+  app.data,         data,   nvs,        ,         3M,
