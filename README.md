@@ -30,6 +30,7 @@ What you'll find here
         * MeshCore
         * enmesh
     * WiFi bridge (per hardware support)
+* Mobile Application - provides enhanced enmesh support beyond Meshtastic/MeshCore
 
 
 
