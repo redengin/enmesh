@@ -18,7 +18,7 @@ Only a few LoRa nodes need to support an IP bridge for this to work.
 
 The LoRa traffic will be encapsulated in an IP packet (and vice-versa).
 
-The IP endpoint(s) are determined by a DNS query for enmesh bridge nodes.
+<!-- The IP endpoint(s) are determined by a query for enmesh bridge nodes. -->
 
 
 What you'll find here
