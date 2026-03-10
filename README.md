@@ -23,7 +23,7 @@ The IP endpoint(s) are determined by a DNS query for enmesh bridge nodes.
 
 What you'll find here
 ================================================================================
-* Bridge Node Implementation - coordinates both local and remote LoRa traffic over IP
+* Bridge Node Implementation - internet service to bridge LoRa traffic
 * LoRa Node Implementation - supports local LoRa traffic
     * Meshes
         * Meshtastic
