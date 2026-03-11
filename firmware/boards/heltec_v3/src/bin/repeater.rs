@@ -4,7 +4,9 @@
 // provide the shared crates via re-export
 use common::*;
 // use meshcore_firmware::*;
-use soc_esp32::*; // provides the panic handler
+
+// use soc crate that provides the panic handler
+use soc_esp32::*;
 
 // provide logging primitives
 use log::*;
