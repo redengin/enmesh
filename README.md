@@ -1,7 +1,6 @@
 Secure distributed communications enhanced by anonymity of LoRa
 ================================================================================
 ```mermaid
-%%{ init: { 'theme': 'base', 'themeVariables':{'background':'#FFF} } }%%
 C4Component
 
     Container_Boundary(lora, "LoRa") {
@@ -10,10 +9,10 @@ C4Component
       Component(companion, "companion")
     }
 
-    Rel(companion, repeater, "send/receive LoRa packets")
-    Rel(companion, wifi_repeater, "send receive LoRa packets")
-    Rel(wifi_repeater, wifi_router, "bridges local LoRa to internet")
-    Rel(wifi_router, enmesh_endpoint, "bridges local LoRa to internet")
+    BiRel(companion, repeater, "send/receive LoRa packets")
+    BiRel(companion, wifi_repeater, "send receive LoRa packets")
+    BiRel(wifi_repeater, wifi_router, "bridges local LoRa to internet")
+    BiRel(wifi_router, enmesh_endpoint, "bridges local LoRa to internet")
 
     Container_Boundary(internet, "Internet") {
       Component(wifi_router, "wifi router")
@@ -23,8 +22,10 @@ C4Component
     Container_Boundary(mobile_app, "Mobile App") {
       Component(mobile_app, "Mobile App")
     }
-    Rel(mobile_app, companion, "send/receive LoRa packets")
-    Rel(mobile_app, enmesh_endpoint, "bridges local LoRa to internet")
+    BiRel(mobile_app, companion, "send/receive LoRa packets")
+    BiRel(mobile_app, enmesh_endpoint, "bridges local LoRa to internet")
+
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 
 ```
 
