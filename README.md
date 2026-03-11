@@ -1,12 +1,7 @@
 Secure distributed communications enhanced by anonymity of LoRa
 ================================================================================
 ```mermaid
----
-config:
-    themeVariables:
-      darkMode: true
-      background: #f4f4f4
----
+%%{ init: { 'theme': 'base', 'themeVariables':{'background':'#FFF} } }%%
 C4Component
 
     Container_Boundary(lora, "LoRa") {
