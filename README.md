@@ -40,6 +40,9 @@ LoRa can be extended beyond the local LoRa mesh over the internet.
 
 Connecting LoRa to everything
 --------------------------------------------------------------------------------
+As Reticulum is no longer active, this is a successor - implemented in Rust to
+support both firmware and PC applications.
+
 Connecting LoRa node a WiFi router, extends the reach of a LoRa node to the
 world. ESP32 based devices (HelTec) already provide WiFi hardware.
 

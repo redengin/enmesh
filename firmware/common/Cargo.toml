@@ -1,0 +1,50 @@
+[package]
+name = "common"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = false
+
+
+[dependencies]
+log = "*"
+
+# embedded utils
+#-------------------------------------------------------------------------------
+# critical-section = "*"
+static_cell = "*"
+#-------------------------------------------------------------------------------
+
+# use the embassay RTOS
+#-------------------------------------------------------------------------------
+embassy-executor = { version = "*", features = ["log"] }
+embassy-time = { version = "*", features = ["log"] }
+embassy-embedded-hal = "*"
+embassy-sync = { version = "*", features = ["log"] }
+#-------------------------------------------------------------------------------
+
+# Hardware drivers
+#-------------------------------------------------------------------------------
+# provide LORA radio drivers
+lora-phy = "*"
+
+# 0.96" OLED Screen
+ssd1306 = { version = "*", features = ["async"] }
+#-------------------------------------------------------------------------------
+
+# provide BLE Host
+#-------------------------------------------------------------------------------
+trouble-host = { version = "*", default-features = false, features = [
+    "peripheral",
+    "gatt",
+    "security",
+    "derive",                       # provide macros
+    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
+    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
+    #   for additional configuration by features
+] }
+# FIXME trouble-host anchored to old rand_core
+rand_core = { version = "0.6", default-features = false }
+#-------------------------------------------------------------------------------
+
+

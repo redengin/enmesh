@@ -1,0 +1,42 @@
+[package]
+name = "enmesh-firmware-diy-esp32"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = false
+
+[dependencies]
+common = { path = "../../common" }
+soc-esp32 = { path = "../../soc/esp32" }
+# meshcore-firmware = { path = "../../meshcore" }
+
+# FIXME - the following dependencies must exist for esp-rs to build executable
+#-------------------------------------------------------------------------------
+embassy-executor = { version = "*", features = ["log"] }
+
+[dependencies.esp-hal]
+git = "https://github.com/esp-rs/esp-hal"
+
+[dependencies.esp-rtos]
+git = "https://github.com/esp-rs/esp-hal"
+#-------------------------------------------------------------------------------
+
+[features]
+default = ["esp32"] # required by rust analyzer
+
+esp32 = ["soc-esp32/esp32"]
+esp32s3 = ["soc-esp32/esp32s3"]
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1        # LLVM can perform better optimizations using a single thread
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false

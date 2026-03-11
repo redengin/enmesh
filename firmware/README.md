@@ -2,6 +2,9 @@ Firmware
 ================================================================================
 Implementations to extend Meshtastic and Meshcore for use with enmesh.
 
+This firmware will allow nodes to support both Meshtastic and MeshCore
+simultaneously.
+
 
 Supported Hardware
 ================================================================================

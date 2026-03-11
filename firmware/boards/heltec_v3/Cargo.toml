@@ -1,0 +1,43 @@
+[package]
+name = "enmesh-firmware-heltec-v3"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = false
+
+[dependencies]
+common = { path = "../../common" }
+soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
+# meshcore-firmware = { path = "../../meshcore" }
+
+# FIXME - the following dependencies must exist for esp-rs to build executable
+#-------------------------------------------------------------------------------
+embassy-executor = { version = "*", features = ["log"] }
+
+[dependencies.esp-hal]
+git = "https://github.com/esp-rs/esp-hal"
+# features = ["log-04", "unstable"]
+# features = ["unstable", "esp32s3"]
+features = ["unstable"]
+
+# support ESP32 rtos
+[dependencies.esp-rtos]
+git = "https://github.com/esp-rs/esp-hal"
+# features = ["embassy", "esp-radio", "esp-alloc", "esp32s3"]
+features = ["embassy", "esp-radio", "esp-alloc"]
+#-------------------------------------------------------------------------------
+
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1        # LLVM can perform better optimizations using a single thread
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false
