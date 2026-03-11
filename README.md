@@ -1,5 +1,32 @@
-Secured communications enhanced by anonymity of LoRa
+Secure distributed communications enhanced by anonymity of LoRa
 ================================================================================
+```mermaid
+C4Component
+
+    Container_Boundary(lora, "LoRa") {
+      Component(repeater, "repeater")
+      Component(wifi_repeater, "wifi repeater")
+      Component(companion, "companion")
+    }
+
+    Rel(companion, repeater, "send/receive LoRa packets")
+    Rel(companion, wifi_repeater, "send receive LoRa packets")
+    Rel(wifi_repeater, wifi_router, "bridges local LoRa to internet")
+    Rel(wifi_router, enmesh_endpoint, "bridges local LoRa to internet")
+
+    Container_Boundary(internet, "Internet") {
+      Component(wifi_router, "wifi router")
+      Component(enmesh_endpoint, "endmesh endpoint")
+    }
+
+    Container_Boundary(mobile_app, "Mobile App") {
+      Component(mobile_app, "Mobile App")
+    }
+    Rel(mobile_app, companion, "send/receive LoRa packets")
+    Rel(mobile_app, enmesh_endpoint, "bridges local LoRa to internet")
+
+```
+
 Background
 --------------------------------------------------------------------------------
 [LoRa](https://en.wikipedia.org/wiki/LoRa) use has proliferated under
