@@ -68,6 +68,8 @@ Repository Overview
     * enmesh WiFi bridge (per hardware support)
 * [Mobile Application](mobile_app) - provides enhanced support beyond Meshtastic/MeshCore
 
+* [MeshCore Library](MeshCore) - Rust implemenation of MeshCore protocols
+  * TODO: as MeshCore rapidly evolves, this shold become a separate repo
 
 
 
