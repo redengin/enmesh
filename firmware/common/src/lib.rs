@@ -14,6 +14,7 @@ pub use embassy_executor;
 pub use embassy_time;
 pub use embassy_sync;
 pub use embassy_embedded_hal;
+pub use embassy_usb;
 //------------------------------------------------------------------------------
 
 // Hardware drivers

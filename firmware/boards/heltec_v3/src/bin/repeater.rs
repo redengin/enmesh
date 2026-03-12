@@ -27,7 +27,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // initialize the SoC interface
     let peripherals = esp_hal::init(
         esp_hal::Config::default(),
-        // TODO do we want max performance?
+        // TODO do we want max performance (at the cost of extra power consumption)?
         // .with_cpu_clock(esp_hal::clock::CpuClock::max()),
     );
 
@@ -36,17 +36,17 @@ async fn main(spawner: embassy_executor::Spawner) {
     info!("initializing...");
 
     //==============================================================================
-    info!("initializing RTOS...");
+    debug!("initializing RTOS...");
     use esp_hal::timer::timg::TimerGroup;
     let timg0 = TimerGroup::new(peripherals.TIMG0);
     use esp_hal::interrupt::software::SoftwareInterruptControl;
     let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
-    info!("RTOS initialized");
+    debug!("RTOS initialized");
     //==============================================================================
 
     //==============================================================================
-    info!("initializing LoRA interface...");
+    debug!("creating LoRa task...");
     // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
     let lora_io = LoraIo {
         reset: esp_hal::gpio::Output::new(
@@ -66,22 +66,24 @@ async fn main(spawner: embassy_executor::Spawner) {
         mosi: peripherals.GPIO10,
         miso: peripherals.GPIO11,
     };
-    info!("LoRa interface initialized");
+    spawner.spawn(task_lora(lora_io)).unwrap();
+    debug!("LoRa task created");
     //==============================================================================
 
     //==============================================================================
-    info!("initializing USB Serial interface...");
-    // TODO support serial console
-    warn!("USB serial interface not implemented");
-    // warn!("USB serial interface initialized");
-    //==============================================================================
+    debug!("creating usb serial task...");
+    // let usb_serial_io = UsbSerialIo {
+    //     usb: peripherals.USB0,
+    //     pos: peripherals.GPIO20,
+    //     neg: peripherals.GPIO19,
+    // };
+    // spawner.spawn(task_usb_serial(usb_serial_io)).unwrap();
+    warn!("TODO support USB connection");
+    debug!("usb_serial task created");
 
     //==============================================================================
-    // initialize the tasks
-    info!("creating mesh task...");
-    spawner.spawn(task_mesh(lora_io)).unwrap();
-    info!("mesh task created");
-    //==============================================================================
+
+    info!("enmesh firmware running...");
 
     // TODO power saving during IDLE
     // Does esp32 embassy alread do this?
@@ -98,9 +100,8 @@ struct LoraIo {
     pub mosi: esp_hal::peripherals::GPIO10<'static>,
     pub miso: esp_hal::peripherals::GPIO11<'static>,
 }
-
 #[embassy_executor::task]
-async fn task_mesh(lora_io: LoraIo) {
+async fn task_lora(lora_io: LoraIo) {
     info!("initializing LoRa radio...");
 
     debug!("creating LoRa SPI bus...");
@@ -152,28 +153,70 @@ async fn task_mesh(lora_io: LoraIo) {
     // let mut repeater = meshcore_firmware::Repeater::new(lora_radio);
     // repeater.run().await;
 
-    error!("repeater handler stopped");
+    panic!("LoRa task ended");
 }
 
+// /// convenience structure for USB serial interfaces
+// struct UsbSerialIo {
+//     pub usb: esp_hal::peripherals::USB0<'static>,
+//     pub pos: esp_hal::peripherals::GPIO20<'static>,
+//     pub neg: esp_hal::peripherals::GPIO19<'static>,
+// }
 // #[embassy_executor::task]
-// async fn task_ble_host(connector: esp_radio::ble::controller::BleConnector<'static>) {
-//     use trouble_host::prelude::ExternalController;
-//     let controller: ExternalController<_, 20> = ExternalController::new(connector);
+// async fn task_usb_serial(usb_serial_io: UsbSerialIo) {
+//     info!("initializing USB Serial interface...");
+//     let usb = esp_hal::otg_fs::Usb::new(usb_serial_io.usb, usb_serial_io.pos, usb_serial_io.neg);
+//     let mut ep_out_buffer = [0u8; 1024];
+//     let usb_serial_config = esp_hal::otg_fs::asynch::Config::default();
+//     let usb_serial_driver =
+//         esp_hal::otg_fs::asynch::Driver::new(usb, &mut ep_out_buffer, usb_serial_config);
+//     let mut embassy_usb_serial_config = embassy_usb::Config::new(0x303A, 0x3001);
+//     embassy_usb_serial_config.manufacturer = Some("Espressif");
+//     embassy_usb_serial_config.product = Some("USB-serial example");
+//     embassy_usb_serial_config.serial_number = Some("12345678");
+//     // Required for windows compatibility.
+//     // https://developer.nordicsemi.com/nRF_Connect_SDK/doc/1.9.1/kconfig/CONFIG_CDC_ACM_IAD.html#help
+//     embassy_usb_serial_config.device_class = 0xEF;
+//     embassy_usb_serial_config.device_sub_class = 0x02;
+//     embassy_usb_serial_config.device_protocol = 0x01;
+//     embassy_usb_serial_config.composite_with_iads = true;
 
-//     // get the MAC
-//     let mac_address = esp_hal::efuse::Efuse::read_base_mac_address();
-//     // FIXME this code smells, there must be a more syntantically way
-//     let mut mac: [u8; 6] = [0xff; 6];
-//     for i in 0..mac_address.as_bytes().len() {
-//         mac[i] = mac_address.as_bytes()[i];
-//         if i > mac.len() { break; }
-//     }
+//     // create ...
+//     let mut config_descriptor = [0; 256];
+//     let mut bos_descriptor = [0; 256];
+//     let mut control_buf = [0; 64];
+//     let mut usb_state = embassy_usb::class::cdc_acm::State::new();
 
-//     info!("Creating random number generator for BLE security");
-//     let mut trng = esp_hal::rng::Trng::try_new().unwrap();
+//     let mut builder = embassy_usb::Builder::new(
+//         usb_serial_driver,
+//         embassy_usb_serial_config,
+//         &mut config_descriptor,
+//         &mut bos_descriptor,
+//         &mut [], // no msos descriptors
+//         &mut control_buf,
+//     );
 
-//     // should run forever
-//     meshcore_firmware::app_interface::ble::run(controller, mac, &mut trng).await;
+//     // Create classes on the builder.
+//     let mut class = embassy_usb::class::cdc_acm::CdcAcmClass::new(&mut builder, &mut usb_state, 64);
 
-//     error!("BLE host stopped");
+//     // Build the builder.
+//     let mut usb_serial_device = builder.build();
+
+//     // Run the USB device.
+//     let usb_fut = usb_serial_device.run();
+
+//     // Do stuff with the class!
+//     let echo_fut = async {
+//         loop {
+//             class.wait_connection().await;
+//             esp_println::println!("Connected");
+//             // FIXME
+//             // let _ = echo(&mut class).await;
+//             esp_println::println!("Disconnected");
+//         }
+//     };
+//     // TODO support serial console
+
+//     usb_fut.await;
+//     panic!("USB serial task ended");
 // }

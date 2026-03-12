@@ -21,6 +21,7 @@ embassy-executor = { version = "*", features = ["log"] }
 embassy-time = { version = "*", features = ["log"] }
 embassy-embedded-hal = "*"
 embassy-sync = { version = "*", features = ["log"] }
+embassy-usb = { version = "*", features = ["log"] }
 #-------------------------------------------------------------------------------
 
 # Hardware drivers
