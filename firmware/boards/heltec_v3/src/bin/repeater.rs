@@ -25,8 +25,15 @@ static LORA_SPI_BUS: static_cell::StaticCell<
 #[soc_esp32::esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
     // initialize the SoC interface
+#[cfg(feature="enmesh_wifi")]
     let peripherals = esp_hal::init(
-        esp_hal::Config::default(),
+        esp_hal::Config::default()
+        // max clocking required for WiFi
+        .with_cpu_clock(esp_hal::clock::CpuClock::max()),
+    );
+#[cfg(not(feature="enmesh_wifi"))]
+    let peripherals = esp_hal::init(
+        esp_hal::Config::default()
         // TODO do we want max performance (at the cost of extra power consumption)?
         // .with_cpu_clock(esp_hal::clock::CpuClock::max()),
     );

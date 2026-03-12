@@ -27,6 +27,11 @@ git = "https://github.com/esp-rs/esp-hal"
 features = ["embassy", "esp-radio", "esp-alloc"]
 #-------------------------------------------------------------------------------
 
+[features]
+# node will use wifi to connect to enmesh endpoints
+enmesh_wifi = []
+
+
 
 [profile.dev]
 # Rust debug is too slow.

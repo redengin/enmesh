@@ -5,8 +5,10 @@ Meshcore firmware for Heltec v3
 ## Usage
 ```sh
 # flash repeater firmware
-cargo run --bin repeater
+cargo run --release --bin repeater
 ```
+For debugging, don't specify "--release" - so a chip reset will not be issued
+upon a panic!.
 
 Espressif Rust (esp-rs)
 ================================================================================
