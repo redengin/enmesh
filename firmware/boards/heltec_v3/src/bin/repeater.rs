@@ -15,7 +15,7 @@ use log::*;
 use common::embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use common::embassy_sync::mutex::Mutex;
 // use common::embassy_time::{Delay, Duration, Timer};
-use common::embassy_time::{Delay};
+use common::embassy_time::Delay;
 
 /// LoRa radio SPI bus
 static LORA_SPI_BUS: static_cell::StaticCell<
@@ -48,25 +48,24 @@ async fn main(spawner: embassy_executor::Spawner) {
     //==============================================================================
     info!("initializing LoRA interface...");
     // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
-    // configure GPIO pins
-    let lora_reset = esp_hal::gpio::Output::new(
-        peripherals.GPIO12,
-        esp_hal::gpio::Level::Low,
-        esp_hal::gpio::OutputConfig::default(),
-    );
-    let lora_dio =
-        esp_hal::gpio::Input::new(peripherals.GPIO14, esp_hal::gpio::InputConfig::default());
-    let lora_busy =
-        esp_hal::gpio::Input::new(peripherals.GPIO13, esp_hal::gpio::InputConfig::default());
-    // configure SPI interface
-    let lora_nss = esp_hal::gpio::Output::new(
-        peripherals.GPIO8,
-        esp_hal::gpio::Level::High,
-        esp_hal::gpio::OutputConfig::default(),
-    );
-    let lora_sck = peripherals.GPIO9;
-    let lora_mosi = peripherals.GPIO10;
-    let lora_miso = peripherals.GPIO11;
+    let lora_io = LoraIo {
+        reset: esp_hal::gpio::Output::new(
+            peripherals.GPIO12,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        dio: esp_hal::gpio::Input::new(peripherals.GPIO14, esp_hal::gpio::InputConfig::default()),
+        busy: esp_hal::gpio::Input::new(peripherals.GPIO13, esp_hal::gpio::InputConfig::default()),
+        spi: peripherals.SPI2,
+        nss: esp_hal::gpio::Output::new(
+            peripherals.GPIO8,
+            esp_hal::gpio::Level::High,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        sck: peripherals.GPIO9,
+        mosi: peripherals.GPIO10,
+        miso: peripherals.GPIO11,
+    };
     info!("LoRa interface initialized");
     //==============================================================================
 
@@ -80,18 +79,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     //==============================================================================
     // initialize the tasks
     info!("creating mesh task...");
-    spawner
-        .spawn(task_mesh(
-            lora_reset,
-            lora_dio,
-            lora_busy,
-            peripherals.SPI2,
-            lora_nss,
-            lora_sck,
-            lora_mosi,
-            lora_miso,
-        ))
-        .unwrap();
+    spawner.spawn(task_mesh(lora_io)).unwrap();
     info!("mesh task created");
     //==============================================================================
 
@@ -99,36 +87,41 @@ async fn main(spawner: embassy_executor::Spawner) {
     // Does esp32 embassy alread do this?
 }
 
+/// convenience struct for the LoRa radio IO interfaces
+struct LoraIo {
+    pub reset: esp_hal::gpio::Output<'static>,
+    pub dio: esp_hal::gpio::Input<'static>,
+    pub busy: esp_hal::gpio::Input<'static>,
+    pub spi: esp_hal::peripherals::SPI2<'static>,
+    pub nss: esp_hal::gpio::Output<'static>,
+    pub sck: esp_hal::peripherals::GPIO9<'static>,
+    pub mosi: esp_hal::peripherals::GPIO10<'static>,
+    pub miso: esp_hal::peripherals::GPIO11<'static>,
+}
+
 #[embassy_executor::task]
-async fn task_mesh(
-    lora_reset: esp_hal::gpio::Output<'static>,
-    lora_dio: esp_hal::gpio::Input<'static>,
-    lora_busy: esp_hal::gpio::Input<'static>,
-    // lora_spi_device: embassy_embedded_hal::shared_bus::asynch::spi::SpiDevice<'static, >,
-    spi: esp_hal::peripherals::SPI2<'static>,
-    lora_nss: esp_hal::gpio::Output<'static>,
-    lora_sck: esp_hal::peripherals::GPIO9<'static>,
-    lora_mosi: esp_hal::peripherals::GPIO10<'static>,
-    lora_miso: esp_hal::peripherals::GPIO11<'static>,
-) {
+async fn task_mesh(lora_io: LoraIo) {
     info!("initializing LoRa radio...");
-    // create the SPI bus
+
+    debug!("creating LoRa SPI bus...");
     const SX1262_SPI_MHZ: u32 = 16; // recommended SPI frequency
     let lora_spi = esp_hal::spi::master::Spi::new(
-        spi,
+        lora_io.spi,
         esp_hal::spi::master::Config::default()
             .with_frequency(esp_hal::time::Rate::from_mhz(SX1262_SPI_MHZ))
             .with_mode(esp_hal::spi::Mode::_0),
     )
     .unwrap()
-    .with_sck(lora_sck)
-    .with_mosi(lora_mosi)
-    .with_miso(lora_miso)
+    .with_sck(lora_io.sck)
+    .with_mosi(lora_io.mosi)
+    .with_miso(lora_io.miso)
     .into_async();
     let lora_spi_bus = LORA_SPI_BUS.init(Mutex::new(lora_spi));
     let lora_spi_device =
-        embassy_embedded_hal::shared_bus::asynch::spi::SpiDevice::new(lora_spi_bus, lora_nss);
-    // create a lora radio instance
+        embassy_embedded_hal::shared_bus::asynch::spi::SpiDevice::new(lora_spi_bus, lora_io.nss);
+    debug!("LoRa SPI bus created");
+
+    debug!("creating LoRa radio instance...");
     let sx126x_config = lora_phy::sx126x::Config {
         chip: lora_phy::sx126x::Sx1262,
         // TODO are these the correct parameters?
@@ -137,7 +130,11 @@ async fn task_mesh(
         rx_boost: true,
     };
     let lora_interface = lora_phy::iv::GenericSx126xInterfaceVariant::new(
-        lora_reset, lora_dio, lora_busy, None, None,
+        lora_io.reset,
+        lora_io.dio,
+        lora_io.busy,
+        None,
+        None,
     )
     .unwrap();
     let mut _lora_radio = lora_phy::LoRa::new(
@@ -147,6 +144,8 @@ async fn task_mesh(
     )
     .await
     .unwrap();
+    debug!("LoRa radio instance created.");
+
     info!("LoRa radio initialized");
 
     // run the repeater handler
@@ -154,7 +153,6 @@ async fn task_mesh(
     // repeater.run().await;
 
     error!("repeater handler stopped");
-
 }
 
 // #[embassy_executor::task]
