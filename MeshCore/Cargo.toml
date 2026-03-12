@@ -1,8 +1,13 @@
 [package]
-name = "MeshCore"
+name = "meshcore"
 version = "0.1.0"
 license = "MIT"
 edition = "2024"
 publish = false
 
 [dependencies]
+
+[features]
+std = [
+
+]
