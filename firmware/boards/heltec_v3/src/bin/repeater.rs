@@ -25,17 +25,16 @@ static LORA_SPI_BUS: static_cell::StaticCell<
 #[soc_esp32::esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
     // initialize the SoC interface
-#[cfg(feature="enmesh_wifi")]
+    #[cfg(feature = "enmesh_wifi")]
     let peripherals = esp_hal::init(
         esp_hal::Config::default()
-        // max clocking required for WiFi
-        .with_cpu_clock(esp_hal::clock::CpuClock::max()),
+            // max clocking required for WiFi
+            .with_cpu_clock(esp_hal::clock::CpuClock::max()),
     );
-#[cfg(not(feature="enmesh_wifi"))]
+    #[cfg(not(feature = "enmesh_wifi"))]
     let peripherals = esp_hal::init(
-        esp_hal::Config::default()
-        // TODO do we want max performance (at the cost of extra power consumption)?
-        // .with_cpu_clock(esp_hal::clock::CpuClock::max()),
+        esp_hal::Config::default(), // TODO do we want max performance (at the cost of extra power consumption)?
+                                    // .with_cpu_clock(esp_hal::clock::CpuClock::max()),
     );
 
     // initialize logging
@@ -79,14 +78,15 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     //==============================================================================
     debug!("creating usb serial task...");
+    // FIXME - haven't found how to use dev kit USB header (only pins 20/19)
     // let usb_serial_io = UsbSerialIo {
     //     usb: peripherals.USB0,
-    //     pos: peripherals.GPIO20,
-    //     neg: peripherals.GPIO19,
+    //     d_pos: peripherals.GPIO20,
+    //     d_neg: peripherals.GPIO19,
     // };
     // spawner.spawn(task_usb_serial(usb_serial_io)).unwrap();
     warn!("TODO support USB connection");
-    debug!("usb_serial task created");
+    // debug!("usb_serial task created");
 
     //==============================================================================
 
@@ -166,13 +166,14 @@ async fn task_lora(lora_io: LoraIo) {
 // /// convenience structure for USB serial interfaces
 // struct UsbSerialIo {
 //     pub usb: esp_hal::peripherals::USB0<'static>,
-//     pub pos: esp_hal::peripherals::GPIO20<'static>,
-//     pub neg: esp_hal::peripherals::GPIO19<'static>,
+//     pub d_pos: esp_hal::peripherals::GPIO20<'static>,
+//     pub d_neg: esp_hal::peripherals::GPIO19<'static>,
 // }
+
 // #[embassy_executor::task]
 // async fn task_usb_serial(usb_serial_io: UsbSerialIo) {
 //     info!("initializing USB Serial interface...");
-//     let usb = esp_hal::otg_fs::Usb::new(usb_serial_io.usb, usb_serial_io.pos, usb_serial_io.neg);
+//     let usb = esp_hal::otg_fs::Usb::new(usb_serial_io.usb, usb_serial_io.d_pos, usb_serial_io.d_neg);
 //     let mut ep_out_buffer = [0u8; 1024];
 //     let usb_serial_config = esp_hal::otg_fs::asynch::Config::default();
 //     let usb_serial_driver =
