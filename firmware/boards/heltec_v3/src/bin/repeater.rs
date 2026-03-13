@@ -206,7 +206,7 @@ async fn task_lora(lora_io: LoraIo) {
         None,
     )
     .unwrap();
-    let mut _lora_radio = lora_phy::LoRa::new(
+    let mut lora_radio = lora_phy::LoRa::new(
         lora_phy::sx126x::Sx126x::new(lora_spi_device, lora_interface, sx126x_config),
         false,
         Delay,
@@ -218,8 +218,7 @@ async fn task_lora(lora_io: LoraIo) {
     info!("LoRa radio initialized");
 
     // run the repeater handler
-    // let mut repeater = enmesh::Repeater::new(lora_radio);
-    // repeater.run().await;
+    let mut repeater = enmesh::repeater::run(lora_radio);
 
     panic!("LoRa task ended");
 }

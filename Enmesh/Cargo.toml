@@ -6,6 +6,10 @@ edition = "2024"
 publish = false
 
 [dependencies]
+# Hardware drivers
+#-------------------------------------------------------------------------------
+# provide LORA radio drivers
+lora-phy = "*"
 
 [features]
 std = [
