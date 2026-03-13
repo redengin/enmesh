@@ -5,6 +5,7 @@
 use common::*;
 // use meshcore_firmware::*;
 
+use esp_hal::time::Rate;
 // use soc crate that provides the panic handler
 use soc_esp32::*;
 
@@ -52,6 +53,18 @@ async fn main(spawner: embassy_executor::Spawner) {
     //==============================================================================
 
     //==============================================================================
+    debug!("creating screen task...");
+    let screen_io = ScreenIo {
+        i2c: peripherals.I2C0,
+        sda: peripherals.GPIO17,
+        scl: peripherals.GPIO18,
+        button: esp_hal::gpio::Input::new(peripherals.GPIO0, esp_hal::gpio::InputConfig::default()),
+    };
+    spawner.spawn(task_screen(screen_io)).unwrap();
+    debug!("screen task created");
+    //==============================================================================
+
+    //==============================================================================
     debug!("creating LoRa task...");
     // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
     let lora_io = LoraIo {
@@ -76,6 +89,18 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("LoRa task created");
     //==============================================================================
 
+    #[cfg(feature = "enmesh_wifi")]
+    {
+        // create a heap for esp_radio
+        soc_esp32::create_heap!();
+
+        //==============================================================================
+        debug!("creating enmesh WiFi...");
+        spawner.spawn(task_wifi(peripherals.WIFI)).unwrap();
+        debug!("enmesh WiFi created");
+        //==============================================================================
+    }
+
     //==============================================================================
     debug!("creating usb serial task...");
     // FIXME - haven't found how to use dev kit USB header (only pins 20/19)
@@ -87,13 +112,49 @@ async fn main(spawner: embassy_executor::Spawner) {
     // spawner.spawn(task_usb_serial(usb_serial_io)).unwrap();
     warn!("TODO support USB connection");
     // debug!("usb_serial task created");
-
     //==============================================================================
 
     info!("enmesh firmware running...");
 
     // TODO power saving during IDLE
     // Does esp32 embassy alread do this?
+}
+
+struct ScreenIo {
+    pub i2c: esp_hal::peripherals::I2C0<'static>,
+    pub sda: esp_hal::peripherals::GPIO17<'static>,
+    pub scl: esp_hal::peripherals::GPIO18<'static>,
+    /// esp32 BOOT button is LOW when pressed, else HIGH
+    pub button: esp_hal::gpio::Input<'static>,
+}
+#[embassy_executor::task]
+async fn task_screen(screen_io: ScreenIo) {
+    info!("initializing screen...");
+    let interface = esp_hal::i2c::master::I2c::new(
+        screen_io.i2c,
+        esp_hal::i2c::master::Config::default().with_frequency(Rate::from_khz(100)),
+    )
+    .unwrap()
+    .with_sda(screen_io.sda)
+    .with_scl(screen_io.scl)
+    .into_async();
+
+    // let interface = I2CDisplayInterface::new(i2c);
+
+    use ssd1306::{Ssd1306, prelude::*};
+    let mut display = Ssd1306::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
+        // .into_buffered_graphics_mode();
+        // FIXME
+        .into_terminal_mode();
+
+    // FIXME esp_hal I2c doesn't implement WriteOnlyDataCommand
+    // display.init().unwrap();
+    warn!("screen not implemented");
+    // info!("screen initialized");
+
+    // TODO run screen handler
+
+    panic!("screen task ended");
 }
 
 /// convenience struct for the LoRa radio IO interfaces
@@ -161,6 +222,25 @@ async fn task_lora(lora_io: LoraIo) {
     // repeater.run().await;
 
     panic!("LoRa task ended");
+}
+
+// #[cfg(feature = "enmesh_wifi")]
+#[embassy_executor::task]
+async fn task_wifi(wifi_peripheral: esp_hal::peripherals::WIFI<'static>) {
+    let (_controller, _interfaces) = esp_radio::wifi::new(
+        wifi_peripheral,
+        esp_radio::wifi::ControllerConfig::default()
+            //TODO  .with_country_info(country_info)
+            .with_initial_config(esp_radio::wifi::Config::AccessPointStation(
+                esp_radio::wifi::sta::StationConfig::default(),
+                // FIXME (set the SSID per the MAC)
+                esp_radio::wifi::ap::AccessPointConfig::default(),
+            )),
+    )
+    .unwrap();
+
+    // TODO...
+    // https://github.com/esp-rs/esp-hal/blob/main/examples/wifi/embassy_access_point/src/main.rs
 }
 
 // /// convenience structure for USB serial interfaces
