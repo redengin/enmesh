@@ -791,11 +791,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
+name = "enmesh"
+version = "0.1.0"
+
+[[package]]
 name = "enmesh-firmware-heltec-v3"
 version = "0.1.0"
 dependencies = [
  "common",
  "embassy-executor",
+ "enmesh",
  "esp-hal",
  "esp-rtos",
  "soc-esp32",

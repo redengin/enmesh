@@ -8,6 +8,7 @@ publish = false
 [dependencies]
 common = { path = "../../common" }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
+enmesh = { path = "../../../Enmesh" }
 # meshcore-firmware = { path = "../../meshcore" }
 
 # FIXME - the following dependencies must exist for esp-rs to build executable
