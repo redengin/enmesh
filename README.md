@@ -26,8 +26,22 @@ C4Component
     BiRel(mobile_app, enmesh_endpoint, "bridges local <br> LoRa to internet")
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
-
 ```
+* Secured by encryption
+  * MeshCore
+    * public channels (#<channel>) use a known private key
+      * as the private key is known, anyone can create a message
+    * user-to-user channels are more secure as only the public keys are necessary
+      * sharing public keys
+        * advert - publish your public key to the mesh
+        * socially - provide your public key to the other user
+  * Meshtastic
+    * each channel uses an AES256-CTR key
+      * there is one common channel with a known key
+    * users must have the channel key to transmit/receive messages 
+      * sharing channel keys
+        * socially - provide the channel key to the other user
+
 
 Background
 --------------------------------------------------------------------------------
