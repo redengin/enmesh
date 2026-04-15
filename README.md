@@ -29,7 +29,7 @@ C4Component
 ```
 * Secured by encryption
   * MeshCore
-    * public channels (#<channel>) use a known private key
+    * public channels (#\<channel>) use a known private key
       * as the private key is known, anyone can create a message
     * user-to-user channels are more secure as only the public keys are necessary
       * sharing public keys
