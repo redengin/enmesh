@@ -42,7 +42,7 @@ C4Component
       * there is one common channel with a known key
     * users must have the channel key to transmit/receive messages 
       * sharing channel keys
-        * socially - provide the channel key to the other userS
+        * socially - provide the channel key to the other user
   * Enmesh - [uses asymmetric cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography)
       (public_key, private_key)
       * messages exchanged between an `enmesh endpoint` (internet service) and the `node` (local device)
