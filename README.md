@@ -28,19 +28,27 @@ C4Component
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 ```
 * Secured by encryption
-  * MeshCore
+  * MeshCore - [uses asymmetric cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography)
+      (public_key, private_key)
     * public channels (#\<channel>) use a known private key
       * as the private key is known, anyone can create a message
     * user-to-user channels are more secure as only the public keys are necessary
       * sharing public keys
         * advert - publish your public key to the mesh
         * socially - provide your public key to the other user
-  * Meshtastic
-    * each channel uses an AES256-CTR key
+  * Meshtastic - [uses symmetric cryptography](https://en.wikipedia.org/wiki/Symmetric-key_algorithm)
+      (single key)
+    * each channel uses a key
       * there is one common channel with a known key
     * users must have the channel key to transmit/receive messages 
       * sharing channel keys
-        * socially - provide the channel key to the other user
+        * socially - provide the channel key to the other userS
+  * Enmesh - [uses asymmetric cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography)
+      (public_key, private_key)
+      * messages exchanged between an `enmesh endpoint` (internet service) and the `node` (local device)
+          are encrypted by an exchange of public keys upon connection (like ssh)
+        * as the exchange doesn't expose the private keys, exchanges between an `enmesh endpoint`
+            and `node` are secured.
 
 
 Background
