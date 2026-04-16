@@ -1,6 +1,5 @@
 
-// FIXME this should probably just be stdio
-// pub(crate) mod usb;
+pub(crate) mod usb_serial;
 
 pub(crate) mod ux;
 

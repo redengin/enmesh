@@ -77,13 +77,15 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("creating usb serial task...");
     // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
     configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
-    // FIXME esp_hal automatically creates a USB Serial - need to chain into it
-    // let usb_serial_io = tasks::usb::UsbSerialIo {
-    //     usb: peripherals.USB0,
-    //     d_neg: peripherals.GPIO19,
-    //     d_pos: peripherals.GPIO20,
-    // };
-    // spawner.spawn(tasks::usb::task_usb_serial(usb_serial_io).unwrap());
+    let usb_serial_io = tasks::usb_serial::UsbSerialIo {
+        // usb: peripherals.USB0,
+        // d_neg: peripherals.GPIO19,
+        // d_pos: peripherals.GPIO20,
+        uart: peripherals.UART0,
+        rx: peripherals.GPIO44,
+        tx: peripherals.GPIO43,
+    };
+    spawner.spawn(tasks::usb_serial::task_usb_serial(usb_serial_io).unwrap());
     debug!("usb serial task created");
 
     debug!("creating screen task...");
