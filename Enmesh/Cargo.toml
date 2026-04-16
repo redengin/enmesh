@@ -6,16 +6,18 @@ edition = "2024"
 publish = false
 
 [dependencies]
-# TODO do we want iso3166
-# rust_iso3166 = "*"
+# LoRa support
+lora-modulation = "*"
 
 # embedded support
 embedded-graphics = "*"
 embedded-layout = "*"
 embassy-time = "*"
 
-# LoRa support
-lora-modulation = "*"
+# additional enmesh dependencies
+# TODO do we want iso3166
+# rust_iso3166 = "*"    # NOT nostd compatible
+
 
 [dev-dependencies]
 # ux example support

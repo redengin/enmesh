@@ -881,6 +881,7 @@ dependencies = [
  "embassy-time",
  "embedded-graphics",
  "embedded-layout",
+ "lora-modulation",
 ]
 
 [[package]]
