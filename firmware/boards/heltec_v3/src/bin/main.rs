@@ -138,5 +138,4 @@ fn configure_usb_serial(
     // embassy_usb_serial_config.device_sub_class = 0x02;
     // embassy_usb_serial_config.device_protocol = 0x01;
     // embassy_usb_serial_config.composite_with_iads = true;
-
 }

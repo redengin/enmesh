@@ -34,8 +34,16 @@ pub(crate) async fn task_usb_serial(usb_serial_io: UsbSerialIo) {
     loop {
         let mut buffer = [0u8; 1];
         if let Ok(read) = serial.read_async(&mut buffer).await {
-            // echo
-            let _ = serial.write_async(&buffer[0..read]).await;
+            if read > 0 {
+                // echo
+                let _ = serial.write_async(&buffer[0..read]).await;
+                // add a newline for \r
+                if buffer[read - 1] == '\r' as u8 {
+                    const NEWLINE:u8 = '\n' as u8;
+                    buffer[0] = NEWLINE;
+                    let _ = serial.write_async(&buffer[0..read]).await;
+                }
+            }
         }
     }
 }
