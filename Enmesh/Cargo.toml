@@ -14,15 +14,18 @@ embedded-graphics = "*"
 embedded-layout = "*"
 embassy-time = "*"
 
+# LoRa support
+lora-modulation = "*"
+
 [dev-dependencies]
 # ux example support
-embedded-graphics-simulator = { version = "*", default-features = false, features = ["with-sdl"] }
+embedded-graphics-simulator = { version = "*", default-features = false, features = [
+    "with-sdl",
+] }
 
 
 [features]
-std = [
-
-]
+std = []
 
 # ux choice for demonstrations
 ux-heltec = []

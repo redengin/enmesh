@@ -207,6 +207,7 @@ dependencies = [
  "embedded-graphics",
  "embedded-graphics-simulator",
  "embedded-layout",
+ "lora-modulation",
 ]
 
 [[package]]
@@ -279,6 +280,12 @@ name = "litrs"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
+
+[[package]]
+name = "lora-modulation"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c96c4a41a1f1ad04de765306e1829c7007a37898fe4033204fa82cf2e055624"
 
 [[package]]
 name = "micromath"
