@@ -16,9 +16,12 @@ Enmesh LoRa
 Should Meshtastic/Meschore designs fail to mitigate congestion,
 enmesh provides an alternative that does mitigate congestion.
 
-Congestion Mitigations
-* leverage [NFC standards](https://www.iso.org/standard/82095.html) - to choose
-    which sender to listen to
+[Congestion Mitigations](congestion.md)
+* constrain airtime duration - by limiting LoRa transmission duration, more
+        LoRa transmitters (users) are allowed to participate
+    * LoRa should be expected to be a lossy channel (i.e. packet transmission aren't guaranteed)
+        * when the sender/receiver requires a lossless channel - they need to leverage a sync
+            protocol (if the transmission wasn't acknowleged - resend the transmission)
 
 
 Bridging LoRa traffic - Universal LoRa Communication

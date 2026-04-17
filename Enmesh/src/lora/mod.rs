@@ -2,9 +2,17 @@ use log::*;
 
 /// used to configure the LoRa radio
 pub struct LoRaModulationConfig {
+    /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
+
+    /// see [Link Budget](https://meshtastic.org/docs/overview/radio-settings/#presets)
+    /// for how the bandwidth impacts the range
     pub bandwidth: lora_modulation::Bandwidth,
+    /// see [Link Budget](https://meshtastic.org/docs/overview/radio-settings/#presets)
+    /// for how the spreading factor impacts the range
     pub spreading_factor: lora_modulation::SpreadingFactor,
+    /// see [Link Budget](https://meshtastic.org/docs/overview/radio-settings/#presets)
+    /// for how the coding rate impacts the range
     pub coding_rate: lora_modulation::CodingRate,
 
     /// maximum duration a transmitter can actively transmit
@@ -21,6 +29,7 @@ pub struct LoRaPacketConfig {
     /// used if network uses statically sized packets (i.e. radio doesn't transmit a LoRa header)
     pub implicit_header: bool,
     /// packet will only be recognized by a receiver using the same iq mode
+    /// * doesn't mitigate congestion
     pub iq_inverted: bool,
 }
 
