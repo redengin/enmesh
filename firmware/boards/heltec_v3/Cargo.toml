@@ -10,6 +10,7 @@ common = { path = "../../common" }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
 enmesh-firmware = { path = "../../enmesh" }
 # meshcore-firmware = { path = "../../meshcore" }
+enmesh = { path = "../../../Enmesh" }
 
 # FIXME local crates necessary for build (should be imported form soc_esp32)
 embassy-executor = { version = "*", features = ["log"] }

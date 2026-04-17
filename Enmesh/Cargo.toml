@@ -6,8 +6,11 @@ edition = "2024"
 publish = false
 
 [dependencies]
+log = "*"
+
 # LoRa support
 lora-modulation = "*"
+lora-phy = "*"
 
 # embedded support
 embedded-graphics = "*"
