@@ -69,18 +69,14 @@ where
         .create_rx_packet_params(
             packet_config.preamble_length,
             packet_config.implicit_header,
-            if packet_config.implicit_header {
-                packet_config.max_payload_length
-            } else {
-                0
-            },
+            packet_config.max_payload_length,
             packet_config.crc,
             packet_config.iq_inverted,
             &modulation_params,
         )
         .unwrap();
 
-    let mut buffer = [0u8, packet_config.max_payload_length];
+    let mut buffer = [0u8; 255];
 
     lora_radio
         .prepare_for_rx(
