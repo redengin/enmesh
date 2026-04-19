@@ -1,3 +1,4 @@
+/// provide logging primitives
 use log::*;
 
 /// used to configure the LoRa radio
@@ -41,7 +42,7 @@ pub trait LoRaTxRx {
 }
 
 /// handle the exchange of LoRa traffic
-pub async fn run<LoRaRk, LoRaDly>(mut lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>)
+pub async fn run<LoRaRk, LoRaDly>(lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>)
 where
     LoRaRk: lora_phy::mod_traits::RadioKind,
     LoRaDly: lora_phy::DelayNs,
@@ -55,17 +56,6 @@ where
         // this is an enmesh extension
         air_time: core::time::Duration::from_millis(100),
     };
-
-    let modulation_params = lora_radio
-        .create_modulation_params(
-            modulation_config.spreading_factor,
-            modulation_config.bandwidth,
-            modulation_config.coding_rate,
-            modulation_config.frequency_hz,
-        )
-        .unwrap();
-
-    // configured for Meshcore
     let packet_config = LoRaPacketConfig {
         preamble_length: 8,
         max_payload_length: 255,
@@ -74,6 +64,30 @@ where
         iq_inverted: false,
     };
 
+    // perform a cycle
+    do_rx(lora_radio, modulation_config, packet_config).await;
+
+}
+
+
+async fn do_rx<LoRaRk, LoRaDly>(
+    mut lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>,
+    modulation_config: LoRaModulationConfig,
+    packet_config:  LoRaPacketConfig,
+)
+    where
+        LoRaRk: lora_phy::mod_traits::RadioKind,
+        LoRaDly: lora_phy::DelayNs,
+{
+    // configure the radio
+    let modulation_params = lora_radio
+        .create_modulation_params(
+            modulation_config.spreading_factor,
+            modulation_config.bandwidth,
+            modulation_config.coding_rate,
+            modulation_config.frequency_hz,
+        )
+        .unwrap();
     let packet_params = lora_radio
         .create_rx_packet_params(
             packet_config.preamble_length,
@@ -84,9 +98,6 @@ where
             &modulation_params,
         )
         .unwrap();
-
-    let mut buffer = [0u8; 255];
-
     lora_radio
         .prepare_for_rx(
             lora_phy::RxMode::Continuous,
@@ -95,6 +106,10 @@ where
         )
         .await
         .unwrap();
+
+
+
+    let mut buffer = [0u8; 255];
 
     loop {
         info!("LoRa: awaiting packet...");
@@ -108,4 +123,5 @@ where
             Err(err) => error!("failed rx [{:?}]", err),
         }
     }
+
 }
