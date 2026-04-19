@@ -74,7 +74,8 @@ pub async fn task_lora(lora_io: LoraIo) {
     info!("LoRa radio initialized");
 
     // run the repeater handler
-    enmesh::lora::run(lora_radio).await;
+    // enmesh::lora::run(lora_radio).await;
+    enmesh_firmware::lora::run(lora_radio).await;
 
     // panic!("LoRa task ended");
 }

@@ -1,8 +1,13 @@
 /// provide logging primitives
 use log::*;
 
-/// used to configure the LoRa radio
-pub struct LoRaModulationConfig {
+pub struct EnmeshLoRaChannel {
+    pub modulation_config: EnmeshLoRaModulationConfig,
+    pub packet_config: EnmeshLoRaPacketConfig,
+}
+
+/// used to configure the LoRa radio modulation
+pub struct EnmeshLoRaModulationConfig {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
 
@@ -20,8 +25,8 @@ pub struct LoRaModulationConfig {
     pub air_time: core::time::Duration,
 }
 
-/// used to configure the LoRa send/receive
-pub struct LoRaPacketConfig {
+/// used to configure the LoRa packet recognition
+pub struct EnmeshLoRaPacketConfig {
     /// smaller preambles minimize power usage
     pub preamble_length: u16,
     pub max_payload_length: u8,
@@ -34,12 +39,25 @@ pub struct LoRaPacketConfig {
     pub iq_inverted: bool,
 }
 
-use core::fmt::Error;
-
-pub trait LoRaTxRx {
-    fn transmit(&self, raw_packet: &[u8]) -> Result<usize, Error>;
-    fn receive(&self, raw_packet: &mut [u8]) -> Result<usize, Error>;
+/// record the signal quality (rssi/snr) to influence transmit power
+pub struct ReceivedLoRaPacket {
+    pub rssi: i16,
+    pub snr: i16,
+    pub buffer: [u8],
 }
+
+pub trait LoRaProtocolRepeater
+{
+    fn cycle(&mut self, lora_channel: EnmeshLoRaChannel);
+}
+
+
+
+// support Meshtastic
+pub mod meshtastic;
+
+// support MeshCore
+pub mod meshcore;
 
 /// handle the exchange of LoRa traffic
 pub async fn run<LoRaRk, LoRaDly>(lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>)
@@ -48,7 +66,7 @@ where
     LoRaDly: lora_phy::DelayNs,
 {
     // configured for Meshcore BOSTON
-    let modulation_config = LoRaModulationConfig {
+    let modulation_config = EnmeshLoRaModulationConfig {
         frequency_hz: 910_525_000,
         bandwidth: lora_modulation::Bandwidth::_62KHz,
         spreading_factor: lora_modulation::SpreadingFactor::_7,
@@ -56,7 +74,7 @@ where
         // this is an enmesh extension
         air_time: core::time::Duration::from_millis(100),
     };
-    let packet_config = LoRaPacketConfig {
+    let packet_config = EnmeshLoRaPacketConfig {
         preamble_length: 8,
         max_payload_length: 255,
         crc: true,
@@ -65,19 +83,16 @@ where
     };
 
     // perform a cycle
-    do_rx(lora_radio, modulation_config, packet_config).await;
-
+    do_cycle(lora_radio, modulation_config, packet_config).await;
 }
 
-
-async fn do_rx<LoRaRk, LoRaDly>(
+async fn do_cycle<LoRaRk, LoRaDly>(
     mut lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>,
-    modulation_config: LoRaModulationConfig,
-    packet_config:  LoRaPacketConfig,
-)
-    where
-        LoRaRk: lora_phy::mod_traits::RadioKind,
-        LoRaDly: lora_phy::DelayNs,
+    modulation_config: EnmeshLoRaModulationConfig,
+    packet_config: EnmeshLoRaPacketConfig,
+) where
+    LoRaRk: lora_phy::mod_traits::RadioKind,
+    LoRaDly: lora_phy::DelayNs,
 {
     // configure the radio
     let modulation_params = lora_radio
@@ -107,8 +122,6 @@ async fn do_rx<LoRaRk, LoRaDly>(
         .await
         .unwrap();
 
-
-
     let mut buffer = [0u8; 255];
 
     loop {
@@ -123,5 +136,4 @@ async fn do_rx<LoRaRk, LoRaDly>(
             Err(err) => error!("failed rx [{:?}]", err),
         }
     }
-
 }

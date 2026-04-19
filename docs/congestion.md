@@ -64,5 +64,5 @@ node from the received packets.
 
 <hr/>
 
-### References
+<!-- Footnotes -->
 [^1]: https://meshtastic.org/blog/why-your-mesh-should-switch-from-longfast/

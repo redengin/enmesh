@@ -4,7 +4,7 @@
 pub mod ux;
 
 /// provide enmesh LoRa support
-pub mod repeater;
+pub mod lora;
 
 /// support boards that allow turning off peripherals (i.e. save power)
 pub trait PowerControl {
