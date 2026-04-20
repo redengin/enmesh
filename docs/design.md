@@ -70,8 +70,11 @@ RepeaterTransmitQueue.
 
 ```mermaid
 flowchart
-    * --> RX
-    RX("receive")
+    * --> CAD{{is the LoRa channel active?}}
+        CAD --True--> Rx
+        CAD --False--> Tx
+    Rx --> CAD
+    Tx
 ```
 
 Bridging LoRa traffic - Universal LoRa Communication
