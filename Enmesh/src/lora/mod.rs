@@ -46,9 +46,20 @@ pub struct ReceivedLoRaPacket {
     pub buffer: [u8],
 }
 
-pub trait LoRaProtocolRepeater
+pub trait LoRaProtocol
 {
-    fn cycle(&mut self, lora_channel: EnmeshLoRaChannel);
+    /// handle LoRa traffic as a repeater
+    /// RX -> process -> TX
+    /// * process
+    ///     * if 
+    ///     * handle any repeater specific protocols
+    ///     * create a sequence of packets to transmit
+    ///         * ordered by repeater based priority
+    ///             * generally, repeater-to-repeater traffic should be lower
+    ///                 priority than user traffic
+    /// * TX
+    ///     * transmit packets by priority
+    fn repeater_cycle(&mut self, lora_channel: EnmeshLoRaChannel);
 }
 
 
