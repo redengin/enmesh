@@ -70,7 +70,6 @@ pub async fn task_lora(lora_io: LoraIo) {
     )
     .await
     .unwrap();
-
     info!("LoRa radio initialized");
 
     // run the repeater handler

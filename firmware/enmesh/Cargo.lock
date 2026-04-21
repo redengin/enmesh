@@ -694,6 +694,7 @@ dependencies = [
  "embassy-time",
  "embedded-graphics",
  "embedded-layout",
+ "heapless 0.8.0",
  "log",
  "lora-modulation",
  "lora-phy",

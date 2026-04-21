@@ -11,11 +11,11 @@ log = "*"
 
 # embedded utils
 #-------------------------------------------------------------------------------
-# critical-section = "*"
 static_cell = "*"
 embedded-hal = "*"
 embedded-graphics = "*"
 embedded-storage = "*"
+# critical-section = "*"
 #-------------------------------------------------------------------------------
 
 # use the embassay RTOS

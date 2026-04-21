@@ -6,11 +6,11 @@ pub use log;
 // embedded utils
 //------------------------------------------------------------------------------
 pub use embedded_hal;
-pub use embedded_graphics;
-pub use embedded_storage;
 pub use static_cell;
 mod button;
 pub use button::{Button, ButtonState};
+pub use embedded_graphics;
+pub use embedded_storage;
 //------------------------------------------------------------------------------
 
 // embassy RTOS support

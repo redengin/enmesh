@@ -1,7 +1,7 @@
 /// provide logging primitives
 use log::*;
 
-pub struct EnmeshLoRaChannel {
+pub struct EnmeshLoRaChannelConfig {
     pub modulation_config: EnmeshLoRaModulationConfig,
     pub packet_config: EnmeshLoRaPacketConfig,
 }
@@ -48,6 +48,9 @@ pub struct ReceivedLoRaPacket {
 
 pub trait LoRaProtocol
 {
+    /// used to trigger radio calibration when the frequency changes
+    fn get_lora_frequency_hz(&self) -> u32;
+
     /// handle LoRa traffic as a repeater
     /// RX -> process -> TX
     /// * process
@@ -59,16 +62,24 @@ pub trait LoRaProtocol
     ///                 priority than user traffic
     /// * TX
     ///     * transmit packets by priority
-    fn repeater_cycle(&mut self, lora_channel: EnmeshLoRaChannel);
+    async fn do_cycle(&mut self, lora_radio: &mut impl lora_phy::mod_traits::RadioKind);
+
+    // fn add_tranmit_packet(&mut self, buffer:[u8]);
 }
-
-
 
 // support Meshtastic
 pub mod meshtastic;
 
 // support MeshCore
 pub mod meshcore;
+
+// pub struct EnmeshLoRa {
+// }
+// impl 
+//     pub async fn cycle(lora_protcol: &impl LoRaProtocol) {
+
+//     }
+// }
 
 /// handle the exchange of LoRa traffic
 pub async fn run<LoRaRk, LoRaDly>(lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>)
