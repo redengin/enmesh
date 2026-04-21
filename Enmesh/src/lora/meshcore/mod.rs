@@ -4,7 +4,7 @@ const TAG: &str = "MeshCoreLoRa";
 const MAX_PACKETS: usize = 255;
 const MAX_PACKET_SIZE: usize = 255;
 pub struct LoRaPacket {
-    len : usize,
+    pub len : u8,
     buffer: [u8; MAX_PACKET_SIZE],
 }
 
@@ -80,17 +80,26 @@ impl LoRaProtocol for MeshCoreLora {
 
                 // TODO set transmit power (dynamically scaled to meet recievers)
 
-                // prepare for transmit
-                lora_radio.create_packet_params(
-                    self.lora_channel_config.packet_config.preamble_length,
-                    self.lora_channel_config.packet_config.implicit_header,
-                    self.lora_channel_config.packet_config.max_payload_length,
-                    self.lora_channel_config.packet_config.crc,
-                    self.lora_channel_config.packet_config.iq_inverted,
-                    &modulation_params).unwrap();
-                
-                // transmit packets
-                // FIXME lora_radio.do_tx().await;
+                while self.tx_queue.len() > 0 {
+                    let packet = self.tx_queue.get(0).unwrap();
+                    // prepare for transmit
+                    lora_radio.create_packet_params(
+                        self.lora_channel_config.packet_config.preamble_length,
+                        self.lora_channel_config.packet_config.implicit_header,
+                        packet.len,
+                        self.lora_channel_config.packet_config.crc,
+                        self.lora_channel_config.packet_config.iq_inverted,
+                        &modulation_params).unwrap();
+                    
+                    // transmit packet
+                    match lora_radio.do_tx().await {
+                        Ok(_) => { self.tx_queue.pop_front(); }
+                        Err(err) => {
+                            warn!("{TAG} failed to send packet: {:?}", err);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
