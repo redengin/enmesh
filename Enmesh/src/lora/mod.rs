@@ -22,7 +22,7 @@ pub struct EnmeshLoRaModulationConfig {
     pub coding_rate: lora_modulation::CodingRate,
 
     /// maximum duration a transmitter can actively transmit
-    pub air_time: core::time::Duration,
+    pub air_time: embassy_time::Duration,
 }
 
 /// used to configure the LoRa packet recognition
@@ -94,7 +94,7 @@ where
         spreading_factor: lora_modulation::SpreadingFactor::_7,
         coding_rate: lora_modulation::CodingRate::_4_5,
         // this is an enmesh extension
-        air_time: core::time::Duration::from_millis(100),
+        air_time: embassy_time::Duration::from_millis(100),
     };
     let packet_config = EnmeshLoRaPacketConfig {
         preamble_length: 8,

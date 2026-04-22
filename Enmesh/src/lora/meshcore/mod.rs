@@ -12,6 +12,11 @@ pub struct MeshCoreLora {
     pub lora_channel_config: EnmeshLoRaChannelConfig,
 
     tx_queue: heapless::deque::Deque<LoRaPacket, MAX_PACKETS>,
+
+    /// has lora radio been cold started?
+    radio_has_cold_started: bool,
+    /// has the lora radio been calibrated?
+    radio_is_calibrated : bool,
 }
 impl MeshCoreLora {
     pub fn new(
@@ -21,12 +26,11 @@ impl MeshCoreLora {
         Self {
             lora_channel_config,
             tx_queue: heapless::Deque::new(),
+            radio_has_cold_started: false,
+            radio_is_calibrated: false,
         }
     }
 
-    pub fn listen(&mut self, _lora_radio: &mut impl lora_phy::mod_traits::RadioKind) {
-        // FIXME implement
-    }
 }
 
 impl LoRaProtocol for MeshCoreLora {
@@ -57,7 +61,7 @@ impl LoRaProtocol for MeshCoreLora {
 
         if self.tx_queue.is_empty() {
             // nothing to send, so just listen
-            self.listen(lora_radio);
+            // self.listen(lora_radio);
         }
         else {
             // see if the channel is available for transmit
@@ -73,12 +77,39 @@ impl LoRaProtocol for MeshCoreLora {
 
             if is_channel_active {
                 // listen to the current transmitter
-                self.listen(lora_radio);
+                // self.listen(lora_radio);
             }
             else {
                 // send our packets
+                let tx_start = embassy_time::Instant::now();
 
+                // prepare for tx
+                lora_radio.ensure_ready(lora_phy::mod_params::RadioMode::Transmit).await.unwrap();
+                lora_radio.set_standby().await.unwrap();
+                if !self.radio_has_cold_started {
+                    lora_radio.init_lora(true).await.unwrap();
+                    lora_radio.set_tx_power_and_ramp_time(0, None, false).await.unwrap();
+                    lora_radio.set_irq_params(None).await.unwrap();
+                    self.radio_has_cold_started = true;
+                }
+                if !self.radio_is_calibrated {
+                    lora_radio.calibrate_image(self.lora_channel_config.modulation_config.frequency_hz).await.unwrap();
+                    self.radio_is_calibrated = true;
+                }
+                lora_radio.set_modulation_params(&modulation_params).await.unwrap();
                 // TODO set transmit power (dynamically scaled to meet recievers)
+                const TX_POWER: i32 = 28;
+                lora_radio.set_tx_power_and_ramp_time(
+                    TX_POWER,
+                    Some(&modulation_params),
+                    true).await.unwrap();
+                lora_radio.ensure_ready(lora_phy::mod_params::RadioMode::Transmit).await.unwrap();
+                lora_radio.set_standby().await.unwrap();
+                // FIXME lora_radio.set_packet_params(pkt_params);
+                lora_radio.set_channel(self.lora_channel_config.modulation_config.frequency_hz).await.unwrap();
+                // lora_radio.set_payload(buffer).await.unwrap();
+                lora_radio.set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit)).await.unwrap();
+
 
                 while self.tx_queue.len() > 0 {
                     let packet = self.tx_queue.get(0).unwrap();
@@ -99,6 +130,12 @@ impl LoRaProtocol for MeshCoreLora {
                             break;
                         }
                     }
+
+                    // stop transmitting if we've exceeded airtime
+                    if (embassy_time::Instant::now() - tx_start) >
+                        self.lora_channel_config.modulation_config.air_time {
+                            break;
+                        }
                 }
             }
         }
