@@ -1,8 +1,12 @@
 #![no_std]
 
+/// provide storage traits
+pub mod storage;
+
 /// globally shared state for firmware
 /// configuration, status, etc.
-pub mod state;
+mod state;
+pub use state::State;
 
 /// provide a UX experience
 pub mod ux;

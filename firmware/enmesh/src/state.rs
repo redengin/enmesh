@@ -1,5 +1,4 @@
 /// globally shared state for firmware
-
 #[derive(Default)]
 pub struct State {
     /// settings (persisted in non-volatile memory)
@@ -56,6 +55,7 @@ pub struct Settings {
     meshtastic_settings: MeshtasticSettings,
     meshcore_settings: MeshCoreSettings,
 }
+
 
 #[derive(Default)]
 pub struct UxSettings {

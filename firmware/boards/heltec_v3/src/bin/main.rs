@@ -45,7 +45,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     let storage = storage::AppPartitions::new(peripherals.FLASH);
     debug!("storage initialized");
     debug!("initializing state...");
-    let initial_state = enmesh_firmware::state::State::new();
+    let initial_state = enmesh_firmware::State::new();
     let global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
     debug!("state initialized");
 
