@@ -1,7 +1,8 @@
 /// provide logging primitives
 use log::*;
 
-pub struct EnmeshLoRaChannelConfig {
+#[derive(Default)]
+pub struct EnmeshLoRaConfig {
     pub modulation_config: EnmeshLoRaModulationConfig,
     pub packet_config: EnmeshLoRaPacketConfig,
 }
@@ -24,8 +25,20 @@ pub struct EnmeshLoRaModulationConfig {
     /// maximum duration a transmitter can actively transmit
     pub air_time: embassy_time::Duration,
 }
+impl Default for EnmeshLoRaModulationConfig {
+    fn default() -> Self {
+        Self {
+            frequency_hz: 0,
+            bandwidth: lora_modulation::Bandwidth::_250KHz,
+            spreading_factor: lora_modulation::SpreadingFactor::_6,
+            coding_rate: lora_modulation::CodingRate::_4_5,
+            air_time: embassy_time::Duration::from_millis(100),
+        } 
+    }
+}
 
 /// used to configure the LoRa packet recognition
+#[derive(Default)]
 pub struct EnmeshLoRaPacketConfig {
     /// smaller preambles minimize power usage
     pub preamble_length: u16,

@@ -9,8 +9,7 @@ use soc_esp32::*; // (provides the panic handler)
 use log::*;
 
 /// provide storage (for settings and stored LoRa traffic)
-// FIXME not using storage yet
-// mod storage;
+mod storage;
 
 /// provide task implementations
 mod tasks;
@@ -42,12 +41,13 @@ async fn main(spawner: embassy_executor::Spawner) {
     // esp_rtos::start_with_idle_hook(timg0.timer0, sw_int.software_interrupt0, idle_hook);
     debug!("RTOS initialized");
 
-    // FIXME not using storage yet
-    // debug!("initializing storage...");
-    // let storage = storage::AppPartitions::new(peripherals.FLASH);
-    // debug!("storage initialized");
-    // let mut raw_storage_buffer: [u8; 10000];
-    // storage.load_settings_raw(&mut raw_storage_buffer).await.unwrap();
+    debug!("initializing storage...");
+    let storage = storage::AppPartitions::new(peripherals.FLASH);
+    debug!("storage initialized");
+    debug!("initializing state...");
+    let initial_state = enmesh_firmware::state::State::new();
+    let global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
+    debug!("state initialized");
 
     // create the tasks
 

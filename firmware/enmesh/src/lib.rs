@@ -1,5 +1,9 @@
 #![no_std]
 
+/// globally shared state for firmware
+/// configuration, status, etc.
+pub mod state;
+
 /// provide a UX experience
 pub mod ux;
 

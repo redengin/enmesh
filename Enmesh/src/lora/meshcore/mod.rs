@@ -9,7 +9,7 @@ pub struct LoRaPacket {
 }
 
 pub struct MeshCoreLora {
-    pub lora_channel_config: EnmeshLoRaChannelConfig,
+    pub lora_channel_config: EnmeshLoRaConfig,
 
     tx_queue: heapless::deque::Deque<LoRaPacket, MAX_PACKETS>,
 
@@ -20,7 +20,7 @@ pub struct MeshCoreLora {
 }
 impl MeshCoreLora {
     pub fn new(
-        lora_channel_config: EnmeshLoRaChannelConfig,
+        lora_channel_config: EnmeshLoRaConfig,
     ) -> Self
     {
         Self {
