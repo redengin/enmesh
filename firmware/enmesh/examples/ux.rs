@@ -56,6 +56,8 @@ fn run<Color>(
     // allow UX to use max colors (which will be converted into actual display Color)
     Color: PixelColor + Into<Rgb888> + From<Rgb888>,
 {
+    // create our enmesh State (used as Ux model)
+    let state = enmesh_firmware::State::new();
     // create our enmesh ux instance
     let mut ux = enmesh_firmware::ux::Ux::new();
     // create our enmesh ux theme
@@ -144,7 +146,8 @@ fn run<Color>(
 
         // update the simulated display
         let mut rgb_screen = screen.color_converted();
-        ux.update(&mut rgb_screen, &theme);
+        // ux.update(&mut rgb_screen, &theme);
+        ux.refresh(&mut rgb_screen, &state, &theme);
 
         // sleep for a frame period
         const FPS_HZ: u64 = 10;

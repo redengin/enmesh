@@ -27,7 +27,6 @@ impl Pages {
     }
 }
 
-
 pub struct Ux {
     /// use enum to track current page
     current_page: Pages,
@@ -43,8 +42,7 @@ impl Ux {
         }
     }
 
-    fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme)
-    {
+    fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
         use embedded_graphics::text::Text;
         use embedded_layout::layout::linear::LinearLayout;
         use embedded_layout::layout::linear::spacing::DistributeFill;
@@ -54,13 +52,41 @@ impl Ux {
 
         let _ = LinearLayout::horizontal(
             Chain::new(Text::new(
-                if self.current_page == Pages::Home { "^" } else { "." }, Point::zero(), theme.text_style))
-                .append(Text::new(
-                if self.current_page == Pages::MeshCore { "^" } else { "." }, Point::zero(), theme.text_style,))
-                .append(Text::new(
-                if self.current_page == Pages::MeshTastic { "^" } else { "." }, Point::zero(), theme.text_style,))
-                .append(Text::new(
-                if self.current_page == Pages::Hibernate{ "^" } else { "." }, Point::zero(), theme.text_style,))
+                if self.current_page == Pages::Home {
+                    "^"
+                } else {
+                    "."
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if self.current_page == Pages::MeshCore {
+                    "^"
+                } else {
+                    "."
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if self.current_page == Pages::MeshTastic {
+                    "^"
+                } else {
+                    "."
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if self.current_page == Pages::Hibernate {
+                    "^"
+                } else {
+                    "."
+                },
+                Point::zero(),
+                theme.text_style,
+            )),
         )
         .with_spacing(DistributeFill(display.bounding_box().size.width))
         .arrange()
@@ -69,13 +95,16 @@ impl Ux {
     }
 }
 
-
 use embedded_graphics::{primitives::Rectangle, text::renderer::TextRenderer};
 
 impl Page for Ux {
     /// repaint the whole screen
-    fn refresh(&mut self, screen: &mut impl DrawTargetExt<Color=Rgb888>, theme: &Theme)
-    {
+    fn refresh(
+        &mut self,
+        screen: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    ) {
         // get the screen size
         let bounding_box = screen.bounding_box();
         // reserve space for the tab_bar
@@ -92,7 +121,7 @@ impl Page for Ux {
 
         // refresh the current page
         match self.current_page {
-            Pages::Home => self.home_page.refresh(&mut page_display, &theme),
+            Pages::Home => self.home_page.refresh(&mut page_display, model, &theme),
             // FIXME handle all pages
             _ => {}
         }
@@ -110,7 +139,7 @@ impl Page for Ux {
         let handled = match self.current_page {
             Pages::Home => self.home_page.handle_event(&event),
             // FIXME handle all pages
-            _ => false
+            _ => false,
         };
         if !handled {
             match event {
@@ -129,9 +158,8 @@ impl Page for Ux {
 
     /// update the display
     /// * only needs to update changed items
-    fn update(&mut self, display: &mut impl DrawTargetExt<Color=Rgb888>, theme: &Theme)
-    {
+    fn update(&mut self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
         // FIXME for now just do a full refresh
-        self.refresh(display, theme);
+        // self.refresh(display, theme);
     }
 }

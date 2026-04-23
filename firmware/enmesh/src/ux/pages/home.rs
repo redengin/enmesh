@@ -31,7 +31,12 @@ impl Home {
 
 impl crate::ux::Page for Home {
     /// repaint the whole display
-    fn refresh(&mut self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
+    fn refresh(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    ) {
         self.repaint(display, &theme);
     }
 
@@ -45,6 +50,6 @@ impl crate::ux::Page for Home {
     /// * only needs to update changed items
     fn update(&mut self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
         // FIXME for now just refresh the whole screen
-        self.refresh(display, theme);
+        // self.refresh(display, theme);
     }
 }

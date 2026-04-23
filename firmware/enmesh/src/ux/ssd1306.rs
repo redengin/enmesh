@@ -17,6 +17,10 @@ pub async fn run<ScreenInterface, ScreenSize>(
     ScreenInterface: display_interface::WriteOnlyDataCommand,
     ScreenSize: ssd1306::size::DisplaySize,
 {
+    // FIXME needs a state:State parameter
+    let state = crate::State::new();
+
+
     // power on the screen
     power_control.power_on().await;
 
@@ -72,7 +76,7 @@ pub async fn run<ScreenInterface, ScreenSize>(
 
         // update the UX
         use crate::ux::Page;
-        ux.refresh(&mut rgb_screen, &theme);
+        ux.refresh(&mut rgb_screen, &state, &theme);
         screen.flush().ok(); // must call flush to commit the changes to the screen
 
         // await the next cycle

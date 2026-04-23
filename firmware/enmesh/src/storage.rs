@@ -14,7 +14,7 @@ pub enum StorageError {
     NoPartition,
     OperationFailed,
 }
-use core::fmt::{self, write};
+use core::fmt;
 impl fmt::Display for StorageError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
        match self {

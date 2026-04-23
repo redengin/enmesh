@@ -39,7 +39,11 @@ pub const HID_HELD_DURATION: core::time::Duration = core::time::Duration::from_m
 
 pub trait Page {
     /// repaint the whole display
-    fn refresh(&mut self, display: &mut impl DrawTargetExt<Color=Rgb888>, theme: &Theme);
+    fn refresh(&mut self,
+                display: &mut impl DrawTargetExt<Color=Rgb888>,
+                model: &crate::State,
+                theme: &Theme
+    );
 
     /// handle HidEvent
     /// returns true if the event was handled and should not be managed by the UX
