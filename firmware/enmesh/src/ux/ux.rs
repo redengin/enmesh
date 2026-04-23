@@ -1,18 +1,24 @@
-use crate::ux::*;
+// provide the shared crates via re-export
+use common::*;
+
+use embedded_graphics::prelude::*;
+use embedded_graphics::pixelcolor::Rgb888;
+use crate::ux::{Theme, Page, HidEvent};
+use crate::ux::pages;
 
 #[derive(PartialEq, Eq)]
 enum Pages {
     Home,
     MeshCore,
-    MeshTastic,
+    Meshtastic,
     Hibernate,
 }
 impl Pages {
     fn next(&self) -> Self {
         match self {
             Pages::Home => Pages::MeshCore,
-            Pages::MeshCore => Pages::MeshTastic,
-            Pages::MeshTastic => Pages::Hibernate,
+            Pages::MeshCore => Pages::Meshtastic,
+            Pages::Meshtastic => Pages::Hibernate,
             Pages::Hibernate => Pages::Home,
         }
     }
@@ -20,8 +26,8 @@ impl Pages {
     fn previous(&self) -> Self {
         match self {
             Pages::Home => Pages::Hibernate,
-            Pages::Hibernate => Pages::MeshTastic,
-            Pages::MeshTastic => Pages::MeshCore,
+            Pages::Hibernate => Pages::Meshtastic,
+            Pages::Meshtastic => Pages::MeshCore,
             Pages::MeshCore => Pages::Home,
         }
     }
@@ -32,6 +38,10 @@ pub struct Ux {
     current_page: Pages,
     // pages
     home_page: pages::Home,
+    // FIXME
+    meshcore_page: pages::Home,
+    meshtastic_page: pages::Home,
+    hibernate_page: pages::Home,
 }
 
 impl Ux {
@@ -39,6 +49,9 @@ impl Ux {
         Self {
             current_page: Pages::Home,
             home_page: pages::Home::new(),
+            meshcore_page: pages::Home::new(),
+            meshtastic_page: pages::Home::new(),
+            hibernate_page: pages::Home::new(),
         }
     }
 
@@ -70,7 +83,7 @@ impl Ux {
                 theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::MeshTastic {
+                if self.current_page == Pages::Meshtastic {
                     "^"
                 } else {
                     "."
@@ -122,8 +135,9 @@ impl Page for Ux {
         // refresh the current page
         match self.current_page {
             Pages::Home => self.home_page.refresh(&mut page_display, model, &theme),
-            // FIXME handle all pages
-            _ => {}
+            Pages::MeshCore => self.meshcore_page.refresh(&mut page_display, model, &theme),
+            Pages::Meshtastic => self.meshtastic_page.refresh(&mut page_display, model, &theme),
+            Pages::Hibernate => self.hibernate_page.refresh(&mut page_display, model, &theme),
         }
 
         // refresh the tab bar inside a cropped display

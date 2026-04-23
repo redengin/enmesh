@@ -1,10 +1,10 @@
 // provide the shared crates via re-export
 use common::*;
 
-use embedded_graphics::pixelcolor::Rgb888;
 /// UX designed for RGB888
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
 use embedded_graphics::prelude::*; // provide common traits
+use embedded_graphics::pixelcolor::Rgb888;
 
 /// provide the implementation for user interface
 mod ux;
@@ -33,9 +33,8 @@ pub enum HidEvent {
     Touch { x: u32, y: u32 },
 }
 /// active HID input durations greater than this, should generate a HidEvent::Select
-const HID_HELD_MILLIS: u64 = 500;
 pub const HID_HELD_DURATION: core::time::Duration =
-    core::time::Duration::from_millis(HID_HELD_MILLIS);
+    core::time::Duration::from_millis(500);
 
 pub trait Page {
     /// repaint the whole display
