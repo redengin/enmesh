@@ -8,19 +8,19 @@ use log::*;
 use soc_esp32::*;
 
 // use embedded-storage
-use embedded_storage::{ReadStorage, Storage};
+// use embedded_storage::{ReadStorage, Storage};
 
 struct Partition {
     flash_offset: u32,
     size: u32,
 }
-pub(crate) struct AppPartitions<'a> {
+pub(crate) struct Partitions<'a> {
     flash_storage: esp_storage::FlashStorage<'a>,
     settings_partition: Option<Partition>,
     data_partition: Option<Partition>,
 }
 
-impl AppPartitions<'_> {
+impl Partitions<'_> {
     pub(crate) fn new(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
         let mut flash_storage = esp_storage::FlashStorage::new(flash);
@@ -60,38 +60,55 @@ impl AppPartitions<'_> {
             data_partition,
         }
     }
+}
 
-    /// returns:
-    ///     OK(count of bytes written to buffer)
-    ///     Err(count of bytes written to buffer)
-    pub async fn load_settings_raw(&mut self, buffer: &mut [u8]) -> Result<usize, usize> {
-        if let Some(partition) = &self.settings_partition {
-            match self.flash_storage.read(partition.flash_offset, buffer) {
-                Ok(_) => Ok(buffer.len()),
-                Err(_) => Err(0),
-            }
-        } else {
-            // no partition
-            return Err(0);
-        }
+use enmesh_firmware::storage::StorageError;
+impl enmesh_firmware::storage::SettingsStorage for Partitions<'_>
+{
+    fn load_settings_raw(&mut self, _buffer: &mut [u8]) -> Result<usize, StorageError>
+    {
+        // TODO
+        return Err(enmesh_firmware::storage::StorageError::NoPartition);
     }
 
-    /// NOTE: this will erase flash sectors before writing
-    /// returns:
-    ///     OK(count of bytes written to flash)
-    ///     Err(count of bytes written to flash)
-    pub async fn save_settings_raw(&mut self, buffer: &[u8]) -> Result<usize, usize> {
-        if let Some(partition) = &self.settings_partition {
-            match self.flash_storage.write(partition.flash_offset, buffer) {
-                Ok(_) => Ok(buffer.len()),
-                Err(_) => Err(0),
-            }
-        } else {
-            // no partition
-            return Err(0);
-        }
+    fn save_settings_raw(&mut self, _buffer: &[u8]) -> Result<(), StorageError>
+    {
+        // TODO
+        return Err(enmesh_firmware::storage::StorageError::NoPartition);
     }
 }
+
+//     /// returns:
+//     ///     OK(count of bytes written to buffer)
+//     ///     Err(count of bytes written to buffer)
+//     pub async fn load_settings_raw(&mut self, buffer: &mut [u8]) -> Result<usize, usize> {
+//         if let Some(partition) = &self.settings_partition {
+//             match self.flash_storage.read(partition.flash_offset, buffer) {
+//                 Ok(_) => Ok(buffer.len()),
+//                 Err(_) => Err(0),
+//             }
+//         } else {
+//             // no partition
+//             return Err(0);
+//         }
+//     }
+
+//     /// NOTE: this will erase flash sectors before writing
+//     /// returns:
+//     ///     OK(count of bytes written to flash)
+//     ///     Err(count of bytes written to flash)
+//     pub async fn save_settings_raw(&mut self, buffer: &[u8]) -> Result<usize, usize> {
+//         if let Some(partition) = &self.settings_partition {
+//             match self.flash_storage.write(partition.flash_offset, buffer) {
+//                 Ok(_) => Ok(buffer.len()),
+//                 Err(_) => Err(0),
+//             }
+//         } else {
+//             // no partition
+//             return Err(0);
+//         }
+//     }
+// }
 
 // TODO implement enmesh traits for settings load/save
 // TODO implement enmesh traits for data partition

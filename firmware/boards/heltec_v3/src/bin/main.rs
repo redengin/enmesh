@@ -42,7 +42,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("RTOS initialized");
 
     debug!("initializing storage...");
-    let storage = storage::AppPartitions::new(peripherals.FLASH);
+    let storage = storage::Partitions::new(peripherals.FLASH);
     debug!("storage initialized");
     debug!("initializing state...");
     let initial_state = enmesh_firmware::State::new();
