@@ -1,3 +1,6 @@
+// provide the shared crates via re-export
+use common::*;
+
 use embedded_graphics::pixelcolor::{PixelColor, Rgb888};
 /// UX designed for RGB888
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
@@ -45,7 +48,7 @@ fn main() -> Result<(), std::convert::Infallible> {
     Ok(())
 }
 
-use enmesh::ux::Page;
+use enmesh_firmware::ux::Page;
 fn run<Color>(
     mut window: embedded_graphics_simulator::Window,
     mut screen: embedded_graphics_simulator::SimulatorDisplay<Color>,
@@ -54,10 +57,10 @@ fn run<Color>(
     Color: PixelColor + Into<Rgb888> + From<Rgb888>,
 {
     // create our enmesh ux instance
-    let mut ux = enmesh::ux::Ux::new();
+    let mut ux = enmesh_firmware::ux::Ux::new();
     // create our enmesh ux theme
     let screen_size = screen.size();
-    let theme = enmesh::ux::themes::DefaultTheme(screen_size);
+    let theme = enmesh_firmware::ux::themes::DefaultTheme(screen_size);
 
     // create a simulation button
     use embedded_graphics_simulator::sdl2::Keycode;
@@ -99,10 +102,10 @@ fn run<Color>(
                             // handle button press
                             let elapsed_millis = std::time::Instant::now() - start;
                             // handle the event by the UX
-                            if elapsed_millis >= enmesh::ux::HID_HELD_DURATION {
-                                ux.handle_event(&enmesh::ux::HidEvent::Select);
+                            if elapsed_millis >= enmesh_firmware::ux::HID_HELD_DURATION {
+                                ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
                             } else {
-                                ux.handle_event(&enmesh::ux::HidEvent::Next);
+                                ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
                             }
                             // reset the start time
                             button_down_time = None;
@@ -113,12 +116,12 @@ fn run<Color>(
                         use embedded_graphics_simulator::sdl2::Mod;
                         // handle the event by the UX
                         if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
-                            ux.handle_event(&enmesh::ux::HidEvent::Previous);
+                            ux.handle_event(&enmesh_firmware::ux::HidEvent::Previous);
                         } else {
-                            ux.handle_event(&enmesh::ux::HidEvent::Next);
+                            ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
                         }
                     } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
-                        ux.handle_event(&enmesh::ux::HidEvent::Select);
+                        ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
                     }
                 }
 
@@ -127,7 +130,7 @@ fn run<Color>(
                     use embedded_graphics_simulator::sdl2::MouseButton;
                     if mouse_btn == MouseButton::Left {
                         // handle event by the UX
-                        ux.handle_event(&enmesh::ux::HidEvent::Touch {
+                        ux.handle_event(&enmesh_firmware::ux::HidEvent::Touch {
                             x: point.x as u32,
                             y: point.y as u32,
                         });

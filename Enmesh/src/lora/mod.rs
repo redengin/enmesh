@@ -75,6 +75,7 @@ pub trait LoRaProtocol
     ///                 priority than user traffic
     /// * TX
     ///     * transmit packets by priority
+    #[allow(async_fn_in_trait)]
     async fn do_cycle(&mut self, lora_radio: &mut impl lora_phy::mod_traits::RadioKind);
 
     // fn add_tranmit_packet(&mut self, buffer:[u8]);

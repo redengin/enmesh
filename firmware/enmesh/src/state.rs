@@ -5,15 +5,15 @@
 #[derive(Default)]
 pub struct State {
     /// settings (persisted in non-volatile memory)
-    settings: Settings,
+    pub settings: crate::Settings,
 
     /// used by UX for display and LEDs, set by lora thread
-    lora_mode: LoRaMode,
+    pub lora_mode: LoRaRadioMode,
     /// used by UX for display, set by lora thread
-    current_protocol: LoRaProtocol,
+    pub current_protocol: LoRaProtocol,
 
     /// used by UX for display, set by storage thread
-    storage_status: StorageStatus,
+    pub storage_status: StorageStatus,
 }
 impl State {
     pub fn new() -> Self {
@@ -24,7 +24,7 @@ impl State {
 }
 
 #[derive(Default)]
-enum LoRaMode {
+pub enum LoRaRadioMode {
     #[default]
     Sleep,
     Standby,
@@ -33,7 +33,7 @@ enum LoRaMode {
 }
 
 #[derive(Default)]
-enum LoRaProtocol {
+pub enum LoRaProtocol {
     #[default]
     Meshtastic,
     MeshCore,
@@ -41,12 +41,12 @@ enum LoRaProtocol {
 
 #[derive(Default)]
 pub struct StorageStatus {
-    meshtastic: ProtocolStorageStatus,
-    meshcore: ProtocolStorageStatus,
+    pub meshtastic: ProtocolStorageStatus,
+    pub meshcore: ProtocolStorageStatus,
 }
 #[derive(Default)]
 pub struct ProtocolStorageStatus {
-    size: usize,
-    used: usize,
+    pub size: usize,
+    pub used: usize,
 }
 

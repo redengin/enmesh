@@ -207,8 +207,10 @@ dependencies = [
  "embassy-usb",
  "embedded-graphics",
  "embedded-hal 1.0.0",
+ "embedded-layout",
  "embedded-storage",
  "log",
+ "lora-modulation",
  "lora-phy",
  "rand_core 0.6.4",
  "ssd1306",
@@ -892,7 +894,6 @@ name = "enmesh-firmware"
 version = "0.1.0"
 dependencies = [
  "common",
- "enmesh",
 ]
 
 [[package]]

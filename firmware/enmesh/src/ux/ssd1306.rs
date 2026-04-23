@@ -31,10 +31,10 @@ pub async fn run<ScreenInterface, ScreenSize>(
     }
 
     // create the UX
-    let mut ux = enmesh::ux::Ux::new();
+    let mut ux = crate::ux::Ux::new();
     // create our ux theme
     let screen_size = screen.size();
-    let theme = enmesh::ux::themes::DefaultTheme(screen_size);
+    let theme = crate::ux::themes::DefaultTheme(screen_size);
 
     // create a button monitor
     let mut button_active_frames = 0;
@@ -54,12 +54,12 @@ pub async fn run<ScreenInterface, ScreenSize>(
                     let button_down_duration = button_active_frames * Duration::from_hz(FRAME_RATE);
                     // convert core::time::Duration -> embassy_time::Duration
                     let hid_held_duration = embassy_time::Duration::from_millis(
-                        enmesh::ux::HID_HELD_DURATION.as_millis() as u64,
+                        crate::ux::HID_HELD_DURATION.as_millis() as u64,
                     );
                     if button_down_duration >= hid_held_duration {
-                        ux.handle_event(&enmesh::ux::HidEvent::Select);
+                        ux.handle_event(&crate::ux::HidEvent::Select);
                     } else {
-                        ux.handle_event(&enmesh::ux::HidEvent::Next);
+                        ux.handle_event(&crate::ux::HidEvent::Next);
                     }
                 }
                 // reset the button monitor
@@ -71,7 +71,7 @@ pub async fn run<ScreenInterface, ScreenSize>(
         let mut rgb_screen = screen.color_converted();
 
         // update the UX
-        use enmesh::ux::Page;
+        use crate::ux::Page;
         ux.refresh(&mut rgb_screen, &theme);
         screen.flush().ok(); // must call flush to commit the changes to the screen
 

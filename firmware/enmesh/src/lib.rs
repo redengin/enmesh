@@ -7,6 +7,8 @@ pub mod storage;
 /// configuration, status, etc.
 mod state;
 pub use state::State;
+mod settings;
+pub use settings::Settings;
 
 /// provide a UX experience
 pub mod ux;

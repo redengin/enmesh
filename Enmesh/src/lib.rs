@@ -6,6 +6,3 @@ pub mod packet;
 
 /// support LoRa
 pub mod lora;
-
-/// enmesh hardware user-interface
-pub mod ux;

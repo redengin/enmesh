@@ -14,6 +14,7 @@ log = "*"
 static_cell = "*"
 embedded-hal = "*"
 embedded-graphics = "*"
+embedded-layout = "*"
 embedded-storage = "*"
 # critical-section = "*"
 #-------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ embassy-usb = { version = "*", features = ["log"] }
 # Hardware drivers
 #-------------------------------------------------------------------------------
 # provide LORA radio drivers
+lora-modulation = "*"
 lora-phy = "*"
 
 # 0.96" OLED Screen

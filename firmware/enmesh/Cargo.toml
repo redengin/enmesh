@@ -7,4 +7,15 @@ publish = false
 
 [dependencies]
 common = { path = "../common" }
-enmesh = { path = "../../Enmesh" }
+
+
+[dev-dependencies]
+# ux example support
+embedded-graphics-simulator = { version = "*", default-features = false, features = [
+    "with-sdl",
+] }
+
+
+[features]
+# ux choice for demonstrations
+ux-heltec = []
