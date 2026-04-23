@@ -63,6 +63,9 @@ fn run<Color>(
     // create our enmesh ux theme
     let screen_size = screen.size();
     let theme = enmesh_firmware::ux::themes::DefaultTheme(screen_size);
+    // refresh the simulated display 
+    let mut rgb_screen = screen.color_converted();
+    ux.refresh(&mut rgb_screen, &state, &theme);
 
     // create a simulation button
     use embedded_graphics_simulator::sdl2::Keycode;
@@ -146,8 +149,7 @@ fn run<Color>(
 
         // update the simulated display
         let mut rgb_screen = screen.color_converted();
-        // ux.update(&mut rgb_screen, &theme);
-        ux.refresh(&mut rgb_screen, &state, &theme);
+        ux.update(&mut rgb_screen, &state, &theme);
 
         // sleep for a frame period
         const FPS_HZ: u64 = 10;
