@@ -8,7 +8,12 @@ impl Home {
         Self {}
     }
 
-    fn repaint(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
+    fn repaint(
+        &self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        _model: &crate::State,
+        theme: &Theme,
+    ) {
         // clear the display
         let _ = display.clear(theme.background.into());
 
@@ -37,7 +42,7 @@ impl crate::ux::Page for Home {
         model: &crate::State,
         theme: &Theme,
     ) {
-        self.repaint(display, &theme);
+        self.repaint(display, model, &theme);
     }
 
     /// handle HidEvent
@@ -48,8 +53,13 @@ impl crate::ux::Page for Home {
 
     /// update the display
     /// * only needs to update changed items
-    fn update(&mut self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
+    fn update(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    ) {
         // FIXME for now just refresh the whole screen
-        // self.refresh(display, theme);
+        self.refresh(display, model, theme);
     }
 }

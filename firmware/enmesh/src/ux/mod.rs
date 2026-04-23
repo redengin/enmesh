@@ -1,16 +1,15 @@
 // provide the shared crates via re-export
 use common::*;
 
+use embedded_graphics::pixelcolor::Rgb888;
 /// UX designed for RGB888
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
-use embedded_graphics::prelude::*;  // provide common traits
-use embedded_graphics::pixelcolor::Rgb888;
+use embedded_graphics::prelude::*; // provide common traits
 
 /// provide the implementation for user interface
 mod ux;
-pub use ux::Ux as Ux;
+pub use ux::Ux;
 mod pages;
-
 
 pub struct Theme<'a> {
     // pub font: embedded_graphics::mono_font::MonoFont<'static>,
@@ -35,14 +34,16 @@ pub enum HidEvent {
 }
 /// active HID input durations greater than this, should generate a HidEvent::Select
 const HID_HELD_MILLIS: u64 = 500;
-pub const HID_HELD_DURATION: core::time::Duration = core::time::Duration::from_millis(HID_HELD_MILLIS);
+pub const HID_HELD_DURATION: core::time::Duration =
+    core::time::Duration::from_millis(HID_HELD_MILLIS);
 
 pub trait Page {
     /// repaint the whole display
-    fn refresh(&mut self,
-                display: &mut impl DrawTargetExt<Color=Rgb888>,
-                model: &crate::State,
-                theme: &Theme
+    fn refresh(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
     );
 
     /// handle HidEvent
@@ -51,8 +52,12 @@ pub trait Page {
 
     /// update the display
     /// * only needs to update changed items
-    fn update(&mut self, display: &mut impl DrawTargetExt<Color=Rgb888>, theme: &Theme);
+    fn update(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    );
 }
-
 
 pub mod ssd1306;

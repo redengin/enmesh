@@ -59,7 +59,7 @@ pub struct ReceivedLoRaPacket {
     pub buffer: [u8],
 }
 
-pub async fn run<LoRaRk, LoRaDly>(lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>)
+pub async fn run<LoRaRk, LoRaDly>(_lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>)
 where
     LoRaRk: lora_phy::mod_traits::RadioKind,
     LoRaDly: lora_phy::DelayNs,
