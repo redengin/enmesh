@@ -4,8 +4,12 @@
 /// globally shared state for firmware
 #[derive(Default)]
 pub struct State {
+    pub firmware_version: &'static str,
+
     /// settings (persisted in non-volatile memory)
     pub settings: crate::Settings,
+
+    pub battery_percent: u8,
 
     /// used by UX for display and LEDs, set by lora thread
     pub lora_mode: LoRaRadioMode,
@@ -18,6 +22,8 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         Self {
+            // FIXME bind to actual firmware version
+            firmware_version: "v0.0.1",
             ..Default::default()
         }
     }
