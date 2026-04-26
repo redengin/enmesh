@@ -20,7 +20,7 @@ pub trait PowerControl {
 
 /// provide a UX experience
 pub mod ux;
-pub mod widgets;
+// pub mod widgets;
 
 /// provide enmesh LoRa support
 pub mod lora;
