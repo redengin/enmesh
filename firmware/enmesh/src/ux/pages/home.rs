@@ -32,7 +32,7 @@ impl crate::ux::Page for Home {
         let display_area = display.bounding_box();
 
         // header
-        let battery_percent_str = heapless::format!(4; "{}%", model.battery_percent).unwrap();
+        let battery_percent = heapless::format!(4; "{}%", model.battery_percent).unwrap();
         // let battery_percent_str = heapless::format!(4; "{}%", 100).unwrap();
         let _ = LinearLayout::horizontal(
             Chain::new(Text::new("enmesh ", Point::zero(), theme.text_style))
@@ -43,7 +43,7 @@ impl crate::ux::Page for Home {
                 ))
                 // FIXME align right the battery %
                 .append(Text::new("   ", Point::zero(), theme.text_style))
-                .append(Text::new(battery_percent_str.as_str(), Point::zero(), theme.text_style)),
+                .append(Text::new(battery_percent.as_str(), Point::zero(), theme.text_style)),
         )
         .arrange()
         .draw(display);
