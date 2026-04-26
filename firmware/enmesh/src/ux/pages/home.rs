@@ -1,6 +1,15 @@
 // provide the shared crates via re-export
 use crate::ux::*;
 
+use embedded_graphics::prelude::*;
+use embedded_graphics::text::{self, Text};
+
+use embedded_layout::prelude::*;
+// use embedded_layout::align::{HorizontalAlignment, VerticalAlignment};
+use embedded_layout::align::*;
+use embedded_layout::layout::linear::LinearLayout;
+
+
 pub(crate) struct Home {}
 
 impl Home {
@@ -22,21 +31,19 @@ impl crate::ux::Page for Home {
 
         let display_area = display.bounding_box();
 
-        use embedded_graphics::text::Text;
-        use embedded_layout::layout::linear::LinearLayout;
-        use embedded_layout::prelude::*;
-
         // header
-        // FIXME convert model.battery_percent to a string
-        let battery_percent_str = "0";
+        let battery_percent_str = heapless::format!(4; "{}%", model.battery_percent).unwrap();
+        // let battery_percent_str = heapless::format!(4; "{}%", 100).unwrap();
         let _ = LinearLayout::horizontal(
-            Chain::new(
-                Text::new("enmesh ", Point::zero(), theme.text_style))
-                .append(Text::new(model.firmware_version, Point::zero(), theme.text_style))
+            Chain::new(Text::new("enmesh ", Point::zero(), theme.text_style))
+                .append(Text::new(
+                    model.firmware_version,
+                    Point::zero(),
+                    theme.text_style,
+                ))
                 // FIXME align right the battery %
-                .append(Text::new("      ", Point::zero(), theme.text_style))
-                .append(Text::new(battery_percent_str, Point::zero(), theme.text_style))
-                .append(Text::new("%", Point::zero(), theme.text_style))
+                .append(Text::new("   ", Point::zero(), theme.text_style))
+                .append(Text::new(battery_percent_str.as_str(), Point::zero(), theme.text_style)),
         )
         .arrange()
         .draw(display);
@@ -50,7 +57,6 @@ impl crate::ux::Page for Home {
         .arrange()
         .align_to(&display_area, horizontal::Center, vertical::Center)
         .draw(display);
-
     }
 
     /// handle HidEvent

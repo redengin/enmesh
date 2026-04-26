@@ -5,8 +5,9 @@ pub use log;
 
 // embedded utils
 //------------------------------------------------------------------------------
-pub use embedded_hal;
 pub use static_cell;
+pub use heapless;
+pub use embedded_hal;
 mod button;
 pub use button::{Button, ButtonState};
 pub use embedded_graphics;
