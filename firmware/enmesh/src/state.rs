@@ -37,12 +37,30 @@ pub enum LoRaRadioMode {
     Transmit,
     Receive,
 }
+impl core::fmt::Display for LoRaRadioMode {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            LoRaRadioMode::Sleep => f.write_str("Sleep"),
+            LoRaRadioMode::Standby => f.write_str("Standby"),
+            LoRaRadioMode::Transmit => f.write_str("Transmit"),
+            LoRaRadioMode::Receive => f.write_str("Receive"),
+        }
+    }
+}
 
 #[derive(Default)]
 pub enum LoRaProtocol {
     #[default]
     Meshtastic,
     MeshCore,
+}
+impl core::fmt::Display for LoRaProtocol {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            LoRaProtocol::Meshtastic => f.write_str("Meshtastic"),
+            LoRaProtocol::MeshCore => f.write_str("MeshCore"),
+        }
+    }
 }
 
 #[derive(Default)]

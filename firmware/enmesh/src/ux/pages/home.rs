@@ -1,14 +1,5 @@
 // provide the shared crates via re-export
-use crate::ux::*;
-
-use embedded_graphics::prelude::*;
-use embedded_graphics::text::{self, Text};
-
-use embedded_layout::prelude::*;
-// use embedded_layout::align::{HorizontalAlignment, VerticalAlignment};
-use embedded_layout::align::*;
-use embedded_layout::layout::linear::LinearLayout;
-
+use crate::ux::pages::prelude::*;
 
 pub(crate) struct Home {}
 
@@ -29,34 +20,31 @@ impl crate::ux::Page for Home {
         // clear the display
         let _ = display.clear(theme.background.into());
 
-        let display_area = display.bounding_box();
-
-        // header
-        let battery_percent = heapless::format!(4; "{}%", model.battery_percent).unwrap();
-        // let battery_percent_str = heapless::format!(4; "{}%", 100).unwrap();
-        let _ = LinearLayout::horizontal(
-            Chain::new(Text::new("enmesh ", Point::zero(), theme.text_style))
-                .append(Text::new(
-                    model.firmware_version,
-                    Point::zero(),
-                    theme.text_style,
-                ))
-                // FIXME align right the battery %
-                .append(Text::new("   ", Point::zero(), theme.text_style))
-                .append(Text::new(battery_percent.as_str(), Point::zero(), theme.text_style)),
-        )
-        .arrange()
-        .draw(display);
-
+        // show the information
+        let version = heapless::format!(16; "enmesh {}", model.firmware_version).unwrap();
+        let lora_status =
+            heapless::format!(16; "{} {}", model.current_protocol, model.lora_mode).unwrap();
         let _ = LinearLayout::vertical(
-            Chain::new(Text::new("A", Point::zero(), theme.text_style))
-                .append(Text::new("B", Point::zero(), theme.text_style))
-                .append(Text::new("C", Point::zero(), theme.text_style)),
+            Chain::new(Text::new(version.as_str(), Point::zero(), theme.text_style)).append(
+                Text::new(lora_status.as_str(), Point::zero(), theme.text_style),
+            ),
         )
-        .with_alignment(horizontal::Center)
+        .with_alignment(horizontal::Left)
         .arrange()
-        .align_to(&display_area, horizontal::Center, vertical::Center)
+        // .align_to(&display_area, horizontal::Center, vertical::Center)
         .draw(display);
+
+        // show the battery status
+        // let battery_percent = heapless::format!(4; "{}%", model.battery_percent).unwrap();
+        // let _ = LinearLayout::vertical(Chain::new(Text::new(
+        //     battery_percent.as_str(),
+        //     Point::zero(),
+        //     theme.text_style,
+        // )))
+        // .arrange()
+        // .with_alignment(horizontal::Right)
+        // // .align_to(&display_area, horizontal::Center, vertical::Center)
+        // .draw(display);
     }
 
     /// handle HidEvent

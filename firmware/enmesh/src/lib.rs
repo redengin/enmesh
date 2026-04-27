@@ -9,6 +9,11 @@ mod state;
 pub use state::State;
 mod settings;
 pub use settings::Settings;
+pub trait Persistable {
+    type Item;
+    fn load() -> Option<Self::Item>;
+    fn store(settings: &Self::Item) -> Result<(), crate::storage::StorageError>;
+}
 
 /// support boards that allow turning off peripherals (i.e. save power)
 pub trait PowerControl {
@@ -24,4 +29,5 @@ pub mod ux;
 
 /// provide enmesh LoRa support
 pub mod lora;
+
 

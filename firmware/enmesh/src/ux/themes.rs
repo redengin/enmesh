@@ -11,7 +11,8 @@ pub fn DefaultTheme<'a>(size: Size) -> Theme<'a> {
 
     // choose font based on display size
     let text_style = if size.height <= 64 {
-        MonoTextStyle::new(&FONT_6X10, color)
+        // MonoTextStyle::new(&FONT_6X10, color)
+        MonoTextStyle::new(&FONT_6X9, color)
     } else {
         MonoTextStyle::new(&FONT_10X20, color)
     };

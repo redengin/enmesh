@@ -10,6 +10,7 @@ use embedded_graphics::pixelcolor::Rgb888;
 mod ux;
 pub use ux::Ux;
 mod pages;
+mod icons;
 
 pub struct Theme<'a> {
     // pub font: embedded_graphics::mono_font::MonoFont<'static>,
