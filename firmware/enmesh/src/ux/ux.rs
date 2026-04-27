@@ -52,23 +52,23 @@ impl Ux {
     fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
         let _ = display.clear(theme.background.into());
 
-        const selected: &str = "^";
-        const not_selected: &str = "-";
+        const SELECTED: &str = "^";
+        const NOT_SELECTED: &str = "-";
         LinearLayout::horizontal(
             Chain::new(Text::new(
-                if self.current_page == Pages::Home {selected} else {not_selected},
+                if self.current_page == Pages::Home { SELECTED } else { NOT_SELECTED },
                 Point::zero(), theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::MeshCore {selected} else {not_selected},
+                if self.current_page == Pages::MeshCore { SELECTED } else { NOT_SELECTED },
                 Point::zero(), theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::Meshtastic{selected} else {not_selected},
+                if self.current_page == Pages::Meshtastic{ SELECTED } else { NOT_SELECTED },
                 Point::zero(), theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::Hibernate{selected} else {not_selected},
+                if self.current_page == Pages::Hibernate{ SELECTED } else { NOT_SELECTED },
                 Point::zero(), theme.text_style,
             )),
         )
