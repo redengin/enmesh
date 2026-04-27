@@ -13,6 +13,7 @@ pub mod prelude {
 
     pub use embedded_layout::prelude::*;
     pub use embedded_layout::layout::linear::*;
+    pub use embedded_layout::layout::linear::spacing::*;
 }
 mod home;
 pub(crate) use home::Home as Home;

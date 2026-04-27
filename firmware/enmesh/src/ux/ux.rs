@@ -1,10 +1,4 @@
-// provide the shared crates via re-export
-use common::*;
-
-use embedded_graphics::prelude::*;
-use embedded_graphics::pixelcolor::Rgb888;
-use crate::ux::{Theme, Page, HidEvent};
-use crate::ux::pages;
+use crate::ux::pages::prelude::*;
 
 #[derive(PartialEq, Eq)]
 enum Pages {
@@ -56,55 +50,32 @@ impl Ux {
     }
 
     fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
-        use embedded_graphics::text::Text;
-        use embedded_layout::layout::linear::LinearLayout;
-        use embedded_layout::layout::linear::spacing::DistributeFill;
-        use embedded_layout::prelude::*;
-
         let _ = display.clear(theme.background.into());
 
-        let _ = LinearLayout::horizontal(
+        const selected: &str = "^";
+        const not_selected: &str = "-";
+        LinearLayout::horizontal(
             Chain::new(Text::new(
-                if self.current_page == Pages::Home {
-                    "^"
-                } else {
-                    "."
-                },
-                Point::zero(),
-                theme.text_style,
+                if self.current_page == Pages::Home {selected} else {not_selected},
+                Point::zero(), theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::MeshCore {
-                    "^"
-                } else {
-                    "."
-                },
-                Point::zero(),
-                theme.text_style,
+                if self.current_page == Pages::MeshCore {selected} else {not_selected},
+                Point::zero(), theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::Meshtastic {
-                    "^"
-                } else {
-                    "."
-                },
-                Point::zero(),
-                theme.text_style,
+                if self.current_page == Pages::Meshtastic{selected} else {not_selected},
+                Point::zero(), theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::Hibernate {
-                    "^"
-                } else {
-                    "."
-                },
-                Point::zero(),
-                theme.text_style,
+                if self.current_page == Pages::Hibernate{selected} else {not_selected},
+                Point::zero(), theme.text_style,
             )),
         )
         .with_spacing(DistributeFill(display.bounding_box().size.width))
         .arrange()
         .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
-        .draw(display);
+        .draw(display).ok();
     }
 }
 
@@ -136,8 +107,12 @@ impl Page for Ux {
         match self.current_page {
             Pages::Home => self.home_page.refresh(&mut page_display, model, &theme),
             Pages::MeshCore => self.meshcore_page.refresh(&mut page_display, model, &theme),
-            Pages::Meshtastic => self.meshtastic_page.refresh(&mut page_display, model, &theme),
-            Pages::Hibernate => self.hibernate_page.refresh(&mut page_display, model, &theme),
+            Pages::Meshtastic => self
+                .meshtastic_page
+                .refresh(&mut page_display, model, &theme),
+            Pages::Hibernate => self
+                .hibernate_page
+                .refresh(&mut page_display, model, &theme),
         }
 
         // refresh the tab bar inside a cropped display
@@ -172,10 +147,12 @@ impl Page for Ux {
 
     /// update the display
     /// * only needs to update changed items
-    fn update(&mut self,
+    fn update(
+        &mut self,
         display: &mut impl DrawTargetExt<Color = Rgb888>,
         model: &crate::State,
-        theme: &Theme) {
+        theme: &Theme,
+    ) {
         // FIXME for now just do a full refresh
         self.refresh(display, model, theme);
     }
