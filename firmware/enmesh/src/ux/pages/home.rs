@@ -1,5 +1,7 @@
-// provide the shared crates via re-export
+// provide the page common crates
 use crate::ux::pages::prelude::*;
+
+use alloc::string::ToString;
 
 pub(crate) struct Home {}
 
@@ -21,30 +23,45 @@ impl crate::ux::Page for Home {
         let _ = display.clear(theme.background.into());
 
         // show the information
-        let version = heapless::format!(16; "enmesh {}", model.firmware_version).unwrap();
-        let lora_status =
-            heapless::format!(16; "{} {}", model.current_protocol, model.lora_mode).unwrap();
         let _ = LinearLayout::vertical(
-            Chain::new(Text::new(version.as_str(), Point::zero(), theme.text_style)).append(
-                Text::new(lora_status.as_str(), Point::zero(), theme.text_style),
-            ),
+            Chain::new(
+                LinearLayout::horizontal(
+                    Chain::new(Text::new("enmesh", Point::zero(), theme.text_style)).append(
+                        Text::new(model.firmware_version, Point::zero(), theme.text_style)
+                    ),
+                )
+                .with_spacing(FixedMargin(5))
+                .arrange(),
+            )
+            .append(Chain::new(
+                LinearLayout::horizontal(
+                    Chain::new(Text::new("WiFi:", Point::zero(), theme.text_style))
+                    .append(Text::new(model.wifi_status.to_string().as_str(), Point::zero(), theme.text_style))
+                )
+                .with_spacing(FixedMargin(5))
+                .arrange(),
+            ))
+            .append(Chain::new(
+                LinearLayout::horizontal(
+                    Chain::new(Text::new("BLE:", Point::zero(), theme.text_style))
+                        .append(Text::new(model.ble_status.to_string().as_str(), Point::zero(), theme.text_style))
+                )
+                    .with_spacing(FixedMargin(5))
+                    .arrange(),
+            ))
+            // .append(Chain::new(
+            //     LinearLayout::horizontal(
+            //         Chain::new(Text::new(model.current_protocol.to_string().as_str(), Point::zero(), theme.text_style))
+            //         .append(Text::new(model.current_radio_mode.to_string().as_str(), Point::zero(), theme.text_style))
+            //     )
+            //     .with_spacing(FixedMargin(5))
+            //     .arrange(),
+            // ))
         )
-        .with_alignment(horizontal::Left)
         .arrange()
-        // .align_to(&display_area, horizontal::Center, vertical::Center)
         .draw(display);
 
-        // show the battery status
-        // let battery_percent = heapless::format!(4; "{}%", model.battery_percent).unwrap();
-        // let _ = LinearLayout::vertical(Chain::new(Text::new(
-        //     battery_percent.as_str(),
-        //     Point::zero(),
-        //     theme.text_style,
-        // )))
-        // .arrange()
-        // .with_alignment(horizontal::Right)
-        // // .align_to(&display_area, horizontal::Center, vertical::Center)
-        // .draw(display);
+        // TODO show the battery status
     }
 
     /// handle HidEvent

@@ -1,4 +1,5 @@
 #![no_std]
+extern crate alloc;
 
 /// provide storage traits
 pub mod storage;

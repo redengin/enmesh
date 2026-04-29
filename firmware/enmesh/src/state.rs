@@ -11,10 +11,13 @@ pub struct State {
 
     pub battery_percent: u8,
 
-    /// used by UX for display and LEDs, set by lora thread
-    pub lora_mode: LoRaRadioMode,
     /// used by UX for display, set by lora thread
     pub current_protocol: LoRaProtocol,
+    /// used by UX for display and LEDs, set by lora thread
+    pub current_radio_mode: LoRaRadioMode,
+
+    pub wifi_status: WiFiStatus,
+    pub ble_status: BleStatus,
 
     /// used by UX for display, set by storage thread
     pub storage_status: StorageStatus,
@@ -59,6 +62,43 @@ impl core::fmt::Display for LoRaProtocol {
         match self {
             LoRaProtocol::Meshtastic => f.write_str("Meshtastic"),
             LoRaProtocol::MeshCore => f.write_str("MeshCore"),
+        }
+    }
+}
+
+#[derive(Default)]
+pub enum WiFiStatus {
+    NotConfigured,
+    Connected,
+    Disconnected,
+    #[default]
+    NotAvailable,
+}
+impl core::fmt::Display for WiFiStatus {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::NotConfigured => f.write_str("Not Configured"),
+            Self::Connected => f.write_str("connected"),
+            Self::Disconnected => f.write_str("connecting..."),
+            Self::NotAvailable => f.write_str("N/A"),
+        }
+    }
+}
+
+#[derive(Default)]
+pub enum BleStatus
+{
+    Connected,
+    Disconnected,
+    #[default]
+    NotAvailable,
+}
+impl core::fmt::Display for BleStatus {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Connected => f.write_str("connected"),
+            Self::Disconnected => f.write_str("not connected"),
+            Self::NotAvailable => f.write_str("N/A"),
         }
     }
 }
