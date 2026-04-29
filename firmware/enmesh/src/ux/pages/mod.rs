@@ -18,3 +18,9 @@ pub mod prelude {
 }
 mod home;
 pub(crate) use home::Home as Home;
+
+mod meshcore;
+pub(crate) use meshcore::MeshCore as MeshCore;
+
+mod meshtastic;
+pub(crate) use meshtastic::Meshtastic as Meshtastic;

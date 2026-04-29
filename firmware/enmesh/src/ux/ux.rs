@@ -6,22 +6,20 @@ enum Pages {
     Home,
     MeshCore,
     Meshtastic,
-    Hibernate,
+    // Hibernate,
 }
 impl Pages {
     fn next(&self) -> Self {
         match self {
             Pages::Home => Pages::MeshCore,
             Pages::MeshCore => Pages::Meshtastic,
-            Pages::Meshtastic => Pages::Hibernate,
-            Pages::Hibernate => Pages::Home,
+            Pages::Meshtastic => Pages::Home,
         }
     }
 
     fn previous(&self) -> Self {
         match self {
-            Pages::Home => Pages::Hibernate,
-            Pages::Hibernate => Pages::Meshtastic,
+            Pages::Home => Pages::Meshtastic,
             Pages::Meshtastic => Pages::MeshCore,
             Pages::MeshCore => Pages::Home,
         }
@@ -33,10 +31,10 @@ pub struct Ux {
     current_page: Pages,
     // pages
     home_page: pages::Home,
+    meshcore_page: pages::MeshCore,
+    meshtastic_page: pages::Meshtastic,
     // FIXME
-    meshcore_page: pages::Home,
-    meshtastic_page: pages::Home,
-    hibernate_page: pages::Home,
+    // hibernate_page: pages::Home,
 }
 
 impl Ux {
@@ -44,9 +42,9 @@ impl Ux {
         Self {
             current_page: Pages::Home,
             home_page: pages::Home::new(),
-            meshcore_page: pages::Home::new(),
-            meshtastic_page: pages::Home::new(),
-            hibernate_page: pages::Home::new(),
+            meshcore_page: pages::MeshCore::new(),
+            meshtastic_page: pages::Meshtastic::new(),
+            // hibernate_page: pages::Home::new(),
         }
     }
 
@@ -68,10 +66,10 @@ impl Ux {
                 if self.current_page == Pages::Meshtastic{ SELECTED } else { NOT_SELECTED },
                 Point::zero(), theme.text_style,
             ))
-            .append(Text::new(
-                if self.current_page == Pages::Hibernate{ SELECTED } else { NOT_SELECTED },
-                Point::zero(), theme.text_style,
-            )),
+            // .append(Text::new(
+            //     if self.current_page == Pages::Hibernate{ SELECTED } else { NOT_SELECTED },
+            //     Point::zero(), theme.text_style,
+            // )),
         )
         .with_spacing(DistributeFill(display.bounding_box().size.width))
         .arrange()
@@ -111,9 +109,9 @@ impl Page for Ux {
             Pages::Meshtastic => self
                 .meshtastic_page
                 .refresh(&mut page_display, model, &theme),
-            Pages::Hibernate => self
-                .hibernate_page
-                .refresh(&mut page_display, model, &theme),
+            // Pages::Hibernate => self
+            //     .hibernate_page
+            //     .refresh(&mut page_display, model, &theme),
         }
 
         // refresh the tab bar inside a cropped display

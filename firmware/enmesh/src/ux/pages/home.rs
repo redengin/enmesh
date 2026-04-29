@@ -60,8 +60,6 @@ impl crate::ux::Page for Home {
         )
         .arrange()
         .draw(display);
-
-        // TODO show the battery status
     }
 
     /// handle HidEvent
