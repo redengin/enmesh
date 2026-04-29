@@ -28,7 +28,7 @@ impl crate::ux::Page for Meshtastic {
             .append(Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("Freq:", Point::zero(), theme.text_style))
-                    .append(Text::new(model.settings.meshcore_settings.lora_config.modulation_config.frequency_hz.to_string().as_str(), Point::zero(), theme.text_style))
+                    .append(Text::new(model.settings.meshtastic_settings.lora_config.modulation_config.frequency_hz.to_string().as_str(), Point::zero(), theme.text_style))
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
@@ -36,7 +36,7 @@ impl crate::ux::Page for Meshtastic {
             .append(Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("Bandwidth:", Point::zero(), theme.text_style))
-                    .append(Text::new(model.settings.meshcore_settings.lora_config.modulation_config.bandwidth.hz().to_string().as_str(), Point::zero(), theme.text_style))
+                    .append(Text::new(model.settings.meshtastic_settings.lora_config.modulation_config.bandwidth.hz().to_string().as_str(), Point::zero(), theme.text_style))
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
@@ -44,7 +44,7 @@ impl crate::ux::Page for Meshtastic {
             .append(Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("Spreading:", Point::zero(), theme.text_style))
-                    .append(Text::new(model.settings.meshcore_settings.lora_config.modulation_config.spreading_factor.factor().to_string().as_str(), Point::zero(), theme.text_style))
+                    .append(Text::new(model.settings.meshtastic_settings.lora_config.modulation_config.spreading_factor.factor().to_string().as_str(), Point::zero(), theme.text_style))
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
@@ -52,7 +52,7 @@ impl crate::ux::Page for Meshtastic {
             .append(Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("Coding Rate:", Point::zero(), theme.text_style))
-                    .append(Text::new(model.settings.meshcore_settings.lora_config.modulation_config.coding_rate.denom().to_string().as_str(), Point::zero(), theme.text_style))
+                    .append(Text::new(model.settings.meshtastic_settings.lora_config.modulation_config.coding_rate.denom().to_string().as_str(), Point::zero(), theme.text_style))
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
