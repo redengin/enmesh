@@ -42,11 +42,11 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("RTOS initialized");
 
     debug!("initializing storage...");
-    let storage = storage::Partitions::new(peripherals.FLASH);
+    let _storage = storage::Partitions::new(peripherals.FLASH);
     debug!("storage initialized");
     debug!("initializing state...");
     let initial_state = enmesh_firmware::State::new();
-    let global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
+    let _global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
     debug!("state initialized");
 
     // create the tasks
@@ -97,6 +97,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         sda: peripherals.GPIO17,
         scl: peripherals.GPIO18,
         button: peripherals.GPIO0,
+        led: peripherals.GPIO35,
     };
     spawner.spawn(tasks::ux::task_ux(screen_io).unwrap());
     debug!("screen task created");

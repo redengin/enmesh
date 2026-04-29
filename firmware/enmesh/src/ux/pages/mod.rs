@@ -1,5 +1,5 @@
 // provide the shared crates via re-export
-use common::*;
+// use common::*;
 
 /// provide the necessary primitives for page creation
 pub mod prelude {
@@ -7,9 +7,10 @@ pub mod prelude {
     pub use crate::ux::*;
 
     pub use embedded_graphics::prelude::*;
-    pub use embedded_graphics::pixelcolor::{Rgb888, BinaryColor};
+    // pub use embedded_graphics::pixelcolor::{Rgb888, BinaryColor};
+    pub use embedded_graphics::pixelcolor::{Rgb888};
     pub use embedded_graphics::text::Text;
-    pub use embedded_graphics::image::ImageRaw;
+    // pub use embedded_graphics::image::ImageRaw;
 
     pub use embedded_layout::prelude::*;
     pub use embedded_layout::layout::linear::*;

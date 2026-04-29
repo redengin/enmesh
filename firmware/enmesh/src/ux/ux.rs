@@ -1,3 +1,4 @@
+// use the common page crates
 use crate::ux::pages::prelude::*;
 
 #[derive(PartialEq, Eq)]

@@ -10,18 +10,18 @@ use soc_esp32::*;
 // use embedded-storage
 // use embedded_storage::{ReadStorage, Storage};
 
-struct Partition {
-    flash_offset: u32,
-    size: u32,
+pub struct Partition {
+    pub flash_offset: u32,
+    pub size: u32,
 }
-pub(crate) struct Partitions<'a> {
-    flash_storage: esp_storage::FlashStorage<'a>,
-    settings_partition: Option<Partition>,
-    data_partition: Option<Partition>,
+pub struct Partitions<'a> {
+    pub flash_storage: esp_storage::FlashStorage<'a>,
+    pub settings_partition: Option<Partition>,
+    pub data_partition: Option<Partition>,
 }
 
 impl Partitions<'_> {
-    pub(crate) fn new(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
+    pub fn new(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
         let mut flash_storage = esp_storage::FlashStorage::new(flash);
         let mut buffer = [0u8; esp_bootloader_esp_idf::partitions::PARTITION_TABLE_MAX_LEN];

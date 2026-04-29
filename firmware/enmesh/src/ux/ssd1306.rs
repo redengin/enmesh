@@ -13,6 +13,8 @@ pub async fn run<ScreenInterface, ScreenSize>(
     mut screen: Ssd1306<ScreenInterface, ScreenSize, BufferedGraphicsMode<ScreenSize>>,
     mut power_control: impl crate::PowerControl,
     mut button: impl ButtonState,
+    // mut led: impl embedded_hal::digital::OutputPin,
+    _led: impl embedded_hal::digital::OutputPin,
 ) where
     ScreenInterface: display_interface::WriteOnlyDataCommand,
     ScreenSize: ssd1306::size::DisplaySize,

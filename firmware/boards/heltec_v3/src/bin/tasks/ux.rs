@@ -16,6 +16,7 @@ pub struct UxIo {
     pub scl: esp_hal::peripherals::GPIO18<'static>,
     /// LOW when pressed, else HIGH
     pub button: esp_hal::peripherals::GPIO0<'static>,
+    pub led: esp_hal::peripherals::GPIO35<'static>,
 }
 #[embassy_executor::task]
 pub async fn task_ux(ux_io: UxIo) {
@@ -62,9 +63,16 @@ pub async fn task_ux(ux_io: UxIo) {
         esp_hal::gpio::InputConfig::default(),
     ));
 
+    // create the led
+    let led = esp_hal::gpio::Output::new(
+        ux_io.led,
+        esp_hal::gpio::Level::Low,
+        esp_hal::gpio::OutputConfig::default(),
+    );
+
     // run UX handler
     info!("UX task started");
-    enmesh_firmware::ux::ssd1306::run(ssd1306, screen_power_control, button).await;
+    enmesh_firmware::ux::ssd1306::run(ssd1306, screen_power_control, button, led).await;
 
     warn!("UX task ended");
 }
