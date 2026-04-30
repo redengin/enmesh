@@ -11,7 +11,6 @@ pub struct EnmeshLoRaConfig {
 pub struct EnmeshLoRaModulationConfig {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
-
     /// see [Link Budget](https://meshtastic.org/docs/overview/radio-settings/#presets)
     /// for how the bandwidth impacts the range
     pub bandwidth: lora_modulation::Bandwidth,

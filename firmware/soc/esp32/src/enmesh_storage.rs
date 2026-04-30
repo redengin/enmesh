@@ -4,9 +4,6 @@ use common::*;
 // provide logging primitives
 use log::*;
 
-// use soc crate (it provides the panic handler)
-use soc_esp32::*;
-
 // use embedded-storage
 // use embedded_storage::{ReadStorage, Storage};
 
@@ -62,21 +59,21 @@ impl Partitions<'_> {
     }
 }
 
-use enmesh_firmware::storage::StorageError;
-impl enmesh_firmware::storage::SettingsStorage for Partitions<'_>
-{
-    fn load_settings_raw(&mut self, _buffer: &mut [u8]) -> Result<usize, StorageError>
-    {
-        // TODO
-        return Err(enmesh_firmware::storage::StorageError::NoPartition);
-    }
+// use enmesh_firmware::storage::StorageError;
+// impl enmesh_firmware::storage::SettingsStorage for Partitions<'_>
+// {
+//     fn load_settings_raw(&mut self, _buffer: &mut [u8]) -> Result<usize, StorageError>
+//     {
+//         // TODO
+//         return Err(enmesh_firmware::storage::StorageError::NoPartition);
+//     }
 
-    fn save_settings_raw(&mut self, _buffer: &[u8]) -> Result<(), StorageError>
-    {
-        // TODO
-        return Err(enmesh_firmware::storage::StorageError::NoPartition);
-    }
-}
+//     fn save_settings_raw(&mut self, _buffer: &[u8]) -> Result<(), StorageError>
+//     {
+//         // TODO
+//         return Err(enmesh_firmware::storage::StorageError::NoPartition);
+//     }
+// }
 
 //     /// returns:
 //     ///     OK(count of bytes written to buffer)

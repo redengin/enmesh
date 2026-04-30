@@ -10,7 +10,10 @@ pub use esp_radio;
 pub use esp_alloc;
 pub use esp_bootloader_esp_idf;
 
+/// implement enmesh storage support
+pub mod enmesh_storage;
 
+// provide logging primitives
 use common::log::*;
 
 /// provide a less verbose panic handler
@@ -45,19 +48,3 @@ pub fn init_heap() {
     use esp_hal::ram;
     esp_alloc::heap_allocator!(#[ram(reclaimed)] size: 64 * 1024);
 }
-
-// /// * initialize logging
-// /// * initialize scheduler
-// pub fn init(peripherals: esp_hal)
-// {
-//     // initialize logging
-//     esp_println::logger::init_logger_from_env();
-//     info!("initializing...");
-
-//     // initialize the rtos scheduler
-//     use esp_hal::timer::timg::TimerGroup;
-//     let timg0 = TimerGroup::new(peripherals.TIMG0);
-//     use esp_hal::interrupt::software::SoftwareInterruptControl;
-//     let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
-//     esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
-// }

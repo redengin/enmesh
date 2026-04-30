@@ -16,7 +16,7 @@ heapless = { version = "*", features = ["ufmt"] }
 embedded-hal = "*"
 embedded-graphics = "*"
 embedded-layout = "*"
-embedded-storage = "*"
+# embedded-storage = "*"
 # critical-section = "*"
 #-------------------------------------------------------------------------------
 

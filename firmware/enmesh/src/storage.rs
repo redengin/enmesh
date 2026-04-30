@@ -1,12 +1,21 @@
-/// support loading and persisting settings
-pub trait SettingsStorage {
-    fn load_settings_raw(&mut self, buffer: &mut [u8]) -> Result<usize, StorageError>;
+/// generic trait for persistables
+/// 
+/// Persitables have no need to support functionality like roll-back.
+/// * implementations **shall**
+///     * be able to verify the integrity of the persitable
+///         - e.g. CRC, ECC, etc.
+///     * be able to identify the version of the persistable
+///     * convert the persistable to the current version
+///         - invoking a store() upon conversion
+/// * implementations *should*
+///     * manage multiple persisted copies for robustness
+pub trait Persistable {
+    type Item;
 
-    fn save_settings_raw(&mut self, buffer: &[u8]) -> Result<(), StorageError>;
-}
+    fn load() -> Option<Self::Item>;
 
-pub trait AppStorage {
-
+    /// update all persistable's copies
+    fn store(settings: &Self::Item) -> Result<(), crate::storage::StorageError>;
 }
 
 /// storage access errors
@@ -23,4 +32,3 @@ impl fmt::Display for StorageError {
        } 
     }
 }
-

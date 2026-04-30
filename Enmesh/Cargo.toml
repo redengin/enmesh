@@ -12,11 +12,15 @@ log = "*"
 lora-modulation = "*"
 lora-phy = "*"
 
+# MQTT support
+# TODO
+# rust-mqtt = "*"     # uses alloc by default
+
 # embedded support
-embedded-graphics = "*"
-embedded-layout = "*"
-embassy-time = "*"
-heapless = "*"
+# embedded-graphics = "*"
+# embedded-layout = "*"
+# embassy-time = "*"
+# heapless = "*"
 
 # additional enmesh dependencies
 # TODO do we want iso3166

@@ -1,8 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// create enmesh packets for enmesh endpoints
-pub mod packet;
-
-
 /// support LoRa
 pub mod lora;
+
+// support MQTT gateways
+// pub mod mqtt;
+
+// support enmesh endpoints
+// pub mod packet;

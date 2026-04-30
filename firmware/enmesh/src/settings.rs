@@ -6,11 +6,9 @@ pub struct Settings {
     pub meshcore_settings: MeshCoreSettings,
 }
 
-
-
 #[derive(Default)]
 pub struct UxSettings {
-
+    // nothing yet...
 }
 
 #[derive(Default)]
