@@ -4,6 +4,8 @@
 // provide the shared crates via re-export
 use common::*;
 use soc_esp32::*; // (provides the panic handler)
+// required by esp32 toolchain
+esp_bootloader_esp_idf::esp_app_desc!();
 
 // provide logging primitives
 use log::*;
@@ -48,6 +50,13 @@ async fn main(spawner: embassy_executor::Spawner) {
     let initial_state = enmesh_firmware::State::new();
     let _global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
     debug!("state initialized");
+
+    // if cfg!(feature = "esp-radio") {
+    //     // create a heap for esp_radio (bluetooth and/or wifi support)
+    //     soc_esp32::init_heap();
+    // }
+    // FIXME something else is using heap
+    soc_esp32::init_heap();
 
     // create the tasks
 
@@ -101,12 +110,6 @@ async fn main(spawner: embassy_executor::Spawner) {
     };
     spawner.spawn(tasks::ux::task_ux(screen_io).unwrap());
     debug!("screen task created");
-
-
-    if cfg!(feature = "esp-radio") {
-        // create a heap for esp_radio (bluetooth and/or wifi support)
-        soc_esp32::init_heap();
-    }
 
     if cfg!(feature = "wifi-bridge") {
         debug!("creating enmesh WiFi bridge task...");

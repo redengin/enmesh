@@ -3,5 +3,6 @@
         "rust-lang.rust-analyzer",
         "mermaidchart.vscode-mermaid-chart",
         "gruntfuggly.todo-tree",
+        "tamasfe.even-better-toml",
     ]
 }
