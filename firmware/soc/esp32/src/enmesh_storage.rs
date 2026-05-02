@@ -4,21 +4,14 @@ use common::*;
 // provide logging primitives
 use log::*;
 
-// use embedded-storage
-// use embedded_storage::{ReadStorage, Storage};
-
-pub struct Partition {
-    pub flash_offset: u32,
-    pub size: u32,
-}
-pub struct Partitions<'a> {
-    pub flash_storage: esp_storage::FlashStorage<'a>,
+use enmesh_firmware::storage::{EnmeshStorage, Partition};
+pub struct Storage<'a> {
+    flash_storage: esp_storage::FlashStorage<'a>,
     pub settings_partition: Option<Partition>,
     pub data_partition: Option<Partition>,
 }
-
-impl Partitions<'_> {
-    pub fn new(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
+impl<'a> Storage<'a> {
+    pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
         let mut flash_storage = esp_storage::FlashStorage::new(flash);
         let mut buffer = [0u8; esp_bootloader_esp_idf::partitions::PARTITION_TABLE_MAX_LEN];
@@ -28,7 +21,7 @@ impl Partitions<'_> {
         )
         .unwrap();
 
-        // find the settings partition
+        // find the enmesh partitions
         let mut settings_partition: Option<Partition> = None;
         let mut data_partition: Option<Partition> = None;
         for partition in partition_table.iter() {
@@ -36,15 +29,17 @@ impl Partitions<'_> {
                 "app.settings" => {
                     debug!("found settings partition [size: {}]", partition.len());
                     settings_partition = Some(Partition {
-                        flash_offset: partition.offset(),
-                        size: partition.len(),
+                        address: partition.offset() as usize,
+                        size: partition.len() as usize,
+                        sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
                     });
                 }
                 "app.data" => {
                     debug!("found settings partition [size: {}]", partition.len());
                     data_partition = Some(Partition {
-                        flash_offset: partition.offset(),
-                        size: partition.len(),
+                        address: partition.offset() as usize,
+                        size: partition.len() as usize,
+                        sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
                     });
                 }
                 label => trace!("ignoring '{label}' partition"),
@@ -58,21 +53,17 @@ impl Partitions<'_> {
         }
     }
 }
+impl<'a> enmesh_firmware::storage::EnmeshStorage for Storage<'a> {
+    fn settings_partition(&self) -> Option<Partition> {
+        self.settings_partition
+    }
+    fn data_partition(&self) -> Option<Partition> {
+        self.data_partition
+    }
+}
 
-// use enmesh_firmware::storage::StorageError;
-// impl enmesh_firmware::storage::SettingsStorage for Partitions<'_>
-// {
-//     fn load_settings_raw(&mut self, _buffer: &mut [u8]) -> Result<usize, StorageError>
-//     {
-//         // TODO
-//         return Err(enmesh_firmware::storage::StorageError::NoPartition);
-//     }
+// impl<'a> EnmeshStorage for Storage<'a> {
 
-//     fn save_settings_raw(&mut self, _buffer: &[u8]) -> Result<(), StorageError>
-//     {
-//         // TODO
-//         return Err(enmesh_firmware::storage::StorageError::NoPartition);
-//     }
 // }
 
 //     /// returns:
@@ -106,6 +97,3 @@ impl Partitions<'_> {
 //         }
 //     }
 // }
-
-// TODO implement enmesh traits for settings load/save
-// TODO implement enmesh traits for data partition

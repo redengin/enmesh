@@ -7,6 +7,8 @@ publish = false
 
 [dependencies]
 common = { path = "../../common" }
+enmesh-firmware = { path = "../../enmesh" }
+
 
 # ESP32 cargo using git (rather than cargo version)
 # - as cargo release isn't great for WiFi/Bluetooth
