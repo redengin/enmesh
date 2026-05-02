@@ -3,6 +3,8 @@
 
 // provide the shared crates via re-export
 use common::*;
+
+// use the esp32 shared crates via re-export
 use soc_esp32::*; // (provides the panic handler)
 // required by esp32 toolchain
 esp_bootloader_esp_idf::esp_app_desc!();
@@ -47,6 +49,10 @@ async fn main(spawner: embassy_executor::Spawner) {
     // let initial_state = enmesh_firmware::State::new();
     // let _global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
     // debug!("state initialized");
+    let _state = enmesh_firmware::State{
+        firmware_version: env!("CARGO_PKG_VERSION"),
+        ..Default::default()
+    };
 
     // create a heap for alloc support
     soc_esp32::init_heap();

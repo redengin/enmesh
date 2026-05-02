@@ -27,6 +27,7 @@ C4Component
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 ```
+<!--
 * Secured by encryption
   * MeshCore - [uses asymmetric cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography)
       (public_key, private_key)
@@ -49,6 +50,7 @@ C4Component
           are encrypted by an exchange of public keys upon connection (like ssh)
         * as the exchange doesn't expose the private keys, exchanges between an `enmesh endpoint`
             and `node` are secured.
+-->
 
 
 Background
