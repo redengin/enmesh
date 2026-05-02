@@ -16,7 +16,7 @@ mod tasks;
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
     // initialize the SoC
-    let peripherals = if cfg!(feature = "esp-radio") {
+    let peripherals = if cfg!(feature = "_esp-radio") {
         esp_hal::init(
             esp_hal::Config::default()
                 // max clocking required for esp_radio

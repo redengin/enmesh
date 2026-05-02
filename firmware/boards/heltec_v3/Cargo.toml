@@ -21,10 +21,16 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 [features]
 
 # support ble connection for companion app (mobile phones, etc.)
-ble-companion = []
+ble-companion = ["_esp-radio"]
 
 # node will use local wifi network to connect to enmesh endpoints
-wifi-bridge = []
+wifi-bridge = ["_esp-radio"]
+
+# internal feature used to configure clocks
+# esp-radio uses max clocking - at the cost of higher power usage
+_esp-radio = []
+
+
 #-------------------------------------------------------------------------------
 
 [profile.dev]

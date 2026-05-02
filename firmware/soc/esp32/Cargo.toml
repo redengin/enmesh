@@ -8,6 +8,7 @@ publish = false
 [dependencies]
 common = { path = "../../common" }
 enmesh-firmware = { path = "../../enmesh" }
+embedded-storage = "*"
 
 
 # ESP32 cargo using git (rather than cargo version)

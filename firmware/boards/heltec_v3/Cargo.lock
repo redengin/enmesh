@@ -2173,6 +2173,7 @@ name = "soc-esp32"
 version = "0.1.0"
 dependencies = [
  "common",
+ "embedded-storage",
  "enmesh-firmware",
  "esp-alloc",
  "esp-backtrace",

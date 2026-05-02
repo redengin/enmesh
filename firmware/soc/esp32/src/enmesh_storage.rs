@@ -4,7 +4,9 @@ use common::*;
 // provide logging primitives
 use log::*;
 
-use enmesh_firmware::storage::{EnmeshStorage, Partition};
+// use enmesh_firmware::storage::{EnmeshStorage, Partition};
+use enmesh_firmware::storage::{Partition};
+use embedded_storage::nor_flash::{NorFlash, ReadNorFlash};
 pub struct Storage<'a> {
     flash_storage: esp_storage::FlashStorage<'a>,
     pub settings_partition: Option<Partition>,
@@ -52,7 +54,16 @@ impl<'a> Storage<'a> {
             data_partition,
         }
     }
+
+    pub fn read(&mut self, address: u32, buffer: &mut[u8]) -> Result<(), esp_storage::FlashStorageError> {
+        self.flash_storage.read(address, buffer)
+    }
+
+    pub fn write(&mut self, address: u32, buffer: &[u8]) -> Result<(), esp_storage::FlashStorageError> {
+        self.flash_storage.write(address, buffer)
+    }
 }
+
 impl<'a> enmesh_firmware::storage::EnmeshStorage for Storage<'a> {
     fn settings_partition(&self) -> Option<Partition> {
         self.settings_partition

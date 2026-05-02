@@ -14,7 +14,7 @@ pub use esp_bootloader_esp_idf;
 pub mod enmesh_storage;
 
 // provide logging primitives
-use common::log::*;
+// use common::log::*;
 
 /// provide a less verbose panic handler
 #[cfg(not(feature="esp-backtrace-panic"))]
