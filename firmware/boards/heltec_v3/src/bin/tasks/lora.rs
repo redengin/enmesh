@@ -50,9 +50,13 @@ pub async fn task_lora(lora_io: LoraIo) {
     debug!("creating LoRa radio instance...");
     let sx126x_config = lora_phy::sx126x::Config {
         chip: lora_phy::sx126x::Sx1262,
-        // TODO are these the correct parameters?
+        /// https://cdn.sparkfun.com/assets/6/b/5/1/4/SX1262_datasheet.pdf?page=24
+        /// heltec provides TXCO
         tcxo_ctrl: Some(lora_phy::sx126x::TcxoCtrlVoltage::Ctrl1V7),
+        /// https://cdn.sparkfun.com/assets/6/b/5/1/4/SX1262_datasheet.pdf#G8.2134805
+        /// not used on sx1262 heltec radio
         use_dcdc: false,
+        /// increase the rx sensitivity at the cost of more power (4 mA -> 5-7 mA)
         rx_boost: true,
     };
     let lora_interface = lora_phy::iv::GenericSx126xInterfaceVariant::new(
@@ -65,7 +69,7 @@ pub async fn task_lora(lora_io: LoraIo) {
     .unwrap();
     let lora_radio = lora_phy::LoRa::new(
         lora_phy::sx126x::Sx126x::new(lora_spi_device, lora_interface, sx126x_config),
-        false,
+        true,
         Delay,
     )
     .await
