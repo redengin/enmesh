@@ -22,7 +22,8 @@ pub async fn run<ScreenInterface, ScreenSize>(
     let state = crate::State::new();
 
     // FIXME turn on the LED
-    // led.set_high();
+    led.set_high().ok();
+    led.set_low().ok();
 
     // power on the screen
     power_control.power_on().await;
