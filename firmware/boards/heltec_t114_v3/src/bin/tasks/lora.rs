@@ -7,11 +7,11 @@ use log::*;
 
 // provide scheduling primitives
 use embassy_time::Delay;
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
 
 /// static LoRa radio SPI bus
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
 static LORA_SPI_BUS: static_cell::StaticCell<
-    Mutex<CriticalSectionRawMutex, esp_hal::spi::master::Spi<'static, esp_hal::Async>>,
+    Mutex<NoopRawMutex, esp_hal::spi::master::Spi<'static, esp_hal::Async>>,
 > = static_cell::StaticCell::new();
 
 /// convenience struct for the LoRa radio IO interfaces

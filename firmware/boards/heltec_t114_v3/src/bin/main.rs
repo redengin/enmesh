@@ -2,7 +2,7 @@
 #![no_main]
 
 // provide the shared crates via re-export
-use common::*;
+use common::{trouble_host::prelude::appearance::computer::STICK_PC, *};
 
 // use the esp32 shared crates via re-export
 use soc_esp32::*; // (provides the panic handler)
@@ -14,6 +14,15 @@ use log::*;
 
 /// provide task implementations
 mod tasks;
+
+// provide mutex implemntations
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex};
+use embassy_sync::rwlock::RwLock;
+
+/// static global State
+static STATE: static_cell::StaticCell<
+    RwLock<NoopRawMutex, enmesh_firmware::State>> =
+    static_cell::StaticCell::new();
 
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
