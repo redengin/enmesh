@@ -13,8 +13,7 @@ pub async fn run<ScreenInterface, ScreenSize>(
     mut screen: Ssd1306<ScreenInterface, ScreenSize, BufferedGraphicsMode<ScreenSize>>,
     mut power_control: impl crate::PowerControl,
     mut button: impl ButtonState,
-    // mut led: impl embedded_hal::digital::OutputPin,
-    _led: impl embedded_hal::digital::OutputPin,
+    mut led: impl embedded_hal::digital::OutputPin,
 ) where
     ScreenInterface: display_interface::WriteOnlyDataCommand,
     ScreenSize: ssd1306::size::DisplaySize,
@@ -22,6 +21,8 @@ pub async fn run<ScreenInterface, ScreenSize>(
     // FIXME needs a state:State parameter
     let state = crate::State::new();
 
+    // FIXME turn on the LED
+    // led.set_high();
 
     // power on the screen
     power_control.power_on().await;
@@ -56,7 +57,7 @@ pub async fn run<ScreenInterface, ScreenSize>(
                 button_active_frames += 1;
             } else {
                 const DEBOUNCE_FRAMES: u32 = 2;
-                if button_active_frames > DEBOUNCE_FRAMES {
+                if button_active_frames >= DEBOUNCE_FRAMES {
                     let button_down_duration = button_active_frames * Duration::from_hz(FRAME_RATE);
                     // convert core::time::Duration -> embassy_time::Duration
                     let hid_held_duration = embassy_time::Duration::from_millis(
