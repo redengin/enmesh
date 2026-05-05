@@ -1,7 +1,16 @@
+// provide the shared crates via re-export
+use common::*;
 
+// provide mutex implemntations
+use embassy_sync::{blocking_mutex::raw::NoopRawMutex};
+use embassy_sync::rwlock::RwLock;
 
+/// static shared global State
+/// * NoopRawMutex - constrained to single executor
+pub static STATE: static_cell::StaticCell<
+    RwLock<NoopRawMutex, State>> =
+    static_cell::StaticCell::new();
 
-/// globally shared state for firmware
 #[derive(Default)]
 pub struct State {
     pub firmware_version: &'static str,

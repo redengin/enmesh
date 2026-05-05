@@ -1,9 +1,15 @@
 // provide the shared crates via re-export
 use common::*;
+
+// provide access to esp32 hardware
 use soc_esp32::*;
 
 // provide logging primitives
 use log::*;
+
+// provide scheduling primitives
+use embassy_sync::rwlock::RwLock;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 
 /// convenience struct for the screen and button interfaces
 pub struct UxIo {
@@ -19,7 +25,10 @@ pub struct UxIo {
     pub led: esp_hal::peripherals::GPIO35<'static>,
 }
 #[embassy_executor::task]
-pub async fn task_ux(ux_io: UxIo) {
+pub async fn task_ux(
+    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    ux_io: UxIo,
+) {
     debug!("initializing user interface...");
 
     // create the screen driver

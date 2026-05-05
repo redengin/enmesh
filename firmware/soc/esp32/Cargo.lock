@@ -208,7 +208,6 @@ dependencies = [
  "embedded-graphics",
  "embedded-hal 1.0.0",
  "embedded-layout",
- "embedded-storage",
  "heapless 0.8.0",
  "log",
  "lora-modulation",
@@ -876,6 +875,13 @@ name = "encode_unicode"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
+
+[[package]]
+name = "enmesh-firmware"
+version = "0.1.0"
+dependencies = [
+ "common",
+]
 
 [[package]]
 name = "enumset"
@@ -2178,6 +2184,8 @@ name = "soc-esp32"
 version = "0.1.0"
 dependencies = [
  "common",
+ "embedded-storage",
+ "enmesh-firmware",
  "esp-alloc",
  "esp-backtrace",
  "esp-bootloader-esp-idf",

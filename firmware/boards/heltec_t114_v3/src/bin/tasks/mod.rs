@@ -1,5 +1,6 @@
 
-pub(crate) mod usb_serial;
+// FIXME messes up logging
+// pub(crate) mod usb_serial;
 
 pub(crate) mod ux;
 

@@ -1,13 +1,16 @@
 // provide the shared crates via re-export
 use common::*;
+
+// provide access to esp32 hardware
 use soc_esp32::*;
 
 // provide logging primitives
 use log::*;
 
 // provide scheduling primitives
-use embassy_time::Delay;
+use embassy_sync::rwlock::RwLock;
 use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
+use embassy_time::Delay;
 
 /// static LoRa radio SPI bus
 static LORA_SPI_BUS: static_cell::StaticCell<
@@ -26,7 +29,14 @@ pub struct LoraIo {
     pub miso: esp_hal::peripherals::GPIO11<'static>,
 }
 #[embassy_executor::task]
-pub async fn task_lora(lora_io: LoraIo) {
+pub async fn task_lora(
+    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    lora_io: LoraIo,
+) {
+    // let mut x = state.write().await;
+    // x.firmware_version = "hello";
+    // drop(x);
+
     debug!("initializing LoRa radio...");
 
     debug!("creating LoRa SPI bus...");
@@ -67,7 +77,7 @@ pub async fn task_lora(lora_io: LoraIo) {
         None,
     )
     .unwrap();
-    let lora_radio = lora_phy::LoRa::new(
+    let _lora_radio = lora_phy::LoRa::new(
         lora_phy::sx126x::Sx126x::new(lora_spi_device, lora_interface, sx126x_config),
         true,
         Delay,

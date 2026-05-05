@@ -13,13 +13,18 @@ pub use esp_bootloader_esp_idf;
 /// implement enmesh storage support
 pub mod enmesh_storage;
 
-// provide logging primitives
-// use common::log::*;
+// required by esp rust toolchain
+esp_bootloader_esp_idf::esp_app_desc!();
+
+// provide the shared crates via re-export
+use common::*;
 
 /// provide a less verbose panic handler
 #[cfg(not(feature="esp-backtrace-panic"))]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
+    // provide logging primitives
+    use log::*;
     // display location
     if let Some(location) = info.location() {
         error!(

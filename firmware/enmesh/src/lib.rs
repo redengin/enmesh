@@ -4,7 +4,7 @@ extern crate alloc;
 /// globally shared state for firmware
 /// settings, status, etc.
 mod state;
-pub use state::State;
+pub use state::{STATE, State};
 
 /// persistable settings
 mod settings;

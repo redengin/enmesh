@@ -2,27 +2,16 @@
 #![no_main]
 
 // provide the shared crates via re-export
-use common::{trouble_host::prelude::appearance::computer::STICK_PC, *};
+use common::*;
 
 // use the esp32 shared crates via re-export
 use soc_esp32::*; // (provides the panic handler)
-// required by esp32 toolchain
-esp_bootloader_esp_idf::esp_app_desc!();
 
 // provide logging primitives
 use log::*;
 
 /// provide task implementations
 mod tasks;
-
-// provide mutex implemntations
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex};
-use embassy_sync::rwlock::RwLock;
-
-/// static global State
-static STATE: static_cell::StaticCell<
-    RwLock<NoopRawMutex, enmesh_firmware::State>> =
-    static_cell::StaticCell::new();
 
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
@@ -63,6 +52,10 @@ async fn main(spawner: embassy_executor::Spawner) {
         ..Default::default()
     };
 
+    // initialize globally shared state
+    use embassy_sync::rwlock::RwLock;
+    let global_state = enmesh_firmware::STATE.init(RwLock::new(_state));
+
     // create a heap for alloc support
     soc_esp32::init_heap();
 
@@ -88,22 +81,22 @@ async fn main(spawner: embassy_executor::Spawner) {
         mosi: peripherals.GPIO10,
         miso: peripherals.GPIO11,
     };
-    spawner.spawn(tasks::lora::task_lora(lora_peripherals).unwrap());
+    spawner.spawn(tasks::lora::task_lora(global_state, lora_peripherals).unwrap());
     debug!("LoRa task created");
 
-    debug!("creating usb serial task...");
-    // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
-    configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
-    let usb_serial_io = tasks::usb_serial::UsbSerialIo {
-        // usb: peripherals.USB0,
-        // d_neg: peripherals.GPIO19,
-        // d_pos: peripherals.GPIO20,
-        uart: peripherals.UART0,
-        rx: peripherals.GPIO44,
-        tx: peripherals.GPIO43,
-    };
-    spawner.spawn(tasks::usb_serial::task_usb_serial(usb_serial_io).unwrap());
-    debug!("usb serial task created");
+    // debug!("creating usb serial task...");
+    // // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
+    // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
+    // let usb_serial_io = tasks::usb_serial::UsbSerialIo {
+    //     // usb: peripherals.USB0,
+    //     // d_neg: peripherals.GPIO19,
+    //     // d_pos: peripherals.GPIO20,
+    //     uart: peripherals.UART0,
+    //     rx: peripherals.GPIO44,
+    //     tx: peripherals.GPIO43,
+    // };
+    // spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
+    // debug!("usb serial task created");
 
     debug!("creating screen task...");
     // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
@@ -116,18 +109,18 @@ async fn main(spawner: embassy_executor::Spawner) {
         button: peripherals.GPIO0,
         led: peripherals.GPIO35,
     };
-    spawner.spawn(tasks::ux::task_ux(screen_io).unwrap());
+    spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
     debug!("screen task created");
 
     if cfg!(feature = "wifi-bridge") {
         debug!("creating enmesh WiFi bridge task...");
-        spawner.spawn(tasks::wifi::task_wifi_bridge(peripherals.WIFI).unwrap());
+        spawner.spawn(tasks::wifi::task_wifi_bridge(global_state, peripherals.WIFI).unwrap());
         debug!("enmesh WiFi bridge task created");
     }
 
     if cfg!(feature = "ble-companion") {
         debug!("creating enmesh ble compantion task...");
-        spawner.spawn(tasks::ble::task_ble_companion(peripherals.BT).unwrap());
+        spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT).unwrap());
         debug!("enmesh ble companion task created");
     }
 
@@ -135,19 +128,19 @@ async fn main(spawner: embassy_executor::Spawner) {
 }
 
 // TODO move elsewhere - either a CP2102 crate or an internal crate
-/// use CP2102 magic to change the USB parameters
-fn configure_usb_serial(
-    _rxd: &esp_hal::peripherals::GPIO36,
-    _txd: &esp_hal::peripherals::GPIO37,
-) {
-    // TODO use magic to set the CP2102 'vendor':'product' 'label'
-    // embassy_usb_serial_config.manufacturer = Some("Espressif");
-    // embassy_usb_serial_config.product = Some("USB-serial example");
-    // embassy_usb_serial_config.serial_number = Some("12345678");
-    // // Required for windows compatibility.
-    // // https://developer.nordicsemi.com/nRF_Connect_SDK/doc/1.9.1/kconfig/CONFIG_CDC_ACM_IAD.html#help
-    // embassy_usb_serial_config.device_class = 0xEF;
-    // embassy_usb_serial_config.device_sub_class = 0x02;
-    // embassy_usb_serial_config.device_protocol = 0x01;
-    // embassy_usb_serial_config.composite_with_iads = true;
-}
+// /// use CP2102 magic to change the USB parameters
+// fn configure_usb_serial(
+//     _rxd: &esp_hal::peripherals::GPIO36,
+//     _txd: &esp_hal::peripherals::GPIO37,
+// ) {
+//     // TODO use magic to set the CP2102 'vendor':'product' 'label'
+//     // embassy_usb_serial_config.manufacturer = Some("Espressif");
+//     // embassy_usb_serial_config.product = Some("USB-serial example");
+//     // embassy_usb_serial_config.serial_number = Some("12345678");
+//     // // Required for windows compatibility.
+//     // // https://developer.nordicsemi.com/nRF_Connect_SDK/doc/1.9.1/kconfig/CONFIG_CDC_ACM_IAD.html#help
+//     // embassy_usb_serial_config.device_class = 0xEF;
+//     // embassy_usb_serial_config.device_sub_class = 0x02;
+//     // embassy_usb_serial_config.device_protocol = 0x01;
+//     // embassy_usb_serial_config.composite_with_iads = true;
+// }

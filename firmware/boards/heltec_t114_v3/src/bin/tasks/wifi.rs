@@ -7,9 +7,13 @@ use log::*;
 // use soc crate (it provides the panic handler)
 use soc_esp32::*;
 
+// provide scheduling primitives
+use embassy_sync::rwlock::RwLock;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 
 #[embassy_executor::task]
 pub async fn task_wifi_bridge(
+    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     wifi_peripheral: esp_hal::peripherals::WIFI<'static>,
     // bt_peripheral: esp_hal::peripherals::BT<'static>,
 ) {
