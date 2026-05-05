@@ -1,6 +1,12 @@
 #![no_std]
 extern crate alloc;
 
+/// provide primitives necessary to use enmesh firmware
+pub mod prelude {
+    pub use common::embassy_sync::rwlock::RwLock;
+    pub use common::embassy_sync::blocking_mutex::raw::NoopRawMutex;
+}
+
 /// globally shared state for firmware
 /// settings, status, etc.
 mod state;

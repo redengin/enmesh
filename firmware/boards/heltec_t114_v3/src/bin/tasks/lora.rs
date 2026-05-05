@@ -8,8 +8,10 @@ use soc_esp32::*;
 use log::*;
 
 // provide scheduling primitives
-use embassy_sync::rwlock::RwLock;
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
+use enmesh_firmware::prelude::*;
+// use embassy_sync::rwlock::RwLock;
+// use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::mutex::Mutex;
 use embassy_time::Delay;
 
 /// static LoRa radio SPI bus

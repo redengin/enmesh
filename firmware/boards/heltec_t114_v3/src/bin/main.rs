@@ -28,7 +28,7 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // initialize logging
     esp_println::logger::init_logger_from_env();
-    info!("initializing...");
+    debug!("initializing...");
 
     debug!("initializing RTOS...");
     use esp_hal::timer::timg::TimerGroup;
@@ -52,12 +52,12 @@ async fn main(spawner: embassy_executor::Spawner) {
         ..Default::default()
     };
 
-    // initialize globally shared state
-    use embassy_sync::rwlock::RwLock;
-    let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
-
     // create a heap for alloc support
     soc_esp32::init_heap();
+
+    // create globally shared state
+    use enmesh_firmware::prelude::*;
+    let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
 
     // create the tasks
     //--------------------------------------------------------------------------------
