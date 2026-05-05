@@ -2,13 +2,12 @@
 use common::*;
 
 // provide mutex implemntations
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex};
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
 
 /// static shared global State
 /// * NoopRawMutex - constrained to single executor
-pub static STATE: static_cell::StaticCell<
-    RwLock<NoopRawMutex, State>> =
+pub static STATE: static_cell::StaticCell<RwLock<NoopRawMutex, State>> =
     static_cell::StaticCell::new();
 
 #[derive(Default)]
@@ -60,11 +59,19 @@ impl core::fmt::Display for LoRaRadioMode {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub enum LoRaProtocol {
     #[default]
     Meshtastic,
     MeshCore,
+}
+impl LoRaProtocol {
+    pub fn next(&self) -> LoRaProtocol {
+        return match self {
+            LoRaProtocol::Meshtastic => LoRaProtocol::MeshCore,
+            LoRaProtocol::MeshCore => LoRaProtocol::Meshtastic,
+        }
+    }
 }
 impl core::fmt::Display for LoRaProtocol {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -95,8 +102,7 @@ impl core::fmt::Display for WiFiStatus {
 }
 
 #[derive(Default)]
-pub enum BleStatus
-{
+pub enum BleStatus {
     Connected,
     Disconnected,
     #[default]
@@ -122,4 +128,3 @@ pub struct ProtocolStorageStatus {
     pub size: usize,
     pub used: usize,
 }
-

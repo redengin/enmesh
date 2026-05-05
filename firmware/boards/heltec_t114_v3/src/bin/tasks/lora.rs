@@ -32,13 +32,9 @@ pub struct LoraIo {
 }
 #[embassy_executor::task]
 pub async fn task_lora(
-    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     lora_io: LoraIo,
-) {
-    // let mut x = state.write().await;
-    // x.firmware_version = "hello";
-    // drop(x);
-
+) -> ! {
     debug!("initializing LoRa radio...");
 
     debug!("creating LoRa SPI bus...");
@@ -79,18 +75,17 @@ pub async fn task_lora(
         None,
     )
     .unwrap();
-    let _lora_radio = lora_phy::LoRa::new(
+    let lora_radio = lora_phy::LoRa::new(
         lora_phy::sx126x::Sx126x::new(lora_spi_device, lora_interface, sx126x_config),
         true,
         Delay,
     )
     .await
     .unwrap();
-    info!("LoRa radio initialized");
+    debug!("LoRa radio created");
 
-    // run the repeater handler
-    // enmesh::lora::run(lora_radio).await;
-    // enmesh_firmware::lora::run(lora_radio).await;
+    // handle LoRa (should never return)
+    enmesh_firmware::lora::run(global_state, lora_radio).await;
 
-    // panic!("LoRa task ended");
+    panic!("LoRa task ended");
 }
