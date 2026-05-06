@@ -1,3 +1,8 @@
+// pub trait EnmeshStorage {
+//     fn settings_partition(&self) -> Option<Partition>;
+//     fn data_partition(&self) -> Option<Partition>;
+// }
+
 #[derive(Copy, Clone)]
 pub struct Partition {
     /// start address of the partition
@@ -23,11 +28,6 @@ pub trait AsyncStorage {
         buffer: &[u8],
     ) -> impl core::future::Future<Output=Result<(), StorageError>> + Send;
 }
-pub trait EnmeshStorage {
-    fn settings_partition(&self) -> Option<Partition>;
-    fn data_partition(&self) -> Option<Partition>;
-}
-
 /// storage access errors
 pub enum StorageError {
     OperationFailed,

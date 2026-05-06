@@ -7,12 +7,13 @@
 # otadata required by esp_hal (must be at least two sectors)
   otadata,          data,   ota,        ,         8K,
 
-# nvs for enmesh settings
-  app.settings,     data,   nvs,        ,         4K,
+# nvs for enmesh settings (ping pong partitions)
+  app_settings.A,   data,   undefined,  ,         4K,
+  app_settings.B,   data,   undefined,  ,         4K,
+
 # settings used for ota update app
 # required by esp_hal (must be at least one sector)
 #settings_ota,       data,   nvs,        ,         4K,
-
 # partitions for app (names required by esp_hal)
 # bootloader handles switching between upon boot
 # TODO determine the expected app size
@@ -22,4 +23,4 @@
 
 # application data
 # TODO use all the remaining space
-  app.data,         data,   nvs,        ,         3M,
+  app_data,         data,   undefined,  ,         3M,

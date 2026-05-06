@@ -31,3 +31,15 @@ pub struct MeshCoreSettings {
     /// 0 - none, 100 - maximum storage
     pub storage_weight: u8,
 }
+
+
+// impl Settings {
+//     pub async fn load(
+//         partition: crate::storage::Partition + crate::storage::AsyncStorage
+//     ) -> Self
+//     {
+//         Self {
+//             ..Default::default()
+//         }
+//     }
+// }

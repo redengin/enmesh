@@ -48,7 +48,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     }
 }
 
-// provide 64K heap (reclaimed from bootloader)
+/// provide 64K heap (reclaimed from bootloader)
 pub fn init_heap() {
     use esp_hal::ram;
     esp_alloc::heap_allocator!(#[ram(reclaimed)] size: 64 * 1024);

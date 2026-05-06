@@ -1,5 +1,5 @@
 // provide the shared crates via re-export
-use common::{lora_phy::LoRa, *};
+use common::*;
 
 #[derive(Default)]
 pub struct EnmeshLoRaConfig {

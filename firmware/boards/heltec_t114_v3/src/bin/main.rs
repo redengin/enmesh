@@ -40,8 +40,8 @@ async fn main(spawner: embassy_executor::Spawner) {
     // esp_rtos::start_with_idle_hook(timg0.timer0, sw_int.software_interrupt0, idle_hook);
     debug!("RTOS initialized");
 
-    // debug!("initializing storage...");
-    // let storage = storage::Partitions::new(peripherals.FLASH);
+    debug!("initializing storage...");
+    let _storage = soc_esp32::enmesh_storage::Storage::open(peripherals.FLASH);
     // debug!("storage initialized");
     // debug!("initializing state...");
     // let initial_state = enmesh_firmware::State::new();

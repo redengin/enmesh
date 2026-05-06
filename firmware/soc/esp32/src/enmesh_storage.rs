@@ -9,7 +9,8 @@ use enmesh_firmware::storage::{Partition};
 use embedded_storage::nor_flash::{NorFlash, ReadNorFlash};
 pub struct Storage<'a> {
     flash_storage: esp_storage::FlashStorage<'a>,
-    pub settings_partition: Option<Partition>,
+    pub settings_partition_a: Option<Partition>,
+    pub settings_partition_b: Option<Partition>,
     pub data_partition: Option<Partition>,
 }
 impl<'a> Storage<'a> {
@@ -24,20 +25,29 @@ impl<'a> Storage<'a> {
         .unwrap();
 
         // find the enmesh partitions
-        let mut settings_partition: Option<Partition> = None;
+        let mut settings_partition_a: Option<Partition> = None;
+        let mut settings_partition_b: Option<Partition> = None;
         let mut data_partition: Option<Partition> = None;
         for partition in partition_table.iter() {
             match partition.label_as_str() {
-                "app.settings" => {
-                    debug!("found settings partition [size: {}]", partition.len());
-                    settings_partition = Some(Partition {
+                "app_settings.A" => {
+                    debug!("found {} partition [size: {}]", partition.label_as_str(), partition.len());
+                    settings_partition_a = Some(Partition {
                         address: partition.offset() as usize,
                         size: partition.len() as usize,
                         sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
                     });
                 }
-                "app.data" => {
-                    debug!("found settings partition [size: {}]", partition.len());
+                "app_settings.B" => {
+                    debug!("found {} partition [size: {}]", partition.label_as_str(), partition.len());
+                    settings_partition_b = Some(Partition {
+                        address: partition.offset() as usize,
+                        size: partition.len() as usize,
+                        sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
+                    });
+                }
+                "app_data" => {
+                    debug!("found {} partition [size: {}]", partition.label_as_str(), partition.len());
                     data_partition = Some(Partition {
                         address: partition.offset() as usize,
                         size: partition.len() as usize,
@@ -50,7 +60,8 @@ impl<'a> Storage<'a> {
 
         Self {
             flash_storage,
-            settings_partition,
+            settings_partition_a,
+            settings_partition_b,
             data_partition,
         }
     }
@@ -64,14 +75,14 @@ impl<'a> Storage<'a> {
     }
 }
 
-impl<'a> enmesh_firmware::storage::EnmeshStorage for Storage<'a> {
-    fn settings_partition(&self) -> Option<Partition> {
-        self.settings_partition
-    }
-    fn data_partition(&self) -> Option<Partition> {
-        self.data_partition
-    }
-}
+// impl<'a> enmesh_firmware::storage::EnmeshStorage for Storage<'a> {
+//     fn settings_partition(&self) -> Option<Partition> {
+//         self.settings_partition
+//     }
+//     fn data_partition(&self) -> Option<Partition> {
+//         self.data_partition
+//     }
+// }
 
 // impl<'a> EnmeshStorage for Storage<'a> {
 
