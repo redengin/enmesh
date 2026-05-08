@@ -1,5 +1,5 @@
 // provide the shared crates via re-export
-use common::{embassy_sync::blocking_mutex::raw::RawMutex, *};
+use common::*;
 
 // provide logging primitives
 use log::*;
@@ -8,7 +8,6 @@ use log::*;
 use embassy_sync::blocking_mutex::NoopMutex;
 
 use embedded_storage::nor_flash::{NorFlash, ReadNorFlash};
-use enmesh_firmware::storage::Partition;
 
 pub struct Storage<'a> {
     /// mutex for single executor
@@ -16,6 +15,11 @@ pub struct Storage<'a> {
     pub settings_partition_a: Option<Partition>,
     pub settings_partition_b: Option<Partition>,
     pub data_partition: Option<Partition>,
+}
+pub struct Partition {
+    /// start address of the partition
+    pub address: usize,
+    pub size: usize,
 }
 impl<'a> Storage<'a> {
     pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
@@ -43,7 +47,6 @@ impl<'a> Storage<'a> {
                     settings_partition_a = Some(Partition {
                         address: partition.offset() as usize,
                         size: partition.len() as usize,
-                        sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
                     });
                 }
                 "app_settings.B" => {
@@ -55,7 +58,6 @@ impl<'a> Storage<'a> {
                     settings_partition_b = Some(Partition {
                         address: partition.offset() as usize,
                         size: partition.len() as usize,
-                        sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
                     });
                 }
                 "app_data" => {
@@ -67,7 +69,6 @@ impl<'a> Storage<'a> {
                     data_partition = Some(Partition {
                         address: partition.offset() as usize,
                         size: partition.len() as usize,
-                        sector_size: esp_storage::FlashStorage::SECTOR_SIZE as usize,
                     });
                 }
                 label => trace!("ignoring '{label}' partition"),

@@ -1,33 +1,28 @@
-// pub trait EnmeshStorage {
-//     fn settings_partition(&self) -> Option<Partition>;
-//     fn data_partition(&self) -> Option<Partition>;
-// }
-
-#[derive(Copy, Clone)]
-pub struct Partition {
-    /// start address of the partition
-    pub address: usize,
-    pub size: usize,
-    pub sector_size: usize,
+pub trait EnmeshStorage {
+    fn settings_a_partition(&self) -> Option<&'static impl AsyncStorage>;
+    fn settings_b_partition(&self) -> Option<&'static impl AsyncStorage>;
+    fn data_partition(&self) -> Option<&'static impl AsyncStorage>;
 }
+
 pub trait AsyncStorage {
-    fn read_async(
-        &mut self,
-        partition: Partition,
-        offset: usize,
-        buffer: &mut [u8],
-    ) -> impl core::future::Future<Output=Result<(), StorageError>> + Send;
+    type Error;
 
-    /// will erase sectors as necessary to support the write region
-    /// * if sectors need to be erased, the implementation should
-    ///     rewrite any persisted data outside of the buffer range
-    fn write_async(
-        &mut self,
-        partition: Partition,
-        offset: usize,
-        buffer: &[u8],
-    ) -> impl core::future::Future<Output=Result<(), StorageError>> + Send;
+    fn read_async(&mut self, offset: usize, buffer: &mut[u8])
+        -> impl core::future::Future<Output=Result<(), Self::Error>> + Send;
+
+    fn write_async(&mut self, offset: usize, buffer: &[u8])
+        -> impl core::future::Future<Output=Result<(), Self::Error>> + Send;
+
+    fn erase_async(&mut self, sector_start: usize, sector_count: usize)
+        -> impl core::future::Future<Output=Result<(), Self::Error>> + Send;
+
+    fn size(&self) -> usize;
+
+    fn sector_size(&self) -> usize;
 }
+
+
+
 /// storage access errors
 pub enum StorageError {
     OperationFailed,
