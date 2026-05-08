@@ -18,16 +18,24 @@ pub trait Storage {
 
     type StorageError;
 
-    fn read(&mut self, offset: usize, buffer: &mut[u8]) -> Result<(), Self::StorageError>;
+    /// * offset - must be aligned to word_size()
+    /// * buffer - must be sized to N*word_size()
+    fn read(&mut self, offset: usize, buffer: &mut [u8]) -> Result<(), Self::StorageError>;
 
+    /// * offset - must be aligned to word_size()
+    /// * buffer - must be sized to N*word_size()
     fn write(&mut self, offset: usize, buffer: &[u8]) -> Result<(), Self::StorageError>;
 
-    fn erase_sectors(&mut self, start_sector: usize, sector_count: usize) -> Result<(), Self::StorageError>;
+    fn erase_sectors(
+        &mut self,
+        start_sector: usize,
+        sector_count: usize,
+    ) -> Result<(), Self::StorageError>;
 }
 pub enum WordSize {
-    _8Bit   = 1,
-    _16Bit  = 2,
-    _32Bit  = 4,
+    _8Bit = 1,
+    _16Bit = 2,
+    _32Bit = 4,
 }
 
 // pub trait AsyncStorage {
