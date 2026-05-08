@@ -3,25 +3,14 @@ use common::*;
 
 // provide logging primitives
 use log::*;
+const TAG: &str = "[enmesh_storage]";
 
-// provide mutex primitives
-use embassy_sync::blocking_mutex::NoopMutex;
-
-use embedded_storage::nor_flash::{NorFlash, ReadNorFlash};
-
-pub struct Storage<'a> {
-    /// mutex for single executor
-    flash_storage: NoopMutex<esp_storage::FlashStorage<'a>>,
-    pub settings_partition_a: Option<Partition>,
-    pub settings_partition_b: Option<Partition>,
-    pub data_partition: Option<Partition>,
+pub struct Storage {
+    settings_partition_a: Option<Partition>,
+    settings_partition_b: Option<Partition>,
+    data_partition: Option<Partition>,
 }
-pub struct Partition {
-    /// start address of the partition
-    pub address: usize,
-    pub size: usize,
-}
-impl<'a> Storage<'a> {
+impl Storage {
     pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
         let mut flash_storage = esp_storage::FlashStorage::new(flash);
@@ -40,130 +29,147 @@ impl<'a> Storage<'a> {
             match partition.label_as_str() {
                 "app_settings.A" => {
                     debug!(
-                        "found {} partition [size: {}]",
+                        "{TAG} found {} partition [size: {}]",
                         partition.label_as_str(),
                         partition.len()
                     );
                     settings_partition_a = Some(Partition {
                         address: partition.offset() as usize,
-                        size: partition.len() as usize,
+                        capacity: partition.len() as usize,
                     });
                 }
                 "app_settings.B" => {
                     debug!(
-                        "found {} partition [size: {}]",
+                        "{TAG} found {} partition [size: {}]",
                         partition.label_as_str(),
                         partition.len()
                     );
                     settings_partition_b = Some(Partition {
                         address: partition.offset() as usize,
-                        size: partition.len() as usize,
+                        capacity: partition.len() as usize,
                     });
                 }
                 "app_data" => {
                     debug!(
-                        "found {} partition [size: {}]",
+                        "{TAG} found {} partition [size: {}]",
                         partition.label_as_str(),
                         partition.len()
                     );
                     data_partition = Some(Partition {
                         address: partition.offset() as usize,
-                        size: partition.len() as usize,
+                        capacity: partition.len() as usize,
                     });
                 }
-                label => trace!("ignoring '{label}' partition"),
+                label => trace!("{TAG} ignoring '{label}' partition"),
             }
         }
 
         Self {
-            flash_storage: NoopMutex::new(flash_storage),
             settings_partition_a,
             settings_partition_b,
             data_partition,
         }
     }
-
-    pub fn read(
-        &mut self,
-        address: usize,
-        buffer: &mut [u8],
-    ) -> Result<(), esp_storage::FlashStorageError> {
-        // SAFETY: this is safe, see embassy_sync::blocking_mutex::lock_mut() for details
-        unsafe {
-            self.flash_storage
-                .lock_mut(|flash_storage| flash_storage.read(address as u32, buffer))
-        }
-    }
-
-    /// will merge data, erase the sector, and then write the merged data
-    pub fn write(
-        &mut self,
-        address: usize,
-        buffer: &[u8],
-    ) -> Result<(), esp_storage::FlashStorageError> {
-        // SAFETY: this is safe, see embassy_sync::blocking_mutex::lock_mut() for details
-        unsafe {
-            self.flash_storage.lock_mut(|flash_storage| {
-                flash_storage.write(address as u32, buffer)
-            })
-        }
-    }
-
-    pub fn erase(
-        &mut self,
-        address: usize,
-        size: usize,
-    ) -> Result<(), esp_storage::FlashStorageError> {
-        // SAFETY: this is safe, see embassy_sync::blocking_mutex::lock_mut() for details
-        unsafe {
-            self.flash_storage.lock_mut(|flash_storage| {
-                flash_storage.erase(address as u32, (address + size) as u32)
-            })
-        }
-    }
 }
 
-// impl<'a> enmesh_firmware::storage::EnmeshStorage for Storage<'a> {
-//     fn settings_partition(&self) -> Option<Partition> {
-//         self.settings_partition
-//     }
-//     fn data_partition(&self) -> Option<Partition> {
-//         self.data_partition
-//     }
-// }
+struct Partition {
+    pub address: usize,
+    pub capacity: usize,
+}
 
-// impl<'a> EnmeshStorage for Storage<'a> {
+// create a mutex for accessing flash storage
+use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, RawMutex};
+static FLASH_MUTEX: CriticalSectionRawMutex = CriticalSectionRawMutex::new();
 
-// }
+impl enmesh_firmware::storage::Storage for Partition {
+    fn capacity(&self) -> usize {
+        self.capacity
+    }
 
-//     /// returns:
-//     ///     OK(count of bytes written to buffer)
-//     ///     Err(count of bytes written to buffer)
-//     pub async fn load_settings_raw(&mut self, buffer: &mut [u8]) -> Result<usize, usize> {
-//         if let Some(partition) = &self.settings_partition {
-//             match self.flash_storage.read(partition.flash_offset, buffer) {
-//                 Ok(_) => Ok(buffer.len()),
-//                 Err(_) => Err(0),
-//             }
-//         } else {
-//             // no partition
-//             return Err(0);
-//         }
-//     }
+    fn sector_size(&self) -> usize {
+        esp_storage::FlashStorage::SECTOR_SIZE as usize
+    }
 
-//     /// NOTE: this will erase flash sectors before writing
-//     /// returns:
-//     ///     OK(count of bytes written to flash)
-//     ///     Err(count of bytes written to flash)
-//     pub async fn save_settings_raw(&mut self, buffer: &[u8]) -> Result<usize, usize> {
-//         if let Some(partition) = &self.settings_partition {
-//             match self.flash_storage.write(partition.flash_offset, buffer) {
-//                 Ok(_) => Ok(buffer.len()),
-//                 Err(_) => Err(0),
-//             }
-//         } else {
-//             // no partition
-//             return Err(0);
-//         }
-//     }
-// }
+    fn word_size(&self) -> enmesh_firmware::storage::WordSize {
+        enmesh_firmware::storage::WordSize::_32Bit
+    }
+
+    type StorageError = esp_storage::FlashStorageError;
+
+    fn read(&mut self, offset: usize, buffer: &mut [u8]) -> Result<(), Self::StorageError> {
+        if offset + buffer.len() > self.capacity {
+            return Err(esp_storage::FlashStorageError::OutOfBounds);
+        }
+        if (offset % self.word_size() as usize) != 0 {
+            return Err(esp_storage::FlashStorageError::NotAligned);
+        }
+        if (buffer.len() % self.word_size() as usize) != 0 {
+            return Err(esp_storage::FlashStorageError::NotAligned);
+        }
+        unsafe {
+            debug!(
+                "{TAG} reading flash at offset {} into buffer of size {}",
+                (self.address + offset),
+                buffer.len()
+            );
+            FLASH_MUTEX.lock(|| {
+                let _ = esp_storage::ll::spiflash_read(
+                    (self.address + offset) as u32,
+                    buffer.as_mut_ptr() as *mut u32,
+                    buffer.len() as u32,
+                );
+            });
+        }
+        Ok(())
+    }
+
+    fn write(&mut self, offset: usize, buffer: &[u8]) -> Result<(), Self::StorageError> {
+        if offset + buffer.len() > self.capacity {
+            return Err(esp_storage::FlashStorageError::OutOfBounds);
+        }
+        if (offset % self.word_size() as usize) != 0 {
+            return Err(esp_storage::FlashStorageError::NotAligned);
+        }
+        if (buffer.len() % self.word_size() as usize) != 0 {
+            return Err(esp_storage::FlashStorageError::NotAligned);
+        }
+        unsafe {
+            debug!(
+                "{TAG} writing flash at offset {} into buffer of size {}",
+                (self.address + offset),
+                buffer.len()
+            );
+            FLASH_MUTEX.lock(|| {
+                let _ = esp_storage::ll::spiflash_write(
+                    (self.address + offset) as u32,
+                    buffer.as_ptr() as *mut u32,
+                    buffer.len() as u32,
+                );
+            });
+        }
+        Ok(())
+    }
+
+    fn erase_sectors(
+        &mut self,
+        start_sector: usize,
+        sector_count: usize,
+    ) -> Result<(), Self::StorageError> {
+        if (start_sector * self.sector_size()) > self.capacity {
+            return Err(esp_storage::FlashStorageError::OutOfBounds);
+        }
+        if (start_sector + sector_count) * self.sector_size() > self.capacity {
+            return Err(esp_storage::FlashStorageError::OutOfBounds);
+        }
+        let first_sector = (self.address / self.sector_size()) + start_sector;
+        let last_sector = first_sector + sector_count;
+        unsafe {
+            FLASH_MUTEX.lock(|| {
+                for sector in first_sector..last_sector {
+                    let _ = esp_storage::ll::spiflash_erase_sector(sector as u32);
+                }
+            });
+        }
+        Ok(())
+    }
+}
