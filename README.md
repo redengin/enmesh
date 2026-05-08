@@ -59,13 +59,39 @@ Background
 [Meshtastic](https://meshtastic.org/) and [MeshCore](https://meshcore.co.uk/)
 creating LoRa hardware that is readily purchasable by users.
 
-[Reticulum](https://reticulum.network/) proposes that the privacy/anonymity of
-LoRa can be extended beyond the local LoRa mesh over the internet.
+[Reticulum](https://reticulum.network/) is a proposed design for creating
+"sovereign" communication networks that bridge LoRa traffic over additional
+channels (e.g. internet).
 
-Connecting LoRa to everything
+### Societal Evolution
+The primary human right is the ability to communicate. Societies that restrict
+communication impede the evolution of the society, making them susceptible to
+being overcome by larger societies.
+
+Censoring communication is used by people that wish to control societal
+evolution. Currently, most people won't talk to another person directly -
+but would rather use a social platform to provide some level of anonymity.
+
+For societal evolution to be possible, people need to be able to anonymously
+communicate.
+
+There will be communications that you find abhorent and you should use
+your ability to communicate to stop the perpetrators. Censhorship 
+**must never** restrict your concern about human rights violations.
+
+
+
+Enmesh Objective
+================================================================================
+
+
+Universal LoRa Communication
 --------------------------------------------------------------------------------
+
+
 As Reticulum is no longer active, this is a successor - implemented in Rust to
-support both firmware and PC applications.
+support both hardware nodes and PC applications.
+
 
 Connecting a LoRa node to a local WiFi router, extends the reach of a LoRa node
 to the world. ESP32 based devices (HelTec) already provide WiFi hardware.
