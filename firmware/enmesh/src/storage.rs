@@ -1,7 +1,7 @@
 pub trait EnmeshStorage {
-    fn settings_a_partition(&self) -> Option<&'static impl Storage>;
-    fn settings_b_partition(&self) -> Option<&'static impl Storage>;
-    fn data_partition(&self) -> Option<&'static impl Storage>;
+    fn settings_a_partition(&self) -> Option<&impl Storage>;
+    fn settings_b_partition(&self) -> Option<&impl Storage>;
+    fn data_partition(&self) -> Option<&impl Storage>;
 }
 
 pub trait Storage {

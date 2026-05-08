@@ -41,12 +41,12 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("RTOS initialized");
 
     debug!("initializing storage...");
-    let _storage = soc_esp32::enmesh_storage::Storage::open(peripherals.FLASH);
-    // debug!("storage initialized");
-    // debug!("initializing state...");
-    // let initial_state = enmesh_firmware::State::new();
+    let _storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
+    debug!("storage initialized");
+    debug!("initializing settings...");
+    // let settings = enmesh_firmware::Settings::load(storage);
     // let _global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
-    // debug!("state initialized");
+    debug!("settings initialized");
     let state = enmesh_firmware::State{
         firmware_version: env!("CARGO_PKG_VERSION"),
         ..Default::default()

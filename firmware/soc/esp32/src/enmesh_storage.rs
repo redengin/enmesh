@@ -5,12 +5,25 @@ use common::*;
 use log::*;
 const TAG: &str = "[enmesh_storage]";
 
-pub struct Storage {
+pub struct EnmeshStorage {
     settings_partition_a: Option<Partition>,
     settings_partition_b: Option<Partition>,
     data_partition: Option<Partition>,
 }
-impl Storage {
+impl enmesh_firmware::storage::EnmeshStorage for EnmeshStorage {
+    fn settings_a_partition(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
+        self.settings_partition_a.as_ref()
+    }
+
+    fn settings_b_partition(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
+        self.settings_partition_b.as_ref()
+    }
+
+    fn data_partition(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
+        self.data_partition.as_ref()
+    }
+}
+impl EnmeshStorage {
     pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
         let mut flash_storage = esp_storage::FlashStorage::new(flash);
