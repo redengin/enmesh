@@ -75,17 +75,11 @@ pub async fn task_lora(
         None,
     )
     .unwrap();
-    let lora_radio = lora_phy::LoRa::new(
-        lora_phy::sx126x::Sx126x::new(lora_spi_device, lora_interface, sx126x_config),
-        true,
-        Delay,
-    )
-    .await
-    .unwrap();
+    let lora_radio = lora_phy::sx126x::Sx126x::new(lora_spi_device, lora_interface, sx126x_config);
     debug!("LoRa radio created");
 
     // handle LoRa (should never return)
-    enmesh_firmware::lora::run(global_state, lora_radio).await;
+    enmesh_firmware::lora::thread::run(global_state, lora_radio).await;
 
     panic!("LoRa task ended");
 }

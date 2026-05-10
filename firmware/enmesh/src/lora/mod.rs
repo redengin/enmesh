@@ -59,41 +59,6 @@ pub struct ReceivedLoRaPacket {
     pub buffer: [u8],
 }
 
-/// provide the common runtime primitives
-use crate::{prelude::*, state::LoRaProtocol};
+/// provide rx-tx thread
+pub mod thread;
 
-/// round-robin switching between enabled protocols
-pub async fn run<LoRaRk, LoRaDly>(
-    global_state: &'static RwLock<NoopRawMutex, crate::State>,
-    lora_radio: lora_phy::LoRa<LoRaRk, LoRaDly>,
-) where
-    LoRaRk: lora_phy::mod_traits::RadioKind,
-    LoRaDly: lora_phy::DelayNs,
-{
-    loop {
-        // simply wait if no protocols are enabled
-        let meshtastic_enabled = global_state.read().await.settings.meshtastic_settings.enabled;
-        let meshcore_enabled = global_state.read().await.settings.meshcore_settings.enabled;
-        if !meshtastic_enabled && !meshcore_enabled {
-            Timer::after_secs(1).await;
-            continue
-        }
-
-        let current_protocol = global_state.read().await.current_protocol;
-        match current_protocol {
-            LoRaProtocol::Meshtastic => {
-                if meshtastic_enabled {
-                    // TODO perform an RX/TX cycle
-                }
-            },
-            LoRaProtocol::MeshCore => {
-                if meshcore_enabled {
-                    // TODO perform an RX/TX cycle
-                }
-            },
-        }
-
-        // switch to the next protocol
-        global_state.write().await.current_protocol.next();
-    }
-}

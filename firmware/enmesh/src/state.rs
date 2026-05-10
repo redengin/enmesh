@@ -20,7 +20,7 @@ pub struct State {
     pub battery_percent: u8,
 
     /// used by UX for display, set by lora thread
-    pub current_protocol: LoRaProtocol,
+    pub current_protocol: Option<LoRaProtocol>,
     /// used by UX for display and LEDs, set by lora thread
     pub current_radio_mode: LoRaRadioMode,
 
@@ -59,7 +59,7 @@ impl core::fmt::Display for LoRaRadioMode {
     }
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, PartialEq)]
 pub enum LoRaProtocol {
     #[default]
     Meshtastic,
