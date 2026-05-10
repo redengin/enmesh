@@ -1,13 +1,14 @@
 // provide the shared crates via re-export
 use common::*;
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct EnmeshLoRaConfig {
     pub modulation_config: EnmeshLoRaModulationConfig,
     pub packet_config: EnmeshLoRaPacketConfig,
 }
 
 /// used to configure the LoRa radio modulation
+#[derive(Copy, Clone)]
 pub struct EnmeshLoRaModulationConfig {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
@@ -38,7 +39,7 @@ impl Default for EnmeshLoRaModulationConfig {
 }
 
 /// used to configure the LoRa packet recognition
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct EnmeshLoRaPacketConfig {
     /// smaller preambles minimize power usage
     pub preamble_length: u16,
@@ -61,4 +62,3 @@ pub struct ReceivedLoRaPacket {
 
 /// provide rx-tx thread
 pub mod thread;
-

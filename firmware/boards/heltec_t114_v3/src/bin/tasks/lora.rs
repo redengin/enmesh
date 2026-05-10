@@ -9,10 +9,7 @@ use log::*;
 
 // provide scheduling primitives
 use enmesh_firmware::prelude::*;
-// use embassy_sync::rwlock::RwLock;
-// use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
-use embassy_time::Delay;
 
 /// static LoRa radio SPI bus
 static LORA_SPI_BUS: static_cell::StaticCell<
