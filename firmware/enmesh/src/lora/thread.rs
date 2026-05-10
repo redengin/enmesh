@@ -1,6 +1,9 @@
 // provide the common runtime primitive
 use common::*;
 
+// provide logging primitives
+use log::*;
+
 /// provide scheduling primitives
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
@@ -14,7 +17,7 @@ pub async fn run(
 )
 {
     // round robin switch between enabled protocols
-    let mut last_protocol: Option<crate::state::LoRaProtocol> = None;
+    let mut last_frequency_hz: u32 = 0;
     loop {
         let global_state_lock = global_state.read().await;
         let meshtastic_enabled = global_state_lock.settings.meshtastic_settings.enabled;    
@@ -46,20 +49,38 @@ pub async fn run(
         global_state_lock.current_protocol = next_protocol;
         drop(global_state_lock);
 
-        // configure the radio for the next protocol
-        configure_lora_frequency(&mut lora_radio).await;
+        // if no protocols are enabled, simply wait and check again
+        if next_protocol.is_none() {
+            Timer::after_secs(1).await;
+            continue
+        }   
+
+        // configure the radio for the next protocol (if necessary)
+        let global_state_lock = global_state.read().await;
+        let next_frequency_hz =
+            if next_protocol == Some(LoRaProtocol::Meshtastic) {
+                global_state_lock.settings.meshtastic_settings.lora_config.modulation_config.frequency_hz
+            }
+            else if next_protocol == Some(LoRaProtocol::MeshCore) {
+                global_state_lock.settings.meshcore_settings.lora_config.modulation_config.frequency_hz
+            }
+            else {
+                panic!("unreachable")
+            };
+        drop(global_state_lock);
+        if next_frequency_hz != last_frequency_hz {
+            match lora_radio.calibrate_image(next_frequency_hz).await
+            {
+                Ok(_) => { last_frequency_hz = next_frequency_hz; },
+                Err(e) => {
+                    info!("failed to calibrate radio for frequency {next_frequency_hz}: {:?}", e);
+                    continue;
+                }
+            }
+        } 
 
 
     }
-}
-
-
-async fn configure_lora_frequency(
-    lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
-)
-    -> Result<(), lora_phy::mod_params::RadioError>
-{
-    lora_radio.calibrate_image(100).await
 }
 
 
