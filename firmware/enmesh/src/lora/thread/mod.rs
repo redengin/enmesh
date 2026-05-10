@@ -1,4 +1,4 @@
-// provide the common runtime primitive
+// provide the common crates via re-export
 use common::*;
 
 // provide logging primitives
@@ -10,6 +10,8 @@ use embassy_sync::rwlock::RwLock;
 use embassy_time::Timer;
 
 use crate::state::LoRaProtocol;
+
+mod meshtastic;
 
 
 pub async fn run(
@@ -97,9 +99,7 @@ pub async fn run(
         // perform an TX/RX cycle
         match next_protocol {
             Some(LoRaProtocol::Meshtastic) => {
-                #[path = "meshtastic.rs"]
-                mod meshtastic;
-                meshtastic::cycle().await;  
+                meshtastic::cycle(&mut lora_radio, lora_config).await;  
             }
             Some(LoRaProtocol::MeshCore) => {
                 // TODO

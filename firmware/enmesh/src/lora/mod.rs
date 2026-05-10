@@ -62,3 +62,24 @@ pub struct ReceivedLoRaPacket {
 
 /// provide rx-tx thread
 pub mod thread;
+
+/// determine if the LoRa channel is clear for transmission
+pub async fn is_channel_clear(
+    lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
+    modulation_parameters: &lora_phy::mod_params::ModulationParams,
+) -> bool {
+    return match lora_radio.do_cad(&modulation_parameters).await 
+    {
+        Ok(_) => {
+            // this is a gargabe API
+            let mut is_active: bool = false;
+            let lora_phy_cad: Option<&mut bool> = Some(&mut is_active);
+            lora_radio.process_irq_event(
+                lora_phy::mod_params::RadioMode::ChannelActivityDetection,
+                lora_phy_cad, true
+            ).await.unwrap();
+            is_active
+        },
+        Err(_) => false
+    };
+}
