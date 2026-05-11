@@ -3,6 +3,7 @@ use common::*;
 
 // provide logging primitives
 use log::*;
+const TAG: &str = "LoRa";
 
 /// provide scheduling primitives
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
@@ -18,6 +19,17 @@ pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut lora_radio: impl lora_phy::mod_traits::RadioKind,
 ) {
+    // initialize the radio (aka "cold start")
+    match lora_radio.init_lora(true).await {
+        Ok(_) => {
+            debug!("{TAG} radio initialized successfully");
+        }
+        Err(e) => {
+            error!("{TAG} failed to initialize radio: {:?}", e);
+            return;
+        }
+    }
+
     // round robin switch between enabled protocols
     let mut last_frequency_hz: u32 = 0;
     loop {
@@ -99,7 +111,7 @@ pub async fn run(
         // perform an TX/RX cycle
         match next_protocol {
             Some(LoRaProtocol::Meshtastic) => {
-                meshtastic::cycle(&mut lora_radio, lora_config).await;  
+                meshtastic::cycle(&mut lora_radio, &lora_config).await;  
             }
             Some(LoRaProtocol::MeshCore) => {
                 // TODO
