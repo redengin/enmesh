@@ -23,6 +23,9 @@ pub struct EnmeshLoRaModulationConfig {
     /// for how the coding rate impacts the range
     pub coding_rate: lora_modulation::CodingRate,
 
+    /// each radio has a unique range (which enmesh firmware will adapt to)
+    pub tx_power_dbm: i32,
+
     /// maximum duration a transmitter can actively transmit
     pub air_time: embassy_time::Duration,
 }
@@ -33,6 +36,7 @@ impl Default for EnmeshLoRaModulationConfig {
             bandwidth: lora_modulation::Bandwidth::_250KHz,
             spreading_factor: lora_modulation::SpreadingFactor::_6,
             coding_rate: lora_modulation::CodingRate::_4_5,
+            tx_power_dbm: 0,
             air_time: embassy_time::Duration::from_millis(100),
         }
     }
@@ -63,13 +67,13 @@ pub struct ReceivedLoRaPacket {
 /// provide rx-tx thread
 pub mod thread;
 
-pub trait LoRa_Protocol_Loop {
-    fn cycle(
-        lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
-        modulation_parmeters: &lora_phy::mod_params::ModulationParams,
-        packet_parmeters: &lora_phy::mod_params::PacketParams,
-    );
-}
+// pub trait LoRa_Protocol_Loop {
+//     fn cycle(
+//         lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
+//         modulation_parmeters: &lora_phy::mod_params::ModulationParams,
+//         packet_parmeters: &lora_phy::mod_params::PacketParams,
+//     );
+// }
 
 /// determine if the LoRa channel is clear for transmission
 pub async fn is_channel_clear(
@@ -102,7 +106,7 @@ pub async fn set_tx_power(
     lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
     tx_power: i32,
 ) -> Result<i32 /* actual tx_power */, lora_phy::mod_params::RadioError> {
-
+    const MIN_TX_POWER_DBM: i32 = -9;
     let mut try_tx_power = tx_power;
     loop {
         match lora_radio
@@ -110,7 +114,7 @@ pub async fn set_tx_power(
             .await {
                 Ok(_) => return Ok(try_tx_power),
                 Err(e) => {
-                    if try_tx_power <= 0 {
+                    if try_tx_power <= MIN_TX_POWER_DBM {
                         return Err(e);
                     }
                     // reduce power and retry

@@ -1,5 +1,5 @@
 // provide the common crates via re-export
-use common::{lora_phy::mod_params::ModulationParams, *};
+use common::*;
 
 // provide logging primitives
 use log::*;
@@ -35,7 +35,8 @@ pub async fn cycle(
             }
         }
 
-        // TODO - RX packets
+        // receive packets until an air time limit is reached
+        rx(lora_radio, lora_config).await;
     }
 
     // read packets
@@ -44,7 +45,7 @@ pub async fn cycle(
 
 async fn tx(lora_radio: &mut impl lora_phy::mod_traits::RadioKind, lora_config: &EnmeshLoRaConfig) {
     // send until our air time is up
-    let tx_start = embassy_time::Instant::now();
+    let _tx_start = embassy_time::Instant::now();
 
     // prepare for tx
     lora_radio
@@ -64,59 +65,64 @@ async fn tx(lora_radio: &mut impl lora_phy::mod_traits::RadioKind, lora_config: 
         .set_modulation_params(&modulation_params)
         .await
         .unwrap();
+
     // set transmit power
-    crate::lora::set_tx_power(lora_radio, 0).await.unwrap();
-    // const TX_POWER: i32 = 28;
-    // lora_radio
-    //     .set_tx_power_and_ramp_time(TX_POWER, Some(&modulation_params), true)
-    //     .await
-    //     .unwrap();
-    // lora_radio
-    //     .ensure_ready(lora_phy::mod_params::RadioMode::Transmit)
-    //     .await
-    //     .unwrap();
-    // lora_radio.set_standby().await.unwrap();
-    // // FIXME lora_radio.set_packet_params(pkt_params);
-    // lora_radio
-    //     .set_channel(self.lora_channel_config.modulation_config.frequency_hz)
-    //     .await
-    //     .unwrap();
-    // // lora_radio.set_payload(buffer).await.unwrap();
-    // lora_radio
-    //     .set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit))
-    //     .await
-    //     .unwrap();
+    // TODO - upon acceptance of RFC, scale down power
+    crate::lora::set_tx_power(lora_radio, lora_config.modulation_config.tx_power_dbm).await.unwrap();
+
+    lora_radio
+        .ensure_ready(lora_phy::mod_params::RadioMode::Transmit)
+        .await
+        .unwrap();
+    lora_radio.set_standby().await.unwrap();
+
+
+    // FIXME lora_radio.set_packet_params(pkt_params);
+    lora_radio
+        .set_channel(lora_config.modulation_config.frequency_hz)
+        .await
+        .unwrap();
+    // lora_radio.set_payload(buffer).await.unwrap();
+    lora_radio
+        .set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit))
+        .await
+        .unwrap();
 
     // while self.tx_queue.len() > 0 {
-    //     let packet = self.tx_queue.get(0).unwrap();
-    //     // prepare for transmit
-    //     lora_radio
-    //         .create_packet_params(
-    //             self.lora_channel_config.packet_config.preamble_length,
-    //             self.lora_channel_config.packet_config.implicit_header,
-    //             packet.len,
-    //             self.lora_channel_config.packet_config.crc,
-    //             self.lora_channel_config.packet_config.iq_inverted,
-    //             &modulation_params,
-    //         )
-    //         .unwrap();
+    while false {
+        // let packet = self.tx_queue.get(0).unwrap();
 
-    //     // transmit packet
-    //     match lora_radio.do_tx().await {
-    //         Ok(_) => {
-    //             self.tx_queue.pop_front();
-    //         }
-    //         Err(err) => {
-    //             warn!("{TAG} failed to send packet: {:?}", err);
-    //             break;
-    //         }
-    //     }
+        // prepare for transmit
+        lora_radio.create_packet_params(
+            lora_config.packet_config.preamble_length,
+            lora_config.packet_config.implicit_header,
+            // FIXME - should use packet.len()
+            0,
+            lora_config.packet_config.crc,
+            lora_config.packet_config.iq_inverted,
+            &modulation_params,
+        ).unwrap();
 
-    //     // stop transmitting if we've exceeded airtime
-    //     if (embassy_time::Instant::now() - tx_start)
-    //         > self.lora_channel_config.modulation_config.air_time
-    //     {
-    //         break;
-    //     }
-    // }
+        // transmit packet
+        match lora_radio.do_tx().await {
+            Ok(_) => {
+                // self.tx_queue.pop_front();
+            }
+            Err(err) => {
+                warn!("{TAG} failed to send packet: {:?}", err);
+                break;
+            }
+        }
+
+        // TODO - upon acceptance of RFC
+        // stop transmitting if we've exceeded airtime
+        // if (embassy_time::Instant::now() - tx_start)
+        //     > lora_config.modulation_config.air_time
+        // {
+        //     break;
+        // }
+    }
+}
+
+async fn rx(lora_radio: &mut impl lora_phy::mod_traits::RadioKind, lora_config: &EnmeshLoRaConfig) {
 }

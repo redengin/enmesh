@@ -21,6 +21,9 @@ pub struct EnmeshLoRaModulationConfig {
     /// for how the coding rate impacts the range
     pub coding_rate: lora_modulation::CodingRate,
 
+    /// each radio has a unique range (which enmesh firmware will adapt to)
+    pub tx_power_dbm: i32,
+
     /// maximum duration a transmitter can actively transmit
     pub air_time: embassy_time::Duration,
 }
