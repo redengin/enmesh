@@ -77,6 +77,11 @@ pub async fn run(
 
         // if no protocols are enabled, simply wait and check again
         if next_protocol.is_none() {
+            // put the radio to sleep
+            // TODO handle if warm start isn't possible
+            const WARM_START_IF_POSSIBLE: bool = true;
+            lora_radio.set_sleep(WARM_START_IF_POSSIBLE, &mut embassy_time::Delay).await.unwrap();
+
             Timer::after_secs(1).await;
             continue;
         }
@@ -98,11 +103,14 @@ pub async fn run(
         if next_frequency_hz != last_frequency_hz {
             match lora_radio.calibrate_image(next_frequency_hz).await {
                 Ok(_) => {
+                    debug!("{TAG} calibrated radio frequency to {next_frequency_hz}");
+                    lora_radio.set_channel(next_frequency_hz).await.unwrap();
                     last_frequency_hz = next_frequency_hz;
                 }
                 Err(e) => {
-                    info!("failed to calibrate radio for frequency {next_frequency_hz}: {:?}", e);
+                    warn!("{TAG} failed to calibrate radio for frequency {next_frequency_hz}: {:?}", e);
                     // skip this protocol and try again later
+                    last_frequency_hz = 0;
                     continue;
                 }
             }
@@ -111,7 +119,8 @@ pub async fn run(
         // perform an TX/RX cycle
         match next_protocol {
             Some(LoRaProtocol::Meshtastic) => {
-                meshtastic::cycle(&mut lora_radio, &lora_config).await;  
+                // TODO
+                // meshtastic::cycle(&mut lora_radio, &lora_config).await;  
             }
             Some(LoRaProtocol::MeshCore) => {
                 // TODO
