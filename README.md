@@ -63,6 +63,12 @@ creating LoRa hardware that is readily purchasable by users.
 "sovereign" communication networks that bridge LoRa traffic over additional
 channels (e.g. internet).
 
+### LoRa Evolution
+While novel protocols have increased the usage of LoRa, LoRa needs to evolve
+via consensus. The [IETF](https://www.ietf.org/) has managed the evolution of
+the internet and should be used to evolve LoRa.
+[see RFCs](https://github.com/redengin/enmesh/wiki/RFC)
+
 ### Societal Evolution
 The primary human right is the ability to communicate. Societies that restrict
 communication impede the evolution of the society, making them susceptible to
@@ -72,12 +78,11 @@ Censoring communication is used by people that wish to control societal
 evolution. Currently, most people won't talk to another person directly -
 but would rather use a social platform to provide some level of anonymity.
 
-For societal evolution to be possible, people need to be able to anonymously
-communicate.
+**For societal evolution to be possible, people need to be able to communicate
+anonymously.**
 
 There will be communications that you find abhorent and you should use
-your ability to communicate to stop the perpetrators. Censhorship 
-**must never** restrict your concern about human rights violations.
+your ability to communicate to stop the perpetrators.
 
 
 
