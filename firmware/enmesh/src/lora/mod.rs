@@ -67,7 +67,8 @@ pub struct EnmeshLoRaPacketConfig {
 pub struct ReceivedLoRaPacket {
     pub rssi: i16,
     pub snr: i16,
-    pub buffer_length: usize,
+    /// packet size (in bytes) stored in buffer
+    pub length: usize,
     pub buffer: [u8; 255],
 }
 impl Default for ReceivedLoRaPacket {
@@ -75,7 +76,7 @@ impl Default for ReceivedLoRaPacket {
         Self {
             rssi: 0,
             snr: 0,
-            buffer_length: 0,
+            length: 0,
             buffer: [0; 255],
         }
     }
@@ -123,12 +124,14 @@ pub trait LoRaHandler {
                 .await
                 .unwrap();
             // prepare radio for transmit
-            lora_radio.set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit)).await.unwrap();
+            lora_radio
+                .set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit))
+                .await
+                .unwrap();
 
             match crate::lora::is_channel_clear(lora_radio, &modulation_params).await {
                 Ok(is_clear) => {
                     if is_clear {
-
                         // transmit packets until airtime expires
                         let tx_stop_time =
                             embassy_time::Instant::now() + lora_config.modulation_config.air_time;
@@ -136,10 +139,16 @@ pub trait LoRaHandler {
                         // send packets
                         while self.has_transmit_packets() {
                             let packet = self.tx_peek().unwrap();
-                            lora_radio.set_payload(&packet.buffer[0..packet.buffer_length]).await.unwrap();
+                            lora_radio
+                                .set_payload(&packet.buffer[0..packet.length])
+                                .await
+                                .unwrap();
                             match lora_radio.do_tx().await {
                                 Ok(_) => {
-                                    debug!("{TAG} transmitted packet [size: {}", packet.buffer_length);
+                                    debug!(
+                                        "{TAG} transmitted packet [size: {}",
+                                        packet.length
+                                    );
                                     self.tx_pop();
                                 }
                                 Err(e) => {
@@ -169,31 +178,70 @@ pub trait LoRaHandler {
 
         // receive packets
         // prepare radio for receive
-        const RX_MODE: lora_phy::mod_params::RxMode = lora_phy::mod_params::RxMode::DutyCycle(
-            lora_phy::mod_params::DutyCycleParams {
-                rx_time: embassy_time::Duration::from_secs(1).as_secs() as u32,
+        const RX_TIMEOUT: u32 = embassy_time::Duration::from_secs(1).as_secs() as u32;
+        const RX_MODE: lora_phy::mod_params::RxMode =
+            lora_phy::mod_params::RxMode::DutyCycle(lora_phy::mod_params::DutyCycleParams {
+                rx_time: RX_TIMEOUT,
                 sleep_time: 0,
-             }
-        );
-        lora_radio.set_irq_params(Some(lora_phy::mod_params::RadioMode::Receive(RX_MODE))).await.unwrap();
+            });
+        lora_radio
+            .set_irq_params(Some(lora_phy::mod_params::RadioMode::Receive(RX_MODE)))
+            .await
+            .unwrap();
         loop {
             debug!("{TAG} waiting for packets...");
-            match lora_radio.do_rx(RX_MODE).await
-            {
-               Ok(_) => {
+            match lora_radio.do_rx(RX_MODE).await {
+                Ok(_) => {
                     match lora_radio.await_irq().await {
                         Ok(_) => {
-                            let mut packet: ReceivedLoRaPacket = ReceivedLoRaPacket::default();
-                            // TODO check if there is a packet
-                            // TODO collect the packet and it's PacketStatus
-
-                            // must complete before the next packet is received, else traffic will be lost
-                            self.handle_received_packet(packet);
+                            match lora_radio
+                                .process_irq_event(
+                                    lora_phy::mod_params::RadioMode::Receive(RX_MODE),
+                                    None,
+                                    true,
+                                )
+                                .await
+                            {
+                                Ok(irq_state) => {
+                                    match irq_state {
+                                        Some(lora_phy::mod_traits::IrqState::Done) => {
+                                            // handle the packet
+                                            let packet_status = lora_radio.get_rx_packet_status().await.unwrap();
+                                            let mut packet: ReceivedLoRaPacket = ReceivedLoRaPacket {
+                                                rssi: packet_status.rssi,
+                                                snr: packet_status.snr,
+                                                ..Default::default()    
+                                            };
+                                            // get the payload
+                                            match lora_radio
+                                                .get_rx_payload(&packet_params, &mut packet.buffer)
+                                                .await
+                                            {
+                                                Ok(buffer_length) => {
+                                                    packet.length = buffer_length as usize;
+                                                    // must complete before the next packet is received, else traffic will be lost
+                                                    self.handle_received_packet(packet);
+                                                }
+                                                Err(e) => {
+                                                    warn!("{TAG} failed to get rx payload: {:?}", e);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        // ignore other irq states
+                                        _ => continue,
+                                    }
+                                }
+                                Err(e) => {
+                                    warn!("{TAG} failed to process IRQ event for receive: {:?}", e);
+                                    break;
+                                }
+                            }
                         }
                         Err(e) => {
-                            debug!("{TAG} failed to receive packet: {:?}", e);
+                            debug!("{TAG} failed to await IRQ for receive: {:?}", e);
                             break;
-                        }   
+                        }
                     }
                 }
                 Err(e) => {
