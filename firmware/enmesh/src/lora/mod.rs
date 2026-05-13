@@ -63,35 +63,25 @@ pub struct EnmeshLoRaPacketConfig {
     pub iq_inverted: bool,
 }
 
-/// record the signal quality (rssi/snr) to influence transmit power
 pub struct ReceivedLoRaPacket {
+    /// record the signal quality (rssi/snr) to influence transmit power
     pub rssi: i16,
     pub snr: i16,
     /// packet size (in bytes) stored in buffer
     pub length: usize,
     pub buffer: [u8; 255],
 }
-impl Default for ReceivedLoRaPacket {
-    fn default() -> Self {
-        Self {
-            rssi: 0,
-            snr: 0,
-            length: 0,
-            buffer: [0; 255],
-        }
-    }
-}
 
-pub trait LoRaHandler {
+// logging tag
+const TAG: &str = "LoRaRf";
+pub trait LoRaRf {
     #![allow(async_fn_in_trait)]
+    /// default implementation should be sufficient
     async fn cycle(
         &mut self,
         lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
         lora_config: &EnmeshLoRaConfig,
     ) {
-        // logging tag
-        const TAG: &str = "LoRaProtocol";
-
         // prepare radio
         let modulation_params = lora_radio
             .create_modulation_params(
@@ -128,42 +118,12 @@ pub trait LoRaHandler {
                 .set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit))
                 .await
                 .unwrap();
-
+            // make sure the channel is clear before transmitting
             match crate::lora::is_channel_clear(lora_radio, &modulation_params).await {
                 Ok(is_clear) => {
                     if is_clear {
-                        // transmit packets until airtime expires
-                        let tx_stop_time =
-                            embassy_time::Instant::now() + lora_config.modulation_config.air_time;
-
-                        // send packets
-                        while self.has_transmit_packets() {
-                            let packet = self.tx_peek().unwrap();
-                            lora_radio
-                                .set_payload(&packet.buffer[0..packet.length])
-                                .await
-                                .unwrap();
-                            match lora_radio.do_tx().await {
-                                Ok(_) => {
-                                    debug!(
-                                        "{TAG} transmitted packet [size: {}",
-                                        packet.length
-                                    );
-                                    self.tx_pop();
-                                }
-                                Err(e) => {
-                                    warn!("{TAG} failed to transmit packet: {:?}", e);
-                                    // skip this packet and try again later
-                                    break;
-                                }
-                            }
-
-                            // stop if airtime has expired
-                            if embassy_time::Instant::now() > tx_stop_time {
-                                debug!("{TAG} air time expired, deferring remaining packets");
-                                break;
-                            }
-                        }
+                        // transmit packets
+                        self.do_tx(lora_radio, lora_config).await;
                     }
                 }
                 Err(e) => {
@@ -171,19 +131,63 @@ pub trait LoRaHandler {
                     return;
                 }
             }
-
-            // remove IRQ params
-            lora_radio.set_irq_params(None).await.unwrap();
         }
 
         // receive packets
-        // prepare radio for receive
+        self.do_rx(lora_radio, &packet_params).await;
+    }
+
+    /// default implementation should be sufficient
+    async fn do_tx(
+        &mut self,
+        lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
+        lora_config: &EnmeshLoRaConfig,
+    ) {
+        // transmit packets until airtime expires
+        let tx_stop_time = embassy_time::Instant::now() + lora_config.modulation_config.air_time;
+
+        // send packets
+        while self.has_transmit_packets() {
+            let packet = self.tx_peek().unwrap();
+            lora_radio
+                .set_payload(&packet.buffer[0..packet.length])
+                .await
+                .unwrap();
+            match lora_radio.do_tx().await {
+                Ok(_) => {
+                    debug!("{TAG} transmitted packet [size: {}", packet.length);
+                    // take the packet off the queue
+                    self.tx_pop();
+                }
+                Err(e) => {
+                    warn!("{TAG} failed to transmit packet: {:?}", e);
+                    // skip this packet and try again later
+                    break;
+                }
+            }
+
+            // stop if airtime has expired
+            if embassy_time::Instant::now() > tx_stop_time {
+                debug!("{TAG} air time expired, deferring remaining packets");
+                break;
+            }
+        }
+    }
+
+    /// default implementation should be sufficient
+    async fn do_rx(
+        &mut self,
+        lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
+        packet_params: &lora_phy::mod_params::PacketParams,
+    ) {
+        // receive until radio timeout
         const RX_TIMEOUT: u32 = embassy_time::Duration::from_secs(1).as_secs() as u32;
         const RX_MODE: lora_phy::mod_params::RxMode =
             lora_phy::mod_params::RxMode::DutyCycle(lora_phy::mod_params::DutyCycleParams {
                 rx_time: RX_TIMEOUT,
                 sleep_time: 0,
             });
+        // prepare radio for receive
         lora_radio
             .set_irq_params(Some(lora_phy::mod_params::RadioMode::Receive(RX_MODE)))
             .await
@@ -205,13 +209,16 @@ pub trait LoRaHandler {
                                 Ok(irq_state) => {
                                     match irq_state {
                                         Some(lora_phy::mod_traits::IrqState::Done) => {
-                                            // handle the packet
-                                            let packet_status = lora_radio.get_rx_packet_status().await.unwrap();
-                                            let mut packet: ReceivedLoRaPacket = ReceivedLoRaPacket {
-                                                rssi: packet_status.rssi,
-                                                snr: packet_status.snr,
-                                                ..Default::default()    
-                                            };
+                                            // get the packet signal quality
+                                            let packet_status =
+                                                lora_radio.get_rx_packet_status().await.unwrap();
+                                            let mut packet: ReceivedLoRaPacket =
+                                                ReceivedLoRaPacket {
+                                                    rssi: packet_status.rssi,
+                                                    snr: packet_status.snr,
+                                                    length: 0,
+                                                    buffer: [0; 255],
+                                                };
                                             // get the payload
                                             match lora_radio
                                                 .get_rx_payload(&packet_params, &mut packet.buffer)
@@ -223,7 +230,7 @@ pub trait LoRaHandler {
                                                     self.handle_received_packet(packet);
                                                 }
                                                 Err(e) => {
-                                                    warn!("{TAG} failed to get rx payload: {:?}", e);
+                                                    warn!("{TAG} failed to get rx payload (aborting): {:?}", e);
                                                     break;
                                                 }
                                             }
@@ -233,19 +240,19 @@ pub trait LoRaHandler {
                                     }
                                 }
                                 Err(e) => {
-                                    warn!("{TAG} failed to process IRQ event for receive: {:?}", e);
+                                    warn!("{TAG} failed to process IRQ event for receive (aborting): {:?}", e);
                                     break;
                                 }
                             }
                         }
                         Err(e) => {
-                            debug!("{TAG} failed to await IRQ for receive: {:?}", e);
+                            debug!("{TAG} failed to await IRQ for receive (aborting): {:?}", e);
                             break;
                         }
                     }
                 }
                 Err(e) => {
-                    warn!("{TAG} failed to start receive: {:?}", e);
+                    warn!("{TAG} failed to start receive (aborting): {:?}", e);
                     break;
                 }
             }
@@ -258,7 +265,7 @@ pub trait LoRaHandler {
 
     fn has_transmit_packets(&mut self) -> bool;
 
-    /// allows implements to dynamically scale tx power
+    /// allows implementions to dynamically scale tx power
     fn get_tx_power(&mut self, lora_config: &EnmeshLoRaConfig) -> i32 {
         // default to the protocol's configured tx power
         lora_config.modulation_config.tx_power_dbm
