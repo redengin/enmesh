@@ -10,9 +10,11 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
 use embassy_time::Timer;
 
+use crate::lora::LoRaRf;
 use crate::state::LoRaProtocol;
 
 mod meshtastic;
+mod meshcore;
 
 
 pub async fn run(
@@ -29,6 +31,10 @@ pub async fn run(
             return;
         }
     }
+
+    // create our protocol handlers
+    let mut meshtastic_handler = meshtastic::MeshtasticLoraRf {};
+    let mut meshcore_handler = meshcore::MeshCoreLoraRf {};
 
     // round robin switch between enabled protocols
     let mut last_frequency_hz: u32 = 0;
@@ -119,11 +125,10 @@ pub async fn run(
         // perform an TX/RX cycle
         match next_protocol {
             Some(LoRaProtocol::Meshtastic) => {
-                // TODO
-                // meshtastic::cycle(&mut lora_radio, &lora_config).await;  
+                meshtastic_handler.cycle(&mut lora_radio, &lora_config).await;
             }
             Some(LoRaProtocol::MeshCore) => {
-                // TODO
+                meshcore_handler.cycle(&mut lora_radio, &lora_config).await;
             }
             None => unreachable!(),
         }

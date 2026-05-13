@@ -1,9 +1,9 @@
 
-pub struct MeshtasticLoraRf {
+pub struct MeshCoreLoraRf {
 
 }
 
-impl crate::lora::LoRaRf for MeshtasticLoraRf {
+impl crate::lora::LoRaRf for MeshCoreLoraRf {
     fn handle_received_packet(&mut self, _packet: crate::lora::ReceivedLoRaPacket) {
         // TODO
     }
