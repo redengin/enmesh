@@ -72,10 +72,11 @@ pub struct ReceivedLoRaPacket {
     pub buffer: [u8; 255],
 }
 
-// logging tag
+/// logging tag
 const TAG: &str = "LoRaRf";
 pub trait LoRaRf {
     #![allow(async_fn_in_trait)]
+
     /// default implementation should be sufficient
     async fn cycle(
         &mut self,
@@ -304,7 +305,7 @@ pub async fn is_channel_clear(
     };
 }
 
-/// set the transmit power, reducing toward radio max if the radio rejects the requested power level
+/// set the transmit power, reducing if the radio rejects the requested power level
 pub async fn set_tx_power(
     lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
     tx_power: i32,
