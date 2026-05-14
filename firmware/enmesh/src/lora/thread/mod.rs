@@ -84,6 +84,10 @@ pub async fn run(
         // if no protocols are enabled, simply wait and check again
         if next_protocol.is_none() {
             // put the radio to sleep
+            let mut global_state_lock = global_state.write().await;
+            global_state_lock.current_radio_mode = crate::state::LoRaRadioMode::Sleep;
+            drop(global_state_lock);
+
             // TODO handle if warm start isn't possible
             const WARM_START_IF_POSSIBLE: bool = true;
             lora_radio.set_sleep(WARM_START_IF_POSSIBLE, &mut embassy_time::Delay).await.unwrap();
@@ -125,10 +129,10 @@ pub async fn run(
         // perform an TX/RX cycle
         match next_protocol {
             Some(LoRaProtocol::Meshtastic) => {
-                meshtastic_handler.cycle(&mut lora_radio, &lora_config).await;
+                meshtastic_handler.cycle(&mut lora_radio, &global_state, &lora_config).await;
             }
             Some(LoRaProtocol::MeshCore) => {
-                meshcore_handler.cycle(&mut lora_radio, &lora_config).await;
+                meshcore_handler.cycle(&mut lora_radio, &global_state, &lora_config).await;
             }
             None => unreachable!(),
         }

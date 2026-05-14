@@ -23,6 +23,7 @@ async fn main(spawner: embassy_executor::Spawner) {
                 .with_cpu_clock(esp_hal::clock::CpuClock::max()),
         )
     } else {
+        // use default clockick to save power
         esp_hal::init(esp_hal::Config::default())
     };
 
