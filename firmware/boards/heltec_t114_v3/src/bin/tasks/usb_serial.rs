@@ -41,7 +41,7 @@ pub(crate) async fn task_usb_serial(
 
     info!("{TAG} started. You can now send configuration commands");
 
-    // FIXME just do a simple echo for now
+    // FIXME simple echo for now
     loop {
         let mut buffer = [0u8; 1];
         if let Ok(read) = serial.read_async(&mut buffer).await {

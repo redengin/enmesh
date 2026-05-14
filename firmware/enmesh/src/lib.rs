@@ -21,10 +21,12 @@ pub mod storage;
 
 /// provide a UX experience
 pub mod ux;
-// pub mod widgets;
 
 /// provide enmesh LoRa support
 pub mod lora;
+
+/// provide serial configuration support
+pub mod serial;
 
 /// support boards that allow turning off peripherals (i.e. save power)
 pub trait PowerControl {
