@@ -26,7 +26,7 @@ pub struct UxIo {
 }
 #[embassy_executor::task]
 pub async fn task_ux(
-    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     ux_io: UxIo,
 ) {
     debug!("initializing user interface...");
@@ -81,7 +81,7 @@ pub async fn task_ux(
 
     // run UX handler
     info!("UX task started");
-    enmesh_firmware::ux::ssd1306::run(ssd1306, screen_power_control, button, led).await;
+    enmesh_firmware::ux::ssd1306::run(global_state, ssd1306, screen_power_control, button, led).await;
 
     warn!("UX task ended");
 }

@@ -4,12 +4,17 @@ use common::*;
 // provide logging methods
 use log::*;
 
+/// provide scheduling primitives
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::rwlock::RwLock;
+
 use embedded_graphics::prelude::{DrawTargetExt, OriginDimensions};
 use ssd1306::Ssd1306;
 use ssd1306::mode::BufferedGraphicsMode;
 
 /// provide screens and interaction via button
 pub async fn run<ScreenInterface, ScreenSize>(
+    global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut screen: Ssd1306<ScreenInterface, ScreenSize, BufferedGraphicsMode<ScreenSize>>,
     mut power_control: impl crate::PowerControl,
     mut button: impl ButtonState,
@@ -18,9 +23,6 @@ pub async fn run<ScreenInterface, ScreenSize>(
     ScreenInterface: display_interface::WriteOnlyDataCommand,
     ScreenSize: ssd1306::size::DisplaySize,
 {
-    // FIXME needs a state:State parameter
-    let state = crate::State::new();
-
     // FIXME turn on the LED
     led.set_high().ok();
     led.set_low().ok();
@@ -80,7 +82,8 @@ pub async fn run<ScreenInterface, ScreenSize>(
 
         // update the UX
         use crate::ux::Page;
-        ux.refresh(&mut rgb_screen, &state, &theme);
+        let model = *global_state.read().await;
+        ux.refresh(&mut rgb_screen, &model, &theme);
         screen.flush().ok(); // must call flush to commit the changes to the screen
 
         // await the next cycle

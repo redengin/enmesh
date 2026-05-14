@@ -25,6 +25,9 @@ pub mod ux;
 /// provide enmesh LoRa support
 pub mod lora;
 
+/// provide BLE support
+pub mod ble;
+
 /// provide serial configuration support
 pub mod serial;
 

@@ -10,7 +10,7 @@ use embassy_sync::rwlock::RwLock;
 pub static STATE: static_cell::StaticCell<RwLock<NoopRawMutex, State>> =
     static_cell::StaticCell::new();
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct State {
     pub firmware_version: &'static str,
 
@@ -40,7 +40,7 @@ impl State {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub enum LoRaRadioMode {
     #[default]
     Sleep,
@@ -82,7 +82,7 @@ impl core::fmt::Display for LoRaProtocol {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub enum WiFiStatus {
     NotConfigured,
     Connected,
@@ -101,7 +101,7 @@ impl core::fmt::Display for WiFiStatus {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub enum BleStatus {
     Connected,
     Disconnected,
@@ -118,12 +118,12 @@ impl core::fmt::Display for BleStatus {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct StorageStatus {
     pub meshtastic: ProtocolStorageStatus,
     pub meshcore: ProtocolStorageStatus,
 }
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
 pub struct ProtocolStorageStatus {
     pub size: usize,
     pub used: usize,
