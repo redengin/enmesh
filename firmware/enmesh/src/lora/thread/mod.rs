@@ -3,12 +3,12 @@ use common::*;
 
 // provide logging primitives
 use log::*;
-const TAG: &str = "LoRa";
+const TAG: &str = "[LoRa Task]";
 
 /// provide scheduling primitives
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
-use embassy_time::Timer;
+use embassy_time::{Delay, Timer};
 
 use crate::lora::LoRaRf;
 use crate::state::LoRaProtocol;
@@ -21,7 +21,8 @@ pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut lora_radio: impl lora_phy::mod_traits::RadioKind,
 ) {
-    // initialize the radio (aka "cold start")
+    debug!("{TAG} initializing radio...");
+    let _ = lora_radio.reset(&mut Delay).await;
     match lora_radio.init_lora(true).await {
         Ok(_) => {
             debug!("{TAG} radio initialized successfully");

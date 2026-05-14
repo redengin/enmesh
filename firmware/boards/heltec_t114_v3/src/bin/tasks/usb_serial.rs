@@ -2,10 +2,15 @@
 use common::*;
 
 // provide logging primitives
-// use log::*;
+use log::*;
+const TAG: &str = "[usb_serial]";
 
 use soc_esp32::*;
 
+// provide scheduling primitives
+use embassy_sync::rwlock::RwLock;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_time::Timer;
 
 /// convenience structure for USB serial interfaces
 pub(crate) struct UsbSerialIo {
@@ -18,17 +23,23 @@ pub(crate) struct UsbSerialIo {
 }
 
 #[embassy_executor::task]
-pub(crate) async fn task_usb_serial(usb_serial_io: UsbSerialIo) {
+pub(crate) async fn task_usb_serial(
+    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    usb_serial_io: UsbSerialIo,
+) {
+    // hold off on starting up the serial interface so that boot logging completes
+    Timer::after_secs(5).await;
 
     let mut serial = esp_hal::uart::Uart::new(
         usb_serial_io.uart,
-        esp_hal::uart::Config::default()
-            .with_baudrate(115_200)     // match Meshcore baudrate
+        esp_hal::uart::Config::default().with_baudrate(115_200), // match Meshcore baudrate
     )
     .unwrap()
     .with_rx(usb_serial_io.rx)
     .with_tx(usb_serial_io.tx)
     .into_async();
+
+    info!("{TAG} started. You can now send configuration commands");
 
     // FIXME just do a simple echo for now
     loop {
@@ -39,7 +50,7 @@ pub(crate) async fn task_usb_serial(usb_serial_io: UsbSerialIo) {
                 let _ = serial.write_async(&buffer[0..read]).await;
                 // add a newline for \r
                 if buffer[read - 1] == '\r' as u8 {
-                    const NEWLINE:u8 = '\n' as u8;
+                    const NEWLINE: u8 = '\n' as u8;
                     buffer[0] = NEWLINE;
                     let _ = serial.write_async(&buffer[0..read]).await;
                 }

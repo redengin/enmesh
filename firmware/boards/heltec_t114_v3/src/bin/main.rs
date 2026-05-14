@@ -85,20 +85,6 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(tasks::lora::task_lora(global_state, lora_peripherals).unwrap());
     debug!("LoRa task created");
 
-    // debug!("creating usb serial task...");
-    // // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
-    // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
-    // let usb_serial_io = tasks::usb_serial::UsbSerialIo {
-    //     // usb: peripherals.USB0,
-    //     // d_neg: peripherals.GPIO19,
-    //     // d_pos: peripherals.GPIO20,
-    //     uart: peripherals.UART0,
-    //     rx: peripherals.GPIO44,
-    //     tx: peripherals.GPIO43,
-    // };
-    // spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
-    // debug!("usb serial task created");
-
     debug!("creating screen task...");
     // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
     let screen_io = tasks::ux::UxIo {
@@ -112,6 +98,20 @@ async fn main(spawner: embassy_executor::Spawner) {
     };
     spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
     debug!("screen task created");
+
+    debug!("creating usb serial task...");
+    // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
+    // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
+    let usb_serial_io = tasks::usb_serial::UsbSerialIo {
+        // usb: peripherals.USB0,
+        // d_neg: peripherals.GPIO19,
+        // d_pos: peripherals.GPIO20,
+        uart: peripherals.UART0,
+        rx: peripherals.GPIO44,
+        tx: peripherals.GPIO43,
+    };
+    spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
+    debug!("usb serial task created");
 
     if cfg!(feature = "wifi-bridge") {
         debug!("creating enmesh WiFi bridge task...");
