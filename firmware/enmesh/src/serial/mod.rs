@@ -9,20 +9,6 @@ const TAG: &str = "[Serial Console]";
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
 
-
-pub trait Serial {
-    #![allow(async_fn_in_trait)]
-
-    type RxError;
-    type TxError;
-
-    async fn read_async(&mut self, buffer: &mut [u8]) -> Result<usize, Self::RxError>;
-
-    async fn write_async(&mut self, buffer: &[u8]) -> Result<usize, Self::TxError>;
-}
-
-
-
 pub async fn run(
     _global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut serial: impl Serial
@@ -47,3 +33,17 @@ pub async fn run(
         }
     }
 }
+
+pub trait Serial {
+    #![allow(async_fn_in_trait)]
+
+    type RxError;
+    type TxError;
+
+    async fn read_async(&mut self, buffer: &mut [u8]) -> Result<usize, Self::RxError>;
+
+    async fn write_async(&mut self, buffer: &[u8]) -> Result<usize, Self::TxError>;
+}
+
+
+
