@@ -105,23 +105,29 @@ universal messaging via LoRa.
 The [enmesh design](docs/design.md) describes how enmesh nodes connect local
 LoRa traffic (Meshtastic/MeshCore) to the world.
 
-
-
 Repository Overview
 ================================================================================
-* Firmware - node implemenations of enmesh for common hardware
-  * [Heltec-T114 (v3)](firmware/boards/heltec_t114_v3/)
+* [Firmware](firmware) - board support for common hardware
+  - [Hardware](firmware/boards) - implemenations of enmesh for common hardware
+    * [Heltec-T114 (v3)](firmware/boards/heltec_t114_v3/)
+<!--
 * [Enmesh Endpoint Implementation](endpoint) - internet service to bridge LoRa traffic
+-->
+<!--
 * [LoRa Node Implementation(s)](firmware) - supports local LoRa traffic
     * LoRa Meshes
         * [Meshtastic](https://meshtastic.org/)
         * [MeshCore](https://meshcore.co.uk/)
         * enmesh - additional protocols as need arises
     * enmesh WiFi bridge (per hardware support)
+-->
+<!--
 * [Mobile Application](mobile_app) - provides enhanced support beyond Meshtastic/MeshCore
-
-* [MeshCore Library](MeshCore) - Rust implemenation of MeshCore protocols
-  * TODO: as MeshCore rapidly evolves, this shold become a separate repo
+-->
+* [MeshTastic Library](MeshCore) - Rust implementation of MeshCore
+  * TODO: MeshCore rapidly evolves, this should become a separate repo
+* [MeshCore Library](MeshCore) - Rust implementation of MeshCore
+  * TODO: Meshtastic rapidly evolves, this should become a separate repo
 
 
 
