@@ -1,24 +1,62 @@
 Secure distributed communications enhanced by anonymity of LoRa
 ================================================================================
+Objectives
+--------------------------------------------------------------------------------
+* Anonymous Communication
+  - sender's location is obfuscated by the mesh network
+* Minimize contention for LoRa air time
+
+Background
+--------------------------------------------------------------------------------
+[LoRa](https://en.wikipedia.org/wiki/LoRa) use has proliferated under
+[Meshtastic](https://meshtastic.org/) and [MeshCore](https://meshcore.co.uk/)
+creating LoRa hardware that is readily purchasable by users.
+
+[Reticulum](https://reticulum.network/) is a proposed design for creating
+"sovereign" communication networks that bridge LoRa traffic over additional
+channels (e.g. internet).
+
+### LoRa Evolution
+While novel protocols have increased the usage of LoRa, LoRa needs to evolve
+via consensus make efficient use of the bandwidth.
+The [IETF](https://www.ietf.org/) has managed the evolution of the internet
+and should be used to evolve LoRa.
+[see RFCs](https://github.com/redengin/enmesh/wiki/RFC)
+
+<!--
+### Societal Evolution
+The primary human right is the ability to communicate. Societies that restrict
+communication impede the evolution of the society, making them susceptible to
+being overcome by larger societies.
+
+Censoring communication is used by people that wish to control societal
+evolution. Currently, most people won't talk to another person directly -
+but would rather use a social platform to provide some level of anonymity.
+
+**For societal evolution to be possible, people need to be able to communicate
+anonymously.**
+
+There will be communications that you find abhorent and you should use
+your ability to communicate to stop the perpetrators.
+-->
+
+Enmesh Physical Archicture
+--------------------------------------------------------------------------------
 ```mermaid
 C4Component
-
     Container_Boundary(lora, "LoRa") {
       Component(repeater, "repeater")
       Component(wifi_repeater, "repeater <br> w/ WiFi")
       Component(companion, "companion")
     }
-
     BiRel(companion, repeater, "send/receive <br> LoRa packets")
     BiRel(companion, wifi_repeater, "send receive <br> LoRa packets")
     BiRel(wifi_repeater, wifi_router, "bridges local <br> LoRa to internet")
     BiRel(wifi_router, enmesh_endpoint, "bridges local <br> LoRa to internet")
-
     Container_Boundary(internet, "Internet") {
       Component(wifi_router, "wifi router")
       Component(enmesh_endpoint, "enmesh endpoint")
     }
-
     Container_Boundary(mobile_app, "Mobile App") {
       Component(mobile_app, "Mobile App")
     }
@@ -52,65 +90,22 @@ C4Component
             and `node` are secured.
 -->
 
-
-Background
---------------------------------------------------------------------------------
-[LoRa](https://en.wikipedia.org/wiki/LoRa) use has proliferated under
-[Meshtastic](https://meshtastic.org/) and [MeshCore](https://meshcore.co.uk/)
-creating LoRa hardware that is readily purchasable by users.
-
-[Reticulum](https://reticulum.network/) is a proposed design for creating
-"sovereign" communication networks that bridge LoRa traffic over additional
-channels (e.g. internet).
-
-### LoRa Evolution
-While novel protocols have increased the usage of LoRa, LoRa needs to evolve
-via consensus. The [IETF](https://www.ietf.org/) has managed the evolution of
-the internet and should be used to evolve LoRa.
-[see RFCs](https://github.com/redengin/enmesh/wiki/RFC)
-
-### Societal Evolution
-The primary human right is the ability to communicate. Societies that restrict
-communication impede the evolution of the society, making them susceptible to
-being overcome by larger societies.
-
-Censoring communication is used by people that wish to control societal
-evolution. Currently, most people won't talk to another person directly -
-but would rather use a social platform to provide some level of anonymity.
-
-**For societal evolution to be possible, people need to be able to communicate
-anonymously.**
-
-There will be communications that you find abhorent and you should use
-your ability to communicate to stop the perpetrators.
-
-
-
-Enmesh Objective
-================================================================================
-
-
 Universal LoRa Communication
 --------------------------------------------------------------------------------
-
-
-As Reticulum is no longer active, this is a successor - implemented in Rust to
-support both hardware nodes and PC applications.
-
-
-Connecting a LoRa node to a local WiFi router, extends the reach of a LoRa node
-to the world. ESP32 based devices (HelTec) already provide WiFi hardware.
-
-Only a few local LoRa nodes need to support an internet bridge to support
+Only a few local LoRa nodes need to support a bridge to support anonymous 
 universal messaging via LoRa.
 
-#### Yet Another LoRa Protocol?
-Rather than attempt to replace Meshtastic and MeshCore, enmesh will support
-both.
 
-#### How?
+* Yet Another LoRa Protocol?  [see RFCs](https://github.com/redengin/enmesh/wiki/RFC)
+  * Rather than attempt to replace current protocols (Meshtastic and MeshCore),
+    enmesh will support both.
+  * if the current protocols don't adapt to Enmesh objectives, Enmesh will
+    provide it's own LoRa protocol
+
 The [enmesh design](docs/design.md) describes how enmesh nodes connect local
 LoRa traffic (Meshtastic/MeshCore) to the world.
+
+
 
 Repository Overview
 ================================================================================
