@@ -8,8 +8,8 @@ const TAG: &str = "[usb_serial]";
 use soc_esp32::*;
 
 // provide scheduling primitives
-use embassy_sync::rwlock::RwLock;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_sync::rwlock::RwLock;
 use embassy_time::Timer;
 
 /// convenience structure for USB serial interfaces
@@ -24,13 +24,13 @@ pub(crate) struct UsbSerialIo {
 
 #[embassy_executor::task]
 pub(crate) async fn task_usb_serial(
-    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     usb_serial_io: UsbSerialIo,
 ) {
     // hold off on starting up the serial interface so that boot logging completes
-    Timer::after_secs(5).await;
+    Timer::after_secs(2).await;
 
-    let mut serial = esp_hal::uart::Uart::new(
+    let esp_serial = esp_hal::uart::Uart::new(
         usb_serial_io.uart,
         esp_hal::uart::Config::default().with_baudrate(115_200), // match Meshcore baudrate
     )
@@ -39,22 +39,32 @@ pub(crate) async fn task_usb_serial(
     .with_tx(usb_serial_io.tx)
     .into_async();
 
-    info!("{TAG} started. You can now send configuration commands");
+    let serial = EnmeshSerial::new(esp_serial);
+    enmesh_firmware::serial::run(&global_state, serial).await;
 
-    // FIXME simple echo for now
-    loop {
-        let mut buffer = [0u8; 1];
-        if let Ok(read) = serial.read_async(&mut buffer).await {
-            if read > 0 {
-                // echo
-                let _ = serial.write_async(&buffer[0..read]).await;
-                // add a newline for \r
-                if buffer[read - 1] == '\r' as u8 {
-                    const NEWLINE: u8 = '\n' as u8;
-                    buffer[0] = NEWLINE;
-                    let _ = serial.write_async(&buffer[0..read]).await;
-                }
-            }
-        }
+    error!("{TAG} thread ended");
+}
+
+struct EnmeshSerial {
+    serial: esp_hal::uart::Uart<'static, esp_hal::Async>,
+}
+impl EnmeshSerial {
+    fn new(serial: esp_hal::uart::Uart<'static, esp_hal::Async>) -> Self {
+        Self { serial }
+    }
+}
+
+impl enmesh_firmware::serial::Serial for EnmeshSerial {
+    type RxError = esp_hal::uart::RxError;
+    type TxError = esp_hal::uart::TxError;
+
+    async fn read_async(&mut self, buffer: &mut [u8]) -> Result<usize, Self::RxError>
+    {
+        self.serial.read_async(buffer).await
+    }
+
+    async fn write_async(&mut self, buffer: &[u8]) -> Result<usize, Self::TxError>
+    {
+        self.serial.write_async(buffer).await
     }
 }
