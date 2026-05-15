@@ -40,7 +40,7 @@ There will be communications that you find abhorent and you should use
 your ability to communicate to stop the perpetrators.
 -->
 
-Enmesh Physical Archicture
+Enmesh Physical Architecture
 --------------------------------------------------------------------------------
 ```mermaid
 C4Component
@@ -109,6 +109,8 @@ LoRa traffic (Meshtastic/MeshCore) to the world.
 
 Repository Overview
 ================================================================================
+* Firmware - node implemenations of enmesh for common hardware
+  * [Heltec-T114 (v3)](firmware/boards/heltec_t114_v3/)
 * [Enmesh Endpoint Implementation](endpoint) - internet service to bridge LoRa traffic
 * [LoRa Node Implementation(s)](firmware) - supports local LoRa traffic
     * LoRa Meshes
