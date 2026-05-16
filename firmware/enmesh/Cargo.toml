@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 common = { path = "../common" }
-
+meshcore = { path = "../../MeshCore" }
 
 [dev-dependencies]
 # ux example support

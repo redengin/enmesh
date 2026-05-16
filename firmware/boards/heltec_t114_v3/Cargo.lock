@@ -212,7 +212,6 @@ dependencies = [
  "log",
  "lora-modulation",
  "lora-phy",
- "rand_core 0.6.4",
  "ssd1306",
  "static_cell",
  "trouble-host",
@@ -883,6 +882,7 @@ name = "enmesh-firmware"
 version = "0.1.0"
 dependencies = [
  "common",
+ "meshcore",
 ]
 
 [[package]]
@@ -926,7 +926,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "esp-alloc"
 version = "0.10.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "allocator-api2",
  "cfg-if",
@@ -941,7 +941,7 @@ dependencies = [
 [[package]]
 name = "esp-backtrace"
 version = "0.19.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "esp-bootloader-esp-idf"
 version = "0.5.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -973,7 +973,7 @@ dependencies = [
 [[package]]
 name = "esp-config"
 version = "0.7.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "document-features",
  "esp-metadata-generated",
@@ -985,7 +985,7 @@ dependencies = [
 [[package]]
 name = "esp-hal"
 version = "1.1.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "bitfield 0.19.4",
  "bitflags 2.11.1",
@@ -1014,7 +1014,6 @@ dependencies = [
  "esp-riscv-rt",
  "esp-rom-sys",
  "esp-sync",
- "esp-synopsys-usb-otg",
  "esp32",
  "esp32c2",
  "esp32c3",
@@ -1022,7 +1021,7 @@ dependencies = [
  "esp32h2",
  "esp32p4",
  "esp32s2",
- "esp32s3",
+ "esp32s3 0.35.2 (git+https://github.com/esp-rs/esp-pacs?rev=0f4c316adbdbddb2479f50a5b931776b9655b23f)",
  "fugit",
  "instability",
  "nb 1.1.0",
@@ -1041,7 +1040,7 @@ dependencies = [
 [[package]]
 name = "esp-hal-procmacros"
 version = "0.22.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "document-features",
  "object",
@@ -1055,12 +1054,12 @@ dependencies = [
 [[package]]
 name = "esp-metadata-generated"
 version = "0.4.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 
 [[package]]
 name = "esp-phy"
 version = "0.2.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -1070,13 +1069,13 @@ dependencies = [
  "esp-metadata-generated",
  "esp-sync",
  "esp-wifi-sys-esp32s3",
- "esp32s3",
+ "esp32s3 0.35.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "esp-println"
 version = "0.17.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "document-features",
  "esp-metadata-generated",
@@ -1088,7 +1087,7 @@ dependencies = [
 [[package]]
 name = "esp-radio"
 version = "0.18.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "allocator-api2",
  "bt-hci",
@@ -1112,7 +1111,7 @@ dependencies = [
  "esp-rom-sys",
  "esp-sync",
  "esp-wifi-sys-esp32s3",
- "esp32s3",
+ "esp32s3 0.35.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.9.3",
  "instability",
  "num-derive",
@@ -1125,7 +1124,7 @@ dependencies = [
 [[package]]
 name = "esp-radio-rtos-driver"
 version = "0.3.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "cfg-if",
  "esp-sync",
@@ -1135,7 +1134,7 @@ dependencies = [
 [[package]]
 name = "esp-riscv-rt"
 version = "0.14.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "document-features",
  "riscv",
@@ -1145,18 +1144,18 @@ dependencies = [
 [[package]]
 name = "esp-rom-sys"
 version = "0.1.4"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "cfg-if",
  "document-features",
  "esp-metadata-generated",
- "esp32s3",
+ "esp32s3 0.35.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "esp-rtos"
 version = "0.3.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "allocator-api2",
  "cfg-if",
@@ -1181,7 +1180,7 @@ dependencies = [
 [[package]]
 name = "esp-storage"
 version = "0.9.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "document-features",
  "embedded-storage",
@@ -1195,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "esp-sync"
 version = "0.2.1"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -1205,19 +1204,6 @@ dependencies = [
  "esp-metadata-generated",
  "riscv",
  "xtensa-lx",
-]
-
-[[package]]
-name = "esp-synopsys-usb-otg"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8938451cb19032f13365328ea66ab38c8d16deecdf322067442297110eb74468"
-dependencies = [
- "critical-section",
- "embedded-hal 0.2.7",
- "ral-registers",
- "usb-device",
- "vcell",
 ]
 
 [[package]]
@@ -1274,7 +1260,7 @@ dependencies = [
 [[package]]
 name = "esp32p4"
 version = "0.2.0"
-source = "git+https://github.com/esp-rs/esp-pacs?rev=f6f4ad1f804eebab59dbaf425684865781466e4c#f6f4ad1f804eebab59dbaf425684865781466e4c"
+source = "git+https://github.com/esp-rs/esp-pacs?rev=0f4c316adbdbddb2479f50a5b931776b9655b23f#0f4c316adbdbddb2479f50a5b931776b9655b23f"
 dependencies = [
  "critical-section",
  "vcell",
@@ -1283,8 +1269,7 @@ dependencies = [
 [[package]]
 name = "esp32s2"
 version = "0.31.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0ad6f21cdf6ec7b06b7f7e0fbe51f0d975fd6a5fa67c3f8a5a910d3981af531"
+source = "git+https://github.com/esp-rs/esp-pacs?rev=0f4c316adbdbddb2479f50a5b931776b9655b23f#0f4c316adbdbddb2479f50a5b931776b9655b23f"
 dependencies = [
  "vcell",
 ]
@@ -1294,6 +1279,14 @@ name = "esp32s3"
 version = "0.35.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b4b8c4e4d9f187553ecdb7173edec7b2deb2beea106eedefecdb1654b8ee25a"
+dependencies = [
+ "vcell",
+]
+
+[[package]]
+name = "esp32s3"
+version = "0.35.2"
+source = "git+https://github.com/esp-rs/esp-pacs?rev=0f4c316adbdbddb2479f50a5b931776b9655b23f#0f4c316adbdbddb2479f50a5b931776b9655b23f"
 dependencies = [
  "vcell",
 ]
@@ -1711,6 +1704,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 
 [[package]]
+name = "meshcore"
+version = "0.1.0"
+dependencies = [
+ "embassy-sync 0.8.0",
+ "static_cell",
+ "trouble-host",
+]
+
+[[package]]
 name = "micromath"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1934,12 +1936,6 @@ checksum = "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924"
 dependencies = [
  "proc-macro2",
 ]
-
-[[package]]
-name = "ral-registers"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46b71a9d9206e8b46714c74255adcaea8b11e0350c1d8456165073c3f75fc81a"
 
 [[package]]
 name = "rand"
@@ -2451,14 +2447,13 @@ dependencies = [
 [[package]]
 name = "trouble-host"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1df7817cead4b83dfbeeaa59736ecbc97c30b21dc3bfc0cc2ce8a6687f70b37a"
+source = "git+https://github.com/embassy-rs/trouble#9a317aa6a53716faa2efa75633aa7dbde92eea76"
 dependencies = [
  "aes",
  "bt-hci",
  "cmac",
  "embassy-futures",
- "embassy-sync 0.7.2",
+ "embassy-sync 0.8.0",
  "embassy-time",
  "embedded-io 0.7.1",
  "futures",
@@ -2475,8 +2470,7 @@ dependencies = [
 [[package]]
 name = "trouble-host-macros"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d809ae05f510cf8f1d863749281eb28e049d9ae4ad52d92ea7a0ac068a0e17c"
+source = "git+https://github.com/embassy-rs/trouble#9a317aa6a53716faa2efa75633aa7dbde92eea76"
 dependencies = [
  "convert_case",
  "darling 0.20.11",
@@ -2708,9 +2702,9 @@ dependencies = [
 
 [[package]]
 name = "winnow"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ee1708bef14716a11bae175f579062d4554d95be2c6829f518df847b7b3fdd0"
+checksum = "0592e1c9d151f854e6fd382574c3a0855250e1d9b2f99d9281c6e6391af352f1"
 dependencies = [
  "memchr",
 ]
@@ -2718,7 +2712,7 @@ dependencies = [
 [[package]]
 name = "xtensa-lx"
 version = "0.13.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "critical-section",
 ]
@@ -2726,7 +2720,7 @@ dependencies = [
 [[package]]
 name = "xtensa-lx-rt"
 version = "0.22.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "document-features",
  "xtensa-lx",
@@ -2736,7 +2730,7 @@ dependencies = [
 [[package]]
 name = "xtensa-lx-rt-proc-macros"
 version = "0.5.0"
-source = "git+https://github.com/esp-rs/esp-hal#c3ac4952d721f2958c6c46130329a43fb4c78477"
+source = "git+https://github.com/esp-rs/esp-hal#ee4767b8cc85bbac1a504d35866d942c87754aab"
 dependencies = [
  "proc-macro2",
  "quote",

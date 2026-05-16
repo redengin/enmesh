@@ -1,0 +1,27 @@
+[package]
+name = "meshcore"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = true 
+
+[dependencies]
+static_cell = "*"
+embassy-sync = { version = "*", features = ["log"] }
+
+[dependencies.trouble-host]
+git = "https://github.com/embassy-rs/trouble"
+default-features = false
+features = [
+    "peripheral",
+    "gatt",
+    "security",
+    "derive",                       # provide macros
+    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
+    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
+    #   for additional configuration by features
+]
+
+
+[features]
+std = []

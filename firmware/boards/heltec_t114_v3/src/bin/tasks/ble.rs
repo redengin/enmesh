@@ -25,5 +25,5 @@ pub async fn task_ble_companion(
 
     enmesh_firmware::ble::run(&global_state, ble_controller).await;
 
-    error!("bluetooth thread ended");
+    error!("ble host stopped");
 }

@@ -19,7 +19,7 @@ pub async fn task_wifi_bridge(
 ) {
     debug!("initializing wifi...");
     //================================================================================
-    let (_wifi_controller, _wifi_interfaces) = esp_radio::wifi::new(
+    let _wifi_controller = esp_radio::wifi::new(
         wifi_peripheral,
         esp_radio::wifi::ControllerConfig::default()
             //TODO  .with_country_info(country_info)

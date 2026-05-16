@@ -45,7 +45,10 @@ display-interface = "*"
 
 # provide BLE Host
 #-------------------------------------------------------------------------------
-trouble-host = { version = "*", default-features = false, features = [
+[dependencies.trouble-host]
+git = "https://github.com/embassy-rs/trouble"
+default-features = false
+features = [
     "peripheral",
     "gatt",
     "security",
@@ -53,9 +56,11 @@ trouble-host = { version = "*", default-features = false, features = [
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
     # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
     #   for additional configuration by features
-] }
+]
+
 # FIXME trouble-host anchored to old rand_core
-rand_core = { version = "0.6", default-features = false }
+# rand_core = { version = "0.6", default-features = false }
+# rand_core = { version = "*", default-features = false }
 #-------------------------------------------------------------------------------
 
 
