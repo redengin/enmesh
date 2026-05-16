@@ -26,6 +26,7 @@ embassy-executor = { version = "*", features = ["log"] }
 embassy-time = { version = "*", features = ["log"] }
 embassy-embedded-hal = "*"
 embassy-sync = { version = "*", features = ["log"] }
+embassy-futures = { version = "*", features = ["log"] }
 embassy-usb = { version = "*", features = ["log"] }
 #-------------------------------------------------------------------------------
 
@@ -49,18 +50,15 @@ display-interface = "*"
 git = "https://github.com/embassy-rs/trouble"
 default-features = false
 features = [
+    "derive",                       # provide macros
     "peripheral",
     "gatt",
+    "central",                      # required for security feature // FIXME  this shouldn't be necessary
     "security",
-    "derive",                       # provide macros
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
     # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
     #   for additional configuration by features
 ]
-
-# FIXME trouble-host anchored to old rand_core
-# rand_core = { version = "0.6", default-features = false }
-# rand_core = { version = "*", default-features = false }
 #-------------------------------------------------------------------------------
 
 

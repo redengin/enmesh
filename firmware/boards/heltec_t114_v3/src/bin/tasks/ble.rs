@@ -8,9 +8,8 @@ use soc_esp32::*;
 use log::*;
 
 // provide scheduling primitives
-use embassy_sync::rwlock::RwLock;
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-
+use embassy_sync::rwlock::RwLock;
 
 #[embassy_executor::task]
 pub async fn task_ble_companion(
@@ -23,7 +22,10 @@ pub async fn task_ble_companion(
     use trouble_host::prelude::ExternalController;
     let ble_controller: ExternalController<_, 1> = ExternalController::new(ble_connector);
 
-    enmesh_firmware::ble::run(&global_state, ble_controller).await;
+    use esp_hal::efuse::*;
+    let mac_address = interface_mac_address(InterfaceMacAddress::Bluetooth);
+    let mac: [u8; 6] = mac_address.as_bytes().try_into().expect("invalid mac length");
+    enmesh_firmware::ble::run(&global_state, ble_controller, mac).await;
 
     error!("ble host stopped");
 }
