@@ -46,7 +46,7 @@ pub async fn run(
     let runner = stack.runner();
     let mut peripheral = stack.peripheral();
 
-    info!("{TAG} starting advertising and GATT service");
+    info!("{TAG} advertising");
     let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
         name: "enmesh",
         appearance: &appearance::network_device::MESH_DEVICE,
@@ -68,7 +68,7 @@ pub async fn run(
                 Err(e) => {
                     // #[cfg(feature = "defmt")]
                     // let e = defmt::Debug2Format(&e);
-                    panic!("[adv] error: {:?}", e);
+                    panic!("{TAG} error: {:?}", e);
                 }
             }
         }
