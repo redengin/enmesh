@@ -1,6 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use embassy_sync;
 use trouble_host::prelude::*;
 
 /// Battery service
