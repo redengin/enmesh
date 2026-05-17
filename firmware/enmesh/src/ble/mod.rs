@@ -5,12 +5,11 @@ use common::*;
 use log::*;
 const TAG: &str = "[BLE Host]";
 
+use embassy_futures::join::join;
 /// provide scheduling primitives
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
-use embassy_futures::join::join;
 // use embassy_futures::select::select;
-
 
 // provide BLE primitives
 use trouble_host::prelude::*;
@@ -19,9 +18,8 @@ use trouble_host::prelude::*;
 #[gatt_server]
 struct Server {
     /// support for meshcore companion BLE
-    _meshcore_service: meshcore::MeshCoreService,
+    meshcore_service: ::meshcore::ble::MeshCoreService,
 }
-
 
 pub async fn run(
     _global_state: &'static RwLock<NoopRawMutex, crate::State>,
@@ -74,7 +72,6 @@ pub async fn run(
         }
     })
     .await;
-
 }
 
 /// This is a background task that is required to run forever alongside any other BLE tasks.
@@ -118,33 +115,58 @@ async fn advertise<'values, 'server, C: Controller>(
     Ok(conn)
 }
 
+/// provide GATT READ/WRITE handlers
+mod meshcore;
+
+
 /// Stream Events until the connection closes.
 ///
 /// This function will handle the GATT events and process them.
 /// This is how we interact with read and write requests.
-async fn gatt_events_task<P: PacketPool>(_server: &Server<'_>, conn: &GattConnection<'_, '_, P>) -> Result<(), Error> {
+async fn gatt_events_task<P: PacketPool>(
+    server: &Server<'_>,
+    conn: &GattConnection<'_, '_, P>,
+) -> Result<(), Error> {
+    let mut meshcore_handler = meshcore::MeshCoreGattHandler {};
+
     // let level = server.battery_service.level;
     // let status_handle = server.battery_service.status.handle;
     // let mut status = false;
+
     let reason = loop {
         match conn.next().await {
             GattConnectionEvent::Disconnected { reason } => break reason,
             GattConnectionEvent::Gatt { event } => {
                 let reply = match event {
                     GattEvent::Read(event) => {
-                        // if event.handle() == level.handle {
-                        //     let value = conn.get(&level);
-                        //     info!("[gatt] Read Event to Level Characteristic: {:?}", value);
-                        //     event.accept()
-                        // } else if event.handle() == status_handle {
-                        //     event.accept_unprocessed(&status)
-                        // } else {
-                        //     event.accept()
-                        // }
-                        // FIXME currently ignores all events
-                        event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
+                        match event.handle() {
+                            // handle meshcore
+                            handle if handle == server.meshcore_service.tx.handle => {
+                                meshcore_handler.handle_gatt_read(
+                                    event,
+                                    &server.meshcore_service,
+                                    handle,
+                                )
+                            }
+
+                            // ignore other handles
+                            _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
+                        }
                     }
                     GattEvent::Write(event) => {
+                        match event.handle() {
+                            // handle meshcore
+                            handle if handle == server.meshcore_service.tx.handle => {
+                                meshcore_handler.handle_gatt_write(
+                                    event,
+                                    &server.meshcore_service,
+                                    handle,
+                                )
+                            }
+
+                            // ignore other handles
+                            _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
+                        }
                         // if event.handle() == level.handle {
                         //     event.with_data(|offset, data| {
                         //         info!("[gatt] Write Event to Level Characteristic at {}: {:?}", offset, data)
@@ -168,7 +190,7 @@ async fn gatt_events_task<P: PacketPool>(_server: &Server<'_>, conn: &GattConnec
                         //     event.accept()
                         // }
                         // FIXME currently ignores all events
-                        event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
+                        // event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
                     }
                     _ => event.accept(),
                 };
