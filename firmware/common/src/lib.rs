@@ -10,6 +10,8 @@ pub use heapless;
 pub use embedded_hal;
 mod button;
 pub use button::{Button, ButtonState};
+mod led;
+pub use led::{Led, LedState};
 pub use embedded_graphics;
 pub use embedded_layout;
 // pub use embedded_storage;
