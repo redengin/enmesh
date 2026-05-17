@@ -20,6 +20,11 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 #-------------------------------------------------------------------------------
 [features]
 
+# support specialization for hardware revisions
+v2 = []
+v3 = []
+v4 = []
+
 # support ble connection for companion app (mobile phones, etc.)
 ble-companion = ["_esp-radio"]
 
