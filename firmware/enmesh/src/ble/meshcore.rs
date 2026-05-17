@@ -14,7 +14,6 @@ impl MeshCoreGattHandler {
         service: &MeshCoreService,
         handle: u16,
     ) -> Result<Reply<'stack, P>, Error> {
-
         if handle == service.tx.handle {
             // TODO handle data
             event.reject(AttErrorCode::VALUE_NOT_ALLOWED)
@@ -32,7 +31,7 @@ impl MeshCoreGattHandler {
     ) -> Result<Reply<'stack, P>, Error> {
         if handle == service.rx.handle {
             // TODO handle data
-            event.reject(AttErrorCode::VALUE_NOT_ALLOWED)
+            event.accept_unprocessed()
         }
         else {
             event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
