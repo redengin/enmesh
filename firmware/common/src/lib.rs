@@ -8,10 +8,6 @@ pub use log;
 pub use static_cell;
 pub use heapless;
 pub use embedded_hal;
-mod button;
-pub use button::{Button, ButtonState};
-mod led;
-pub use led::{Led, LedState};
 pub use embedded_graphics;
 pub use embedded_layout;
 // pub use embedded_storage;
@@ -29,12 +25,17 @@ pub use embassy_usb;
 
 // Hardware drivers
 //------------------------------------------------------------------------------
+// FIXME should use switch_hal
+//..............................................................................
+mod button;
+pub use button::{Button, ButtonState};
+mod led;
+pub use led::{Led, LedState};
+//..............................................................................
 pub use lora_modulation;
 pub use lora_phy;
 pub use display_interface;
 pub use ssd1306;
-// pub use display_interface_i2c;
-// pub use display_interface_spi;
 //------------------------------------------------------------------------------
 
 // BLE Host
