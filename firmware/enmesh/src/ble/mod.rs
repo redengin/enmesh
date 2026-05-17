@@ -5,11 +5,10 @@ use common::*;
 use log::*;
 const TAG: &str = "[BLE Host]";
 
-use embassy_futures::join::join;
 /// provide scheduling primitives
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
-// use embassy_futures::select::select;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use embassy_futures::join::join;
 
 // provide BLE primitives
 use trouble_host::prelude::*;
@@ -22,7 +21,7 @@ struct Server {
 }
 
 pub async fn run(
-    _global_state: &'static RwLock<NoopRawMutex, crate::State>,
+    global_state: &'static RwLock<NoopRawMutex, crate::State>,
     ble_controller: impl trouble_host::Controller,
     mac: [u8; 6],
 ) {
@@ -54,15 +53,9 @@ pub async fn run(
     let _ = join(ble_task(runner), async {
         loop {
             match advertise("Trouble Example", &mut peripheral, &server).await {
-                Ok(conn) => {
-                    gatt_events_task(&server, &conn).await.unwrap()
-                    // set up tasks when the connection is established to a central, so they don't run when no one is connected.
-                    // let a = gatt_events_task(&server, &conn);
-                    // let b = custom_task(&server, &conn, &stack);
-                    // run until any task ends (usually because the connection has been closed),
-                    // then return to advertising state.
-                    // select(a, b).await;
-                }
+                Ok(conn) => gatt_events_task(global_state, &server, &conn)
+                    .await
+                    .unwrap(),
                 Err(e) => {
                     // #[cfg(feature = "defmt")]
                     // let e = defmt::Debug2Format(&e);
@@ -118,20 +111,23 @@ async fn advertise<'values, 'server, C: Controller>(
 /// provide GATT READ/WRITE handlers
 mod meshcore;
 
-
 /// Stream Events until the connection closes.
 ///
 /// This function will handle the GATT events and process them.
 /// This is how we interact with read and write requests.
 async fn gatt_events_task<P: PacketPool>(
+    global_state: &'static RwLock<NoopRawMutex, crate::State>,
     server: &Server<'_>,
     conn: &GattConnection<'_, '_, P>,
 ) -> Result<(), Error> {
-    let mut meshcore_handler = meshcore::MeshCoreGattHandler {};
+    debug!("{TAG} connected");
+    // publish that we have a BLE connection
+    let mut global_state_lock = global_state.write().await;
+    global_state_lock.ble_status = crate::state::BleStatus::Connected;
+    drop(global_state_lock);
 
-    // let level = server.battery_service.level;
-    // let status_handle = server.battery_service.status.handle;
-    // let mut status = false;
+    // create gatt handlers for the new connection
+    let mut meshcore_handler = meshcore::MeshCoreGattHandler::new(global_state);
 
     let reason = loop {
         match conn.next().await {
@@ -148,8 +144,7 @@ async fn gatt_events_task<P: PacketPool>(
                                     handle,
                                 )
                             }
-
-                            // ignore other handles
+                            // ignore others
                             _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
                         }
                     }
@@ -163,34 +158,9 @@ async fn gatt_events_task<P: PacketPool>(
                                     handle,
                                 )
                             }
-
-                            // ignore other handles
+                            // ignore others
                             _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
                         }
-                        // if event.handle() == level.handle {
-                        //     event.with_data(|offset, data| {
-                        //         info!("[gatt] Write Event to Level Characteristic at {}: {:?}", offset, data)
-                        //     });
-                        //     event.accept()
-                        // } else if event.handle() == status_handle {
-                        //     match event.validate(1, 1) {
-                        //         Ok(()) => {
-                        //             event.with_data(|offset, data| {
-                        //                 if data.len() == 1 {
-                        //                     // If data.len() is 1, offset must be 0 or else validate would have errored
-                        //                     assert!(offset == 0);
-                        //                     status = data[0] != 0;
-                        //                 }
-                        //             });
-                        //             event.accept_unprocessed()
-                        //         }
-                        //         Err(err) => event.reject(err),
-                        //     }
-                        // } else {
-                        //     event.accept()
-                        // }
-                        // FIXME currently ignores all events
-                        // event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
                     }
                     _ => event.accept(),
                 };
@@ -204,6 +174,11 @@ async fn gatt_events_task<P: PacketPool>(
             _ => {} // ignore other Gatt Connection Events
         }
     };
-    info!("{TAG} disconnected: {:?}", reason);
+
+    // publish that the BLE connection ended
+    let mut global_state_lock = global_state.write().await;
+    global_state_lock.ble_status = crate::state::BleStatus::Disconnected;
+    drop(global_state_lock);
+    debug!("{TAG} disconnected: {:?}", reason);
     Ok(())
 }

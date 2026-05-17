@@ -1,11 +1,27 @@
 // provide the common crates via re-export
 use common::*;
 
-use meshcore::ble::MeshCoreService;
 // provid the ble host primitives
 use trouble_host::prelude::*;
 
-pub struct MeshCoreGattHandler {}
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+/// provide scheduling primitives
+use embassy_sync::rwlock::RwLock;
+
+/// provide definition of MeshCore companion BLE service
+use meshcore::ble::MeshCoreService;
+
+pub struct MeshCoreGattHandler {
+    // FIXME
+    // global_state: &'static RwLock<NoopRawMutex, crate::State>,
+}
+impl MeshCoreGattHandler {
+    pub fn new(_global_state: &'static RwLock<NoopRawMutex, crate::State>) -> Self {
+        Self {
+            // global_state
+        }
+    }
+}
 
 impl MeshCoreGattHandler {
     pub fn handle_gatt_read<'stack, 'server, P: PacketPool>(
@@ -17,8 +33,7 @@ impl MeshCoreGattHandler {
         if handle == service.tx.handle {
             // TODO handle data
             event.reject(AttErrorCode::VALUE_NOT_ALLOWED)
-        }
-        else {
+        } else {
             event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
         }
     }
@@ -32,8 +47,7 @@ impl MeshCoreGattHandler {
         if handle == service.rx.handle {
             // TODO handle data
             event.accept_unprocessed()
-        }
-        else {
+        } else {
             event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
         }
     }
