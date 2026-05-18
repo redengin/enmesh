@@ -10,13 +10,15 @@ use soc_esp32::*; // (provides the panic handler)
 // provide logging primitives
 use log::*;
 
+// provide scheduling primitives
+use enmesh_firmware::prelude::*;
+
 /// provide task implementations
 mod tasks;
 
 /// static non-volatile memory
-static STORAGE: static_cell::StaticCell<
-    soc_esp32::enmesh_storage::EnmeshStorage
-> = static_cell::StaticCell::new();
+static STORAGE: static_cell::StaticCell<soc_esp32::enmesh_storage::EnmeshStorage> =
+    static_cell::StaticCell::new();
 
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
@@ -44,34 +46,31 @@ async fn main(spawner: embassy_executor::Spawner) {
     // TODO by default idle hook simply runs WFI - but perhaps we want to do more to save power?
     // esp_rtos::start_with_idle_hook(timg0.timer0, sw_int.software_interrupt0, idle_hook);
 
-    debug!("initializing storage...");
-    use enmesh_firmware::storage::EnmeshStorage;    // must have trait in scope to use
-    // let storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
-    let storage = STORAGE.init(enmesh_storage::EnmeshStorage::open(peripherals.FLASH));
+    // debug!("initializing storage...");
+    // use enmesh_firmware::storage::EnmeshStorage; // must have trait in scope to use
+    // // let storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
+    // let storage = STORAGE.init(enmesh_storage::EnmeshStorage::open(peripherals.FLASH));
 
     debug!("initializing global state...");
     // create globally shared state
-    use enmesh_firmware::prelude::*;
-    let state = enmesh_firmware::State{
+    let state = enmesh_firmware::State {
         firmware_version: env!("CARGO_PKG_VERSION"),
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
-    let persisted_settings = enmesh_firmware::PersistedSettings::new(
-        global_state,
-        storage.settings_partition_a(),
-        storage.settings_partition_b(),
-    );
+    // let persisted_settings = enmesh_firmware::PersistedSettings::new(
+    //     global_state,
+    //     storage.settings_partition_a(),
+    //     storage.settings_partition_b(),
+    // );
+    spawner.spawn(task_persisted_settings(global_state).unwrap());
 
     debug!("initializing settings...");
     // let settings = enmesh_firmware::Settings::load(storage);
     // let _global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
 
-
-
     // create a heap for alloc support
     soc_esp32::init_heap();
-
 
     // create the tasks
     //--------------------------------------------------------------------------------
@@ -136,4 +135,12 @@ async fn main(spawner: embassy_executor::Spawner) {
     }
 
     info!("enmesh firmware running...");
+}
+
+#[embassy_executor::task]
+pub async fn task_persisted_settings(
+    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+)
+{
+    // TODO start the persisted settings thread
 }

@@ -61,7 +61,18 @@ impl<S1, S2> PersistedSettings<S1, S2>
             settings_partition_b,
         }
     }
+
+    pub fn run(
+        global_state: &'static RwLock<NoopRawMutex, crate::State>,
+        settings_partition_a: Option<&impl crate::storage::Storage>,
+        settings_partition_b: Option<&impl crate::storage::Storage>,
+    )
+    {
+
+    }
 }
+
+
 // impl Settings {
 //     pub async fn load(
 //         partition: crate::storage::Partition + crate::storage::AsyncStorage
