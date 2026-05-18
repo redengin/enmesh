@@ -36,22 +36,29 @@ pub struct MeshCoreSettings {
 use crate::prelude::*;
 
 /// manages the storage in non-volatile memory of settings
-pub struct PersistedSettings<Storage: crate::storage::Storage + 'static> {
+pub struct PersistedSettings<S1, S2>
+    where S1: crate::storage::Storage + 'static,
+          S2: crate::storage::Storage + 'static,
+{
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
-    settings_partition_a: Option<&'static Storage>,
-    // settings_partition_b: Option<&'static impl Storage>,
+    settings_partition_a: Option<&'static S1>,
+    settings_partition_b: Option<&'static S2>,
 }
-impl<S: crate::storage::Storage> PersistedSettings<S> {
+impl<S1, S2> PersistedSettings<S1, S2>
+    where S1: crate::storage::Storage + 'static,
+          S2: crate::storage::Storage + 'static,
+{
     pub fn new(
         global_state: &'static RwLock<NoopRawMutex, crate::State>,
         // settings_partition_a: Option<&impl crate::storage::Storage>,
-        settings_partition_a: Option<&'static S>,
-        settings_partition_b: Option<&impl crate::storage::Storage>,
+        settings_partition_a: Option<&'static S1>,
+        settings_partition_b: Option<&'static S2>,
+        // settings_partition_b: Option<&impl crate::storage::Storage>,
     ) -> Self {
         Self {
             global_state,
             settings_partition_a,
-            // settings_partition_b,
+            settings_partition_b,
         }
     }
 }
