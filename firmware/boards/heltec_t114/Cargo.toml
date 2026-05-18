@@ -19,7 +19,6 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 
 #-------------------------------------------------------------------------------
 [features]
-
 # support specialization for hardware revisions
 v2 = []
 v3 = []
