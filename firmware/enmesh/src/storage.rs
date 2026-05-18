@@ -1,14 +1,15 @@
 pub trait EnmeshStorage {
-    fn settings_a_partition(&self) -> Option<&impl Storage>;
-    fn settings_b_partition(&self) -> Option<&impl Storage>;
+    fn settings_partition_a(&self) -> Option<&impl Storage>;
+    fn settings_partition_b(&self) -> Option<&impl Storage>;
     fn data_partition(&self) -> Option<&impl Storage>;
 }
+
 
 pub trait Storage {
     /// size in bytes of the storage region
     fn capacity(&self) -> usize;
 
-    /// size of sectors
+    /// size of sectors (in bytes)
     fn sector_size(&self) -> usize;
 
     /// size of words in the storage

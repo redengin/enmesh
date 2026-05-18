@@ -11,11 +11,11 @@ pub struct EnmeshStorage {
     data_partition: Option<Partition>,
 }
 impl enmesh_firmware::storage::EnmeshStorage for EnmeshStorage {
-    fn settings_a_partition(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
+    fn settings_partition_a(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
         self.settings_partition_a.as_ref()
     }
 
-    fn settings_b_partition(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
+    fn settings_partition_b(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
         self.settings_partition_b.as_ref()
     }
 
@@ -85,6 +85,7 @@ impl EnmeshStorage {
     }
 }
 
+// #[derive(Copy, Clone)]
 struct Partition {
     pub address: usize,
     pub capacity: usize,
