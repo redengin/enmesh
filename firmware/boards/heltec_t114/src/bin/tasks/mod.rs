@@ -1,5 +1,3 @@
-
-
 pub(crate) mod lora;
 pub(crate) mod ux;
 pub(crate) mod usb_serial;

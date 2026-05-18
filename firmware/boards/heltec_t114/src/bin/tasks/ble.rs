@@ -8,8 +8,7 @@ use soc_esp32::*;
 use log::*;
 
 // provide scheduling primitives
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::rwlock::RwLock;
+use enmesh_firmware::prelude::*;
 
 #[embassy_executor::task]
 pub async fn task_ble_companion(

@@ -8,16 +8,14 @@ use log::*;
 use soc_esp32::*;
 
 // provide scheduling primitives
-use embassy_sync::rwlock::RwLock;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use enmesh_firmware::prelude::*;
 
 #[embassy_executor::task]
 pub async fn task_wifi_bridge(
     _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     wifi_peripheral: esp_hal::peripherals::WIFI<'static>,
-    // bt_peripheral: esp_hal::peripherals::BT<'static>,
 ) {
-    debug!("initializing wifi...");
+    debug!("initializing wifi bridge...");
     //================================================================================
     let _wifi_controller = esp_radio::wifi::new(
         wifi_peripheral,
@@ -40,8 +38,6 @@ pub async fn task_wifi_bridge(
     // let _ble_controller: ExternalController<_, 1> = ExternalController::new(ble_connector);
     // //================================================================================
 
-    info!("LoRa radio initialized");
-
     // TODO run the wifi handler
     // enmesh_firmware::repeater::run(lora_radio).await;
 
@@ -49,5 +45,7 @@ pub async fn task_wifi_bridge(
 
     // TODO...
     // https://github.com/esp-rs/esp-hal/blob/main/examples/wifi/embassy_access_point/src/main.rs
+
+    warn!("wifi bridge task ended");
 }
 

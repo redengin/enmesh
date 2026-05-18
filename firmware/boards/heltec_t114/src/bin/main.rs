@@ -103,9 +103,6 @@ async fn main(spawner: embassy_executor::Spawner) {
     // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
     // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
     let usb_serial_io = tasks::usb_serial::UsbSerialIo {
-        // usb: peripherals.USB0,
-        // d_neg: peripherals.GPIO19,
-        // d_pos: peripherals.GPIO20,
         uart: peripherals.UART0,
         rx: peripherals.GPIO44,
         tx: peripherals.GPIO43,
@@ -127,21 +124,3 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     info!("enmesh firmware running...");
 }
-
-// TODO move elsewhere - either a CP2102 crate or an internal crate
-// /// use CP2102 magic to change the USB parameters
-// fn configure_usb_serial(
-//     _rxd: &esp_hal::peripherals::GPIO36,
-//     _txd: &esp_hal::peripherals::GPIO37,
-// ) {
-//     // TODO use magic to set the CP2102 'vendor':'product' 'label'
-//     // embassy_usb_serial_config.manufacturer = Some("Espressif");
-//     // embassy_usb_serial_config.product = Some("USB-serial example");
-//     // embassy_usb_serial_config.serial_number = Some("12345678");
-//     // // Required for windows compatibility.
-//     // // https://developer.nordicsemi.com/nRF_Connect_SDK/doc/1.9.1/kconfig/CONFIG_CDC_ACM_IAD.html#help
-//     // embassy_usb_serial_config.device_class = 0xEF;
-//     // embassy_usb_serial_config.device_sub_class = 0x02;
-//     // embassy_usb_serial_config.device_protocol = 0x01;
-//     // embassy_usb_serial_config.composite_with_iads = true;
-// }

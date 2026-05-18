@@ -8,8 +8,7 @@ use soc_esp32::*;
 use log::*;
 
 // provide scheduling primitives
-use embassy_sync::rwlock::RwLock;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
+use enmesh_firmware::prelude::*;
 
 /// convenience struct for the screen and button interfaces
 pub struct UxIo {
@@ -29,8 +28,7 @@ pub async fn task_ux(
     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     ux_io: UxIo,
 ) {
-    debug!("initializing user interface...");
-
+    debug!("initializing UX..."); 
     // create the screen driver
     //================================================================================
     let interface = ssd1306::I2CDisplayInterface::new(
@@ -80,7 +78,6 @@ pub async fn task_ux(
     );
 
     // run UX handler
-    info!("UX task started");
     enmesh_firmware::ux::ssd1306::run(global_state, ssd1306, screen_power_control, button, led).await;
 
     warn!("UX task ended");

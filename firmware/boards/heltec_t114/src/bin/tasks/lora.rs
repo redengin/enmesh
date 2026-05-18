@@ -32,8 +32,6 @@ pub async fn task_lora(
     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     lora_io: LoraIo,
 ) -> ! {
-    debug!("initializing LoRa radio...");
-
     debug!("creating LoRa SPI bus...");
     const SX1262_SPI_MHZ: u32 = 16; // recommended SPI frequency
     let lora_spi = esp_hal::spi::master::Spi::new(
@@ -50,7 +48,6 @@ pub async fn task_lora(
     let lora_spi_bus = LORA_SPI_BUS.init(Mutex::new(lora_spi));
     let lora_spi_device =
         embassy_embedded_hal::shared_bus::asynch::spi::SpiDevice::new(lora_spi_bus, lora_io.nss);
-    debug!("LoRa SPI bus created");
 
     debug!("creating LoRa radio instance...");
     let sx126x_config = lora_phy::sx126x::Config {
