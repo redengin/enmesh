@@ -16,10 +16,6 @@ use enmesh_firmware::prelude::*;
 /// provide task implementations
 mod tasks;
 
-/// static non-volatile memory
-static STORAGE: static_cell::StaticCell<soc_esp32::enmesh_storage::EnmeshStorage> =
-    static_cell::StaticCell::new();
-
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
     // initialize the SoC
@@ -46,10 +42,8 @@ async fn main(spawner: embassy_executor::Spawner) {
     // TODO by default idle hook simply runs WFI - but perhaps we want to do more to save power?
     // esp_rtos::start_with_idle_hook(timg0.timer0, sw_int.software_interrupt0, idle_hook);
 
-    // debug!("initializing storage...");
-    // use enmesh_firmware::storage::EnmeshStorage; // must have trait in scope to use
-    // // let storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
-    // let storage = STORAGE.init(enmesh_storage::EnmeshStorage::open(peripherals.FLASH));
+    debug!("initializing storage...");
+    let storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
 
     debug!("initializing global state...");
     // create globally shared state
@@ -58,16 +52,14 @@ async fn main(spawner: embassy_executor::Spawner) {
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
-    // let persisted_settings = enmesh_firmware::PersistedSettings::new(
-    //     global_state,
-    //     storage.settings_partition_a(),
-    //     storage.settings_partition_b(),
-    // );
-    spawner.spawn(task_persisted_settings(global_state).unwrap());
-
-    debug!("initializing settings...");
-    // let settings = enmesh_firmware::Settings::load(storage);
-    // let _global_state = embassy_sync::blocking_mutex::NoopMutex::new(initial_state);
+    spawner.spawn(
+        task_persisted_settings(
+            global_state,
+            storage.settings_partition_a,
+            storage.settings_partition_b,
+        )
+        .unwrap(),
+    );
 
     // create a heap for alloc support
     soc_esp32::init_heap();
@@ -75,7 +67,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // create the tasks
     //--------------------------------------------------------------------------------
     debug!("creating LoRa task...");
-    // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
+    // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
     let lora_peripherals = tasks::lora::LoraIo {
         reset: esp_hal::gpio::Output::new(
             peripherals.GPIO12,
@@ -98,7 +90,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("LoRa task created");
 
     debug!("creating screen task...");
-    // heltec v3 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
+    // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
     let screen_io = tasks::ux::UxIo {
         vext_control: peripherals.GPIO36,
         oled_reset: peripherals.GPIO21,
@@ -139,8 +131,12 @@ async fn main(spawner: embassy_executor::Spawner) {
 
 #[embassy_executor::task]
 pub async fn task_persisted_settings(
-    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
-)
-{
+    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    _settings_partition_a: Option<enmesh_storage::Partition>,
+    _settings_partition_b: Option<enmesh_storage::Partition>,
+) {
+    // use enmesh_firmware::storage::Storage;
     // TODO start the persisted settings thread
+    // if let Some(partition) = settings_partition_a {
+    // }
 }

@@ -6,22 +6,9 @@ use log::*;
 const TAG: &str = "[enmesh_storage]";
 
 pub struct EnmeshStorage {
-    settings_partition_a: Option<Partition>,
-    settings_partition_b: Option<Partition>,
-    data_partition: Option<Partition>,
-}
-impl enmesh_firmware::storage::EnmeshStorage for EnmeshStorage {
-    fn settings_partition_a(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
-        self.settings_partition_a.as_ref()
-    }
-
-    fn settings_partition_b(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
-        self.settings_partition_b.as_ref()
-    }
-
-    fn data_partition(&self) -> Option<&impl enmesh_firmware::storage::Storage> {
-        self.data_partition.as_ref()
-    }
+    pub settings_partition_a: Option<Partition>,
+    pub settings_partition_b: Option<Partition>,
+    pub data_partition: Option<Partition>,
 }
 impl EnmeshStorage {
     pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
@@ -86,7 +73,7 @@ impl EnmeshStorage {
 }
 
 // #[derive(Copy, Clone)]
-struct Partition {
+pub struct Partition {
     pub address: usize,
     pub capacity: usize,
 }
