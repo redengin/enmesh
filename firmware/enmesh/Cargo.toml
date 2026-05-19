@@ -9,6 +9,9 @@ publish = false
 common = { path = "../common" }
 meshcore = { path = "../../MeshCore" }
 
+serde = { version = "*", default-features = false }
+ciborium = { version = "*", default-features = false }
+
 [dev-dependencies]
 # ux example support
 embedded-graphics-simulator = { version = "*", default-features = false, features = [

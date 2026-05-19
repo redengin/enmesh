@@ -17,6 +17,7 @@ pub use state::{STATE, State};
 /// persistable settings
 mod settings;
 pub use settings::{Settings};
+pub mod persisted_settings;
 
 pub mod storage;
 

@@ -1,13 +1,17 @@
 // provide the shared crates via re-export
 use common::*;
 
-/// provide rx-tx thread
-pub mod thread;
-
 // provide logging primitives
 use log::*;
 
-#[derive(Default, Copy, Clone)]
+use serde::ser::SerializeStruct;
+// provide the serialization traits
+use serde::{Deserialize, Serialize};
+
+/// publish rx-tx thread
+pub mod thread;
+
+#[derive(Default, Copy, Clone, Serialize, Deserialize)]
 pub struct EnmeshLoRaConfig {
     pub modulation_config: EnmeshLoRaModulationConfig,
     pub packet_config: EnmeshLoRaPacketConfig,
@@ -35,6 +39,8 @@ pub struct EnmeshLoRaModulationConfig {
     /// maximum duration a transmitter can actively transmit
     pub air_time: embassy_time::Duration,
 }
+/// number of fields in the EnmeshLoraModulationConfig that are serializable
+const ENMESH_LORA_MODULATION_CONFIG_FIELDS: usize = 6;
 impl Default for EnmeshLoRaModulationConfig {
     fn default() -> Self {
         Self {
@@ -47,9 +53,34 @@ impl Default for EnmeshLoRaModulationConfig {
         }
     }
 }
+impl Serialize for EnmeshLoRaModulationConfig {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut s = serializer.serialize_struct(
+            "EnmeshLoraModulationConfig", ENMESH_LORA_MODULATION_CONFIG_FIELDS)?;
+        s.serialize_field("frequency_hz", &self.frequency_hz)?;
+        s.serialize_field("bandwidth", &self.bandwidth.hz())?;
+        s.serialize_field("spreading_factor", &self.spreading_factor.factor())?;
+        s.serialize_field("coding_rate", &self.coding_rate.denom())?;
+        s.serialize_field("tx_power_dbm", &self.tx_power_dbm)?;
+        s.serialize_field("air_time", &self.air_time.as_millis())?;
+        s.end()
+    }
+}
+impl<'de> Deserialize<'de> for EnmeshLoRaModulationConfig {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        // TODO https://serde.rs/impl-deserialize.html
+        todo!()
+    }
+}
 
 /// used to configure the LoRa packet recognition
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, Serialize, Deserialize)]
 pub struct EnmeshLoRaPacketConfig {
     /// smaller preambles minimize power usage
     pub preamble_length: u16,
@@ -130,7 +161,8 @@ pub trait LoRaRf {
                     if is_clear {
                         // transmit packets
                         let mut global_state_lock = global_state.write().await;
-                        global_state_lock.current_radio_mode = crate::state::LoRaRadioMode::Transmit;
+                        global_state_lock.current_radio_mode =
+                            crate::state::LoRaRadioMode::Transmit;
                         drop(global_state_lock);
 
                         self.do_tx(lora_radio, lora_config).await;

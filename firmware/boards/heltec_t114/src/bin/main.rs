@@ -131,12 +131,17 @@ async fn main(spawner: embassy_executor::Spawner) {
 
 #[embassy_executor::task]
 pub async fn task_persisted_settings(
-    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
-    _settings_partition_a: Option<enmesh_storage::Partition>,
-    _settings_partition_b: Option<enmesh_storage::Partition>,
+    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    mut settings_partition_a: Option<enmesh_storage::Partition>,
+    mut settings_partition_b: Option<enmesh_storage::Partition>,
 ) {
-    // use enmesh_firmware::storage::Storage;
-    // TODO start the persisted settings thread
-    // if let Some(partition) = settings_partition_a {
-    // }
+    debug!("creating persisted settings task...");
+
+    enmesh_firmware::persisted_settings::run(
+        global_state, 
+        settings_partition_a.as_mut(),
+        settings_partition_b.as_mut(),
+    ).await;
+
+    error!("persisted settings task ended");
 }
