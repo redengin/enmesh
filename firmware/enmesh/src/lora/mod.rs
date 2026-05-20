@@ -11,14 +11,14 @@ use serde::{Deserialize, Serialize};
 /// publish rx-tx thread
 pub mod thread;
 
-#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[derive(Default, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnmeshLoRaConfig {
     pub modulation_config: EnmeshLoRaModulationConfig,
     pub packet_config: EnmeshLoRaPacketConfig,
 }
 
 /// used to configure the LoRa radio modulation
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnmeshLoRaModulationConfig {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
@@ -53,7 +53,7 @@ impl Default for EnmeshLoRaModulationConfig {
 }
 
 /// used to configure the LoRa packet recognition
-#[derive(Default, Copy, Clone, Serialize, Deserialize)]
+#[derive(Default, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnmeshLoRaPacketConfig {
     /// smaller preambles minimize power usage
     pub preamble_length: u16,
