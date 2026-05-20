@@ -938,6 +938,9 @@ name = "lora-modulation"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c96c4a41a1f1ad04de765306e1829c7007a37898fe4033204fa82cf2e055624"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "lora-phy"
@@ -1220,6 +1223,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
 dependencies = [
  "serde_core",
+ "serde_derive",
 ]
 
 [[package]]

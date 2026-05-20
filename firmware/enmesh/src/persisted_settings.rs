@@ -1,5 +1,5 @@
 // provide the shared crates via re-export
-use common::*;
+// use common::*;
 
 // provide scheduling primitives
 use crate::prelude::*;
@@ -26,8 +26,8 @@ pub async fn run(
     settings_partition_a: Option<&mut impl crate::storage::Storage>,
     _settings_partition_b: Option<&mut impl crate::storage::Storage>,
 ) {
-    if let Some(p) = settings_partition_a {
-        let mut buffer: [u8; 100] = [0; 100];
-        p.read(0, &mut buffer);
-    }
+    // if let Some(p) = settings_partition_a {
+    //     let mut buffer: [u8; 100] = [0; 100];
+    //     p.read(0, &mut buffer);
+    // }
 }

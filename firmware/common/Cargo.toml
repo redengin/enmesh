@@ -33,7 +33,7 @@ embassy-usb = { version = "*", features = ["log"] }
 # Hardware drivers
 #-------------------------------------------------------------------------------
 # provide LORA radio drivers
-lora-modulation = "*"
+lora-modulation = { version = "*", features = ["serde"] }
 lora-phy = "*"
 
 # 0.96" OLED Screen

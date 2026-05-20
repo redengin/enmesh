@@ -18,7 +18,7 @@ pub struct EnmeshLoRaConfig {
 }
 
 /// used to configure the LoRa radio modulation
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct EnmeshLoRaModulationConfig {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
@@ -37,10 +37,8 @@ pub struct EnmeshLoRaModulationConfig {
     pub tx_power_dbm: i32,
 
     /// maximum duration a transmitter can actively transmit
-    pub air_time: embassy_time::Duration,
+    pub air_time_millis: u16,
 }
-/// number of fields in the EnmeshLoraModulationConfig that are serializable
-const ENMESH_LORA_MODULATION_CONFIG_FIELDS: usize = 6;
 impl Default for EnmeshLoRaModulationConfig {
     fn default() -> Self {
         Self {
@@ -49,33 +47,8 @@ impl Default for EnmeshLoRaModulationConfig {
             spreading_factor: lora_modulation::SpreadingFactor::_6,
             coding_rate: lora_modulation::CodingRate::_4_5,
             tx_power_dbm: 0,
-            air_time: embassy_time::Duration::from_millis(1000),
+            air_time_millis: 1000,
         }
-    }
-}
-impl Serialize for EnmeshLoRaModulationConfig {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut s = serializer.serialize_struct(
-            "EnmeshLoraModulationConfig", ENMESH_LORA_MODULATION_CONFIG_FIELDS)?;
-        s.serialize_field("frequency_hz", &self.frequency_hz)?;
-        s.serialize_field("bandwidth", &self.bandwidth.hz())?;
-        s.serialize_field("spreading_factor", &self.spreading_factor.factor())?;
-        s.serialize_field("coding_rate", &self.coding_rate.denom())?;
-        s.serialize_field("tx_power_dbm", &self.tx_power_dbm)?;
-        s.serialize_field("air_time", &self.air_time.as_millis())?;
-        s.end()
-    }
-}
-impl<'de> Deserialize<'de> for EnmeshLoRaModulationConfig {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        // TODO https://serde.rs/impl-deserialize.html
-        todo!()
     }
 }
 
@@ -194,7 +167,8 @@ pub trait LoRaRf {
         lora_config: &EnmeshLoRaConfig,
     ) {
         // transmit packets until airtime expires
-        let tx_stop_time = embassy_time::Instant::now() + lora_config.modulation_config.air_time;
+        let tx_stop_time = embassy_time::Instant::now() +
+            embassy_time::Duration::from_millis(lora_config.modulation_config.air_time_millis as u64);
 
         // send packets
         while self.has_transmit_packets() {
