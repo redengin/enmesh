@@ -11,10 +11,20 @@ use crate::prelude::*;
 // provide the serialization traits
 use serde::{Deserialize, Serialize};
 
+/// incremental version for persisted settings
+/// * only changes when there is a change to crate::Settings
 const VERSION: u8 = 0;
+/// size of persisted storage data
+/// * for backward compatability, this must only increase
+///     * as decreasing would remove backward compatability for old persisted settings
+const PERSISTED_SETTINGS_SZ_MAX: usize = 100;
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
 struct PersistedSettings {
+    /// format used in this store (aka PersistedSettings_0, PersistedSettings_1, etc.)
+    /// * if the store version differs from the current version, the settings will
+    ///      be transmuted to the current version (using defaults for non-stored values)
+    version: u8,
     /// <details>
     ///     <summary> the id is used to find the most recent copy of the settings</summary>
     ///     This implementation uses sequential ids (i.e. increment by one with wrap-around support)
@@ -23,8 +33,6 @@ struct PersistedSettings {
     ///             * upon wrap-around this would provide the incorrect values
     /// </details>
     id: u8,
-    /// format used in this storage (aka PersistedSettings_0, PersistedSettings_1, etc.)
-    version: u8,
     settings: crate::Settings,
 }
 impl PersistedSettings {
@@ -32,8 +40,52 @@ impl PersistedSettings {
         None
     }
 
-    pub fn store(&self, _settings_partition: &mut impl crate::storage::Storage) -> Result<(), ()> {
-        Err(())
+    pub fn store(
+        &self,
+        settings_partition: &mut impl crate::storage::Storage,
+        next_id: u8,
+        settings: &crate::Settings,
+    ) -> Result<(), ()> {
+        let persisted_settings = Self {
+            version: VERSION,
+            id: next_id,
+            settings: settings.clone(),
+        };
+        // create the byte buffer to be written
+        return match postcard::to_vec::<PersistedSettings, PERSISTED_SETTINGS_SZ_MAX>(&persisted_settings)
+        {
+            Ok(bytes) => {
+                // erase enough sectors to hold the byte buffer
+                let sector_count = bytes.len().div_ceil(settings_partition.sector_size());
+                match settings_partition.erase_sectors(0, sector_count)
+                {
+                    Ok(_) => {
+                        // write the data
+                        match settings_partition.write(0, &bytes[0..])
+                        {
+                            Ok(_) => { Ok(()) }
+                            Err(_) => {
+                                warn!("{TAG} failed to store");
+                                Err(())
+                            }
+                        }
+                    }
+                    Err(_e) => {
+                        // FIXME storage should expose the underlying error
+                        // warn!("{TAG} failed to erase sectors, aborting store [{:?}]", e);
+                        warn!("{TAG} failed to erase sectors, aborting store");
+                        Err(())
+                    }
+                }
+            }
+            Err(_) => {
+                error!(
+                    "{TAG} failed to serialize settings, \
+                        check PERSISTED_SETTINGS_SZ_MAX [{PERSISTED_SETTINGS_SZ_MAX}]"
+                );
+                Err(())
+            }
+        }
     }
 }
 
@@ -68,7 +120,7 @@ pub async fn run(
         embassy_time::Duration::from_secs(1);
     loop {
         // compare the "active"
-        let mut global_state_lock = global_state.read().await;
+        let global_state_lock = global_state.read().await;
         let active_settings = global_state_lock.settings;
         drop(global_state_lock);
         if let Some(persisted_settings) = current_settings {

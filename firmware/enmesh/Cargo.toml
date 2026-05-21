@@ -10,7 +10,7 @@ common = { path = "../common" }
 meshcore = { path = "../../MeshCore" }
 
 serde = { version = "*", default-features = false, features = ["derive"]}
-rkyv = { version = "*", default-features = false }
+postcard = "*"
 
 [dev-dependencies]
 # ux example support

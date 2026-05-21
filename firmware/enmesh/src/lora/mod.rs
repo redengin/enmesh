@@ -4,7 +4,6 @@ use common::*;
 // provide logging primitives
 use log::*;
 
-use serde::ser::SerializeStruct;
 // provide the serialization traits
 use serde::{Deserialize, Serialize};
 
