@@ -11,6 +11,7 @@ use crate::prelude::*;
 // provide the serialization traits
 use serde::{Deserialize, Serialize};
 
+const VERSION: u8 = 0;
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
 struct PersistedSettings {
@@ -92,17 +93,13 @@ fn choose_latest_settings(
     if let Some(a) = settings_a {
         if let Some(b) = settings_b {
             // support wrapping
-            if a.id.abs_diff(b.id) == 1 {
-                if a.id == 0 {
-                    return Some((a.id, a.settings.clone()));
-                }
-                if b.id == 0 {
-                    return Some((a.id, a.settings.clone()));
-                }
-                // else fall through and just use the largest id
+            if (a.id == u8::MIN) && (b.id == u8::MAX) {
+                return Some((a.id, a.settings.clone()));
+            } else if (b.id == u8::MIN) && (a.id == u8::MAX) {
+                return Some((b.id, b.settings.clone()));
             }
-            // use the largest id
-            if a.id > b.id {
+            // return the max id
+            else if a.id > b.id {
                 return Some((a.id, a.settings.clone()));
             } else {
                 return Some((b.id, b.settings.clone()));
@@ -117,7 +114,6 @@ fn choose_latest_settings(
     None
 }
 
-
 // TESTING
 //--------------------------------------------------------------------------------
 #[cfg(test)]
@@ -126,19 +122,71 @@ mod tests {
 
     #[test]
     fn test_choose_latest_setting() {
-        // if A is Some and B is None, should return A
+        // choose(None, None)
+        let chosen = choose_latest_settings(&None, &None);
+        assert!(chosen.is_none(), "unexepctedly returned a choice");
+
+        // choose(Some, None)
         {
-            let settings_a = Some(PersistedSettings{
+            let settings = PersistedSettings {
                 id: 0,
-                version: 0,
+                version: VERSION,
                 settings: Default::default(),
-            });
-            let chosen = choose_latest_settings(&settings_a, &None);
-            assert!(chosen.is_some(), "no choice was made");
+            };
+            let chosen = choose_latest_settings(&Some(settings), &None);
+            assert!(chosen.is_some(), "no choice made for choose(Some, None)");
+        }
+        // choose(None, Some)
+        {
+            let settings = PersistedSettings {
+                id: 0,
+                version: VERSION,
+                settings: Default::default(),
+            };
+
+            let chosen = choose_latest_settings(&None, &Some(settings));
+            assert!(chosen.is_some(), "no choice made for choose(None, Some)");
+        }
+        // choose(Some, Some) max id
+        {
+            const ID_A: u8 = 0;
+            let settings_a = PersistedSettings {
+                id: ID_A,
+                version: VERSION,
+                settings: Default::default(),
+            };
+            const ID_B: u8 = 100;
+            let settings_b = PersistedSettings {
+                id: ID_B,
+                version: VERSION,
+                settings: Default::default(),
+            };
+
+            let chosen = choose_latest_settings(&Some(settings_a), &Some(settings_b));
+            assert!(chosen.is_some(), "no choice made for choose(Some, Some)");
             if let Some(choice) = chosen {
-                if let Some(persisted_settings) = settings_a {
-                    assert!(persisted_settings.id == choice.0, "with only A, failed to select A");
-                }
+                assert_eq!(core::cmp::max(ID_A, ID_B), choice.0);
+            }
+        }
+        // choose(Some, Some) wrapping sequential id
+        {
+            const ID_A: u8 = u8::MIN;
+            let settings_a = PersistedSettings {
+                id: ID_A,
+                version: VERSION,
+                settings: Default::default(),
+            };
+            const ID_B: u8 = u8::MAX;
+            let settings_b = PersistedSettings {
+                id: ID_B,
+                version: VERSION,
+                settings: Default::default(),
+            };
+
+            let chosen = choose_latest_settings(&Some(settings_a), &Some(settings_b));
+            assert!(chosen.is_some(), "no choice made for choose(Some, Some)");
+            if let Some(choice) = chosen {
+                assert_eq!(ID_A, choice.0);
             }
         }
     }
