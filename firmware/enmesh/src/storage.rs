@@ -64,16 +64,18 @@ mod tests {
         assert_eq!(WordSize::_32Bit as usize, utils::buffer_size(ATLEAST_SIZE, WordSize::_32Bit), "32 bit failed");
     }
 
+    #[test]
     fn test_utils_sector_count() {
         {
             const ATLEAST_SIZE: usize = 1;
             const SECTOR_SIZE: usize = 100;
-            assert_eq!(1, utils::sector_count(ATLEAST_SIZE, SECTOR_SIZE));
+            const EXPECTED: usize = 1;
+            assert_eq!(EXPECTED, utils::sector_count(ATLEAST_SIZE, SECTOR_SIZE));
         }
         {
             const ATLEAST_SIZE: usize = 1000;
             const SECTOR_SIZE: usize = 10;
-            assert_eq!(100, utils::sector_count(ATLEAST_SIZE, SECTOR_SIZE));
+            assert_eq!(EXPECTED, utils::sector_count(ATLEAST_SIZE, SECTOR_SIZE));
         }
     }
 }
