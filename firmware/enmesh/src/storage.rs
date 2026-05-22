@@ -44,7 +44,7 @@ pub mod utils {
         return word_count * (word_size as usize);
     }
 
-    /// determine the number of sectors bassed up size
+    /// determine the number of sectors based up sector size
     pub fn sector_count(atleast_size: usize, sector_size: usize) -> usize {
         return atleast_size.div_ceil(sector_size);
     }
