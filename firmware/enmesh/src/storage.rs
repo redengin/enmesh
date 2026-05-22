@@ -75,6 +75,7 @@ mod tests {
         {
             const ATLEAST_SIZE: usize = 1000;
             const SECTOR_SIZE: usize = 10;
+            const EXPECTED: usize = 100;
             assert_eq!(EXPECTED, utils::sector_count(ATLEAST_SIZE, SECTOR_SIZE));
         }
     }
