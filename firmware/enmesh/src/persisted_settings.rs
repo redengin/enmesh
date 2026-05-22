@@ -14,17 +14,54 @@ use serde::{Deserialize, Serialize};
 /// incremental version for persisted settings
 /// * only changes when there is a change to crate::Settings
 const VERSION: u8 = 0;
-/// size of persisted storage data
-/// * for backward compatability, this must only increase
-///     * as decreasing would remove backward compatability for old persisted settings
-const PERSISTED_SETTINGS_SZ_MAX: usize = 100;
+/// size (in bytes) of the serialized header
+const PERSISTED_SETTINGS_HEADER_SZ: usize = 100;
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
-struct PersistedSettings {
+struct PersistedSettingsHeader {
     /// format used in this store (aka PersistedSettings_0, PersistedSettings_1, etc.)
     /// * if the store version differs from the current version, the settings will
     ///      be transmuted to the current version (using defaults for non-stored values)
     version: u8,
+}
+impl PersistedSettingsHeader {
+    pub fn load(settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
+        // load the header
+        let mut buffer = [0u8; 10];
+        match settings_partition.read(0, &mut buffer) {
+            Ok(()) => {}
+            Err(e) => {
+                error!("{TAG} failed to read header from: {:?}", e);
+                return None;
+            }
+        }
+
+        return match postcard::from_bytes(&buffer) {
+            Ok(header) => Some(header),
+            Err(e) => {
+                warn!("{TAG} unable to deserialize header");
+                None
+            }
+        };
+    }
+
+    pub fn store(
+        &self,
+        _settings_partition: &mut impl crate::storage::Storage,
+        _next_id: u8,
+        _settings: &crate::Settings,
+    ) -> Result<(), ()> {
+        Err(())
+    }
+}
+
+
+
+/// size (in bytes) of persisted storage (header and data)
+const PERSISTED_STORAGE_SZ_MAX: usize = 100;
+
+#[derive(Serialize, Deserialize)]
+struct PersistedSettings {
     /// <details>
     ///     <summary> the id is used to find the most recent copy of the settings</summary>
     ///     This implementation uses sequential ids (i.e. increment by one with wrap-around support)
@@ -35,6 +72,7 @@ struct PersistedSettings {
     id: u8,
     settings: crate::Settings,
 }
+
 impl PersistedSettings {
     pub fn load(_settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
         None
@@ -42,50 +80,52 @@ impl PersistedSettings {
 
     pub fn store(
         &self,
-        settings_partition: &mut impl crate::storage::Storage,
-        next_id: u8,
-        settings: &crate::Settings,
+        _settings_partition: &mut impl crate::storage::Storage,
+        _next_id: u8,
+        _settings: &crate::Settings,
     ) -> Result<(), ()> {
-        let persisted_settings = Self {
-            version: VERSION,
-            id: next_id,
-            settings: settings.clone(),
-        };
-        // create the byte buffer to be written
-        return match postcard::to_vec::<PersistedSettings, PERSISTED_SETTINGS_SZ_MAX>(&persisted_settings)
-        {
-            Ok(bytes) => {
-                // erase enough sectors to hold the byte buffer
-                let sector_count = bytes.len().div_ceil(settings_partition.sector_size());
-                match settings_partition.erase_sectors(0, sector_count)
-                {
-                    Ok(_) => {
-                        // write the data
-                        match settings_partition.write(0, &bytes[0..])
-                        {
-                            Ok(_) => { Ok(()) }
-                            Err(_) => {
-                                warn!("{TAG} failed to store");
-                                Err(())
-                            }
-                        }
-                    }
-                    Err(_e) => {
-                        // FIXME storage should expose the underlying error
-                        // warn!("{TAG} failed to erase sectors, aborting store [{:?}]", e);
-                        warn!("{TAG} failed to erase sectors, aborting store");
-                        Err(())
-                    }
-                }
-            }
-            Err(_) => {
-                error!(
-                    "{TAG} failed to serialize settings, \
-                        check PERSISTED_SETTINGS_SZ_MAX [{PERSISTED_SETTINGS_SZ_MAX}]"
-                );
-                Err(())
-            }
-        }
+        Err(())
+        // let persisted_settings = Self {
+        //     version: VERSION,
+        //     id: next_id,
+        //     settings: settings.clone(),
+        // };
+
+        // // create the byte buffer to be written
+        // return match postcard::to_vec::<PersistedSettings, PERSISTED_STORAGE_SZ_MAX>(&persisted_settings)
+        // {
+        //     Ok(bytes) => {
+        //         // erase enough sectors to hold the byte buffer
+        //         let sector_count = bytes.len().div_ceil(settings_partition.sector_size());
+        //         match settings_partition.erase_sectors(0, sector_count)
+        //         {
+        //             Ok(_) => {
+        //                 // write the data
+        //                 match settings_partition.write(0, &bytes[0..])
+        //                 {
+        //                     Ok(_) => { Ok(()) }
+        //                     Err(_) => {
+        //                         warn!("{TAG} failed to store");
+        //                         Err(())
+        //                     }
+        //                 }
+        //             }
+        //             Err(_e) => {
+        //                 // FIXME storage should expose the underlying error
+        //                 // warn!("{TAG} failed to erase sectors, aborting store [{:?}]", e);
+        //                 warn!("{TAG} failed to erase sectors, aborting store");
+        //                 Err(())
+        //             }
+        //         }
+        //     }
+        //     Err(_) => {
+        //         error!(
+        //             "{TAG} failed to serialize settings, \
+        //                 check PERSISTED_SETTINGS_SZ_MAX [{PERSISTED_STORAGE_SZ_MAX}]"
+        //         );
+        //         Err(())
+        //     }
+        // }
     }
 }
 
@@ -182,7 +222,6 @@ mod tests {
         {
             let settings = PersistedSettings {
                 id: 0,
-                version: VERSION,
                 settings: Default::default(),
             };
             let chosen = choose_latest_settings(&Some(settings), &None);
@@ -192,7 +231,6 @@ mod tests {
         {
             let settings = PersistedSettings {
                 id: 0,
-                version: VERSION,
                 settings: Default::default(),
             };
 
@@ -204,13 +242,11 @@ mod tests {
             const ID_A: u8 = 0;
             let settings_a = PersistedSettings {
                 id: ID_A,
-                version: VERSION,
                 settings: Default::default(),
             };
             const ID_B: u8 = 100;
             let settings_b = PersistedSettings {
                 id: ID_B,
-                version: VERSION,
                 settings: Default::default(),
             };
 
@@ -225,13 +261,11 @@ mod tests {
             const ID_A: u8 = u8::MIN;
             let settings_a = PersistedSettings {
                 id: ID_A,
-                version: VERSION,
                 settings: Default::default(),
             };
             const ID_B: u8 = u8::MAX;
             let settings_b = PersistedSettings {
                 id: ID_B,
-                version: VERSION,
                 settings: Default::default(),
             };
 

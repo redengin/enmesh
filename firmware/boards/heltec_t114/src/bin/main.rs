@@ -137,11 +137,12 @@ pub async fn task_persisted_settings(
 ) {
     debug!("creating persisted settings task...");
 
-    enmesh_firmware::persisted_settings::run(
-        global_state, 
-        settings_partition_a.as_mut(),
-        settings_partition_b.as_mut(),
-    ).await;
+    // FIXME
+    // enmesh_firmware::persisted_settings::run(
+    //     global_state, 
+    //     settings_partition_a.as_mut(),
+    //     settings_partition_b.as_mut(),
+    // ).await;
 
     error!("persisted settings task ended");
 }
