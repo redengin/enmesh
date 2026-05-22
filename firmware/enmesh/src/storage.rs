@@ -34,6 +34,12 @@ pub enum WordSize {
     _16Bit = 2,
     _32Bit = 4,
 }
+impl WordSize {
+    pub const fn max() -> Self
+    {
+        Self::_32Bit
+    }
+}
 
 pub mod utils {
     use crate::storage::WordSize;

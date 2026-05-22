@@ -16,6 +16,13 @@ use serde::{Deserialize, Serialize};
 const VERSION: u8 = 0;
 /// size (in bytes) of the serialized header
 const PERSISTED_SETTINGS_HEADER_SZ: usize = 100;
+/// PERSISTED_SETTINGS_HEADER_SZ must be usable by all targets
+/// TODO
+const _: () = assert!(PERSISTED_SETTINGS_HEADER_SZ % (crate::storage::WordSize::max() as usize) == 0);
+//     0,
+//     // PERSISTED_SETTINGS_HEADER_SZ % (crate::storage::WordSize::max() as usize)
+//     PERSISTED_SETTINGS_HEADER_SZ % 4
+// );
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
 struct PersistedSettingsHeader {
@@ -27,7 +34,7 @@ struct PersistedSettingsHeader {
 impl PersistedSettingsHeader {
     pub fn load(settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
         // load the header
-        let mut buffer = [0u8; 10];
+        let mut buffer = [0u8; PERSISTED_SETTINGS_HEADER_SZ];
         match settings_partition.read(0, &mut buffer) {
             Ok(()) => {}
             Err(e) => {
@@ -39,7 +46,7 @@ impl PersistedSettingsHeader {
         return match postcard::from_bytes(&buffer) {
             Ok(header) => Some(header),
             Err(e) => {
-                warn!("{TAG} unable to deserialize header");
+                warn!("{TAG} unable to deserialize header [{e}]");
                 None
             }
         };
@@ -54,8 +61,6 @@ impl PersistedSettingsHeader {
         Err(())
     }
 }
-
-
 
 /// size (in bytes) of persisted storage (header and data)
 const PERSISTED_STORAGE_SZ_MAX: usize = 100;
