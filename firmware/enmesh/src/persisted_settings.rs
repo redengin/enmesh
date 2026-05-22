@@ -17,12 +17,12 @@ const VERSION: u8 = 0;
 /// size (in bytes) of the serialized header
 const PERSISTED_SETTINGS_HEADER_SZ: usize = 100;
 /// PERSISTED_SETTINGS_HEADER_SZ must be usable by all targets
-/// TODO
-const _: () = assert!(PERSISTED_SETTINGS_HEADER_SZ % (crate::storage::WordSize::max() as usize) == 0);
-//     0,
-//     // PERSISTED_SETTINGS_HEADER_SZ % (crate::storage::WordSize::max() as usize)
-//     PERSISTED_SETTINGS_HEADER_SZ % 4
-// );
+///   * to supporat all targets, the size must support the maximum word size
+const _: () = assert!((PERSISTED_SETTINGS_HEADER_SZ % (crate::storage::WordSize::max() as usize)) == 0,
+                      "the current PERSISTED_SETTINGS_SZ does support max word size"
+                    //   "the current PERSISTED_SETTINGS_SZ does support max word size[{:?}]",
+                    //         crate::storage::WordSize::max() as usize);
+);
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
 struct PersistedSettingsHeader {
