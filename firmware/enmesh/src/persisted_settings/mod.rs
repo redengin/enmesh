@@ -165,11 +165,9 @@ pub async fn run(
         let active_settings = global_state_lock.settings;
         drop(global_state_lock);
         if let Some(persisted_settings) = current_settings {
-            if persisted_settings != active_settings {
-                // persist_setttings()
-            }
+            // TODO persist_settings(active_settings);
         } else {
-            // persist_setttings()
+            // TODO persist_settings(active_settings);
         }
 
         // wait for the next period
@@ -185,26 +183,34 @@ fn choose_latest_settings(
 ) -> Option<(u8, crate::Settings)> {
     if let Some(a) = settings_a {
         if let Some(b) = settings_b {
-            // support wrapping
+            // support wrapping max id
             if (a.id == u8::MIN) && (b.id == u8::MAX) {
                 return Some((a.id, a.settings.clone()));
             } else if (b.id == u8::MIN) && (a.id == u8::MAX) {
                 return Some((b.id, b.settings.clone()));
             }
-            // return the max id
+            // support max id
             else if a.id > b.id {
                 return Some((a.id, a.settings.clone()));
             } else {
                 return Some((b.id, b.settings.clone()));
             }
         }
+        // only A so return A
         return Some((a.id, a.settings.clone()));
     } else if let Some(b) = settings_b {
+        // only B so return B
         return Some((b.id, b.settings.clone()));
     }
 
     // no persisted settings
     None
+}
+
+fn persist_settings(
+    _settings: &crate::Settings,
+    _settings_partition: &Option<&mut impl crate::storage::Storage>,
+) {
 }
 
 // TESTING
@@ -227,7 +233,8 @@ mod tests {
                 let actual_len = bytes.len();
                 assert_eq!(
                     PERSISTED_SETTINGS_SZ, actual_len,
-                    "incorrect PERSISTED_SETTINGS_SZ  (is: {PERSISTED_SETTINGS_SZ}, should be: {actual_len})");
+                    "incorrect PERSISTED_SETTINGS_SZ  (is: {PERSISTED_SETTINGS_SZ}, should be: {actual_len})"
+                );
             }
             Err(e) => {
                 panic!("failed to serialize");
