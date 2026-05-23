@@ -11,60 +11,14 @@ use crate::prelude::*;
 // provide the serialization traits
 use serde::{Deserialize, Serialize};
 
-/// incremental version for persisted settings
-/// * only changes when there is a change to crate::Settings
-const VERSION: u8 = 0;
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_HEADER_SZ: usize = 100;
-/// PERSISTED_SETTINGS_HEADER_SZ must be usable by all targets
-///   * to supporat all targets, the size must support the maximum word size
-const _: () = assert!((PERSISTED_SETTINGS_HEADER_SZ % (crate::storage::WordSize::max() as usize)) == 0,
-                      "the current PERSISTED_SETTINGS_SZ does support max word size"
-                    //   "the current PERSISTED_SETTINGS_SZ does support max word size[{:?}]",
-                    //         crate::storage::WordSize::max() as usize);
+const PERSISTED_SETTINGS_SZ: usize = 100;
+/// size (in bytes) of the buffer (padded for generic 32bit alignment)
+const PERSISTED_SETTINGS_BUFFER_SZ: usize = 100;
+const _: () = assert!(
+    (PERSISTED_SETTINGS_BUFFER_SZ % (crate::storage::WordSize::max() as usize)) == 0,
+    "the current PERSISTED_SETTINGS_BUFFER_SZ does support max word size"
 );
-/// stored version of Settings
-#[derive(Serialize, Deserialize)]
-struct PersistedSettingsHeader {
-    /// format used in this store (aka PersistedSettings_0, PersistedSettings_1, etc.)
-    /// * if the store version differs from the current version, the settings will
-    ///      be transmuted to the current version (using defaults for non-stored values)
-    version: u8,
-}
-impl PersistedSettingsHeader {
-    pub fn load(settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
-        // load the header
-        let mut buffer = [0u8; PERSISTED_SETTINGS_HEADER_SZ];
-        match settings_partition.read(0, &mut buffer) {
-            Ok(()) => {}
-            Err(e) => {
-                error!("{TAG} failed to read header from: {:?}", e);
-                return None;
-            }
-        }
-
-        return match postcard::from_bytes(&buffer) {
-            Ok(header) => Some(header),
-            Err(e) => {
-                warn!("{TAG} unable to deserialize header [{e}]");
-                None
-            }
-        };
-    }
-
-    pub fn store(
-        &self,
-        _settings_partition: &mut impl crate::storage::Storage,
-        _next_id: u8,
-        _settings: &crate::Settings,
-    ) -> Result<(), ()> {
-        Err(())
-    }
-}
-
-/// size (in bytes) of persisted storage (header and data)
-const PERSISTED_STORAGE_SZ_MAX: usize = 100;
-
 #[derive(Serialize, Deserialize)]
 struct PersistedSettings {
     /// <details>
@@ -78,59 +32,104 @@ struct PersistedSettings {
     settings: crate::Settings,
 }
 
+mod versions;
+use versions::{PERSISTED_SETTINGS_HEADER_BUFFER_SZ, PersistedSettingsHeader};
+
 impl PersistedSettings {
-    pub fn load(_settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
-        None
+    pub fn load(settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
+        // load the header
+        let header = PersistedSettingsHeader::load(settings_partition);
+        if header.is_none() {
+            // no header found
+            return None;
+        }
+        // determine if we can load it directly or need to covert from an earlier version
+        if let Some(header) = header {
+            match header.version {
+                versions::CURRENT_VERSION => {
+                    // continue with serialization/deserialization using current version
+                }
+                _ => {
+                    error!("{TAG} support for other versions not implemented");
+                    // TODO versions::PersistedSettings_v1::load(settings_partition) -> Option<PersistedSettings>
+                    // implement just like below but convert previous PersistedSettings version to current
+                    return None;
+                }
+            }
+        }
+
+        // read the data from storage
+        let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
+        match settings_partition.read(PERSISTED_SETTINGS_HEADER_BUFFER_SZ, &mut buffer) {
+            Ok(()) => {}
+            Err(e) => {
+                error!("{TAG} failed to read settings: {:?}", e);
+                return None;
+            }
+        }
+
+        // deserialize the buffer (using current version)
+        return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ + 1])
+        {
+            Ok(settings) => {
+                debug!("{TAG} successfully deserialized settings");
+                Some(settings)
+            }
+            Err(e) => {
+                warn!("{TAG} unable to deserialize settings [{e}]");
+                None
+            }
+        };
     }
 
+    /// Write the persisted settings to storage
+    /// * assumes destination is erased
     pub fn store(
         &self,
-        _settings_partition: &mut impl crate::storage::Storage,
-        _next_id: u8,
-        _settings: &crate::Settings,
+        settings_partition: &mut impl crate::storage::Storage,
+        next_id: u8,
+        settings: &crate::Settings,
     ) -> Result<(), ()> {
-        Err(())
-        // let persisted_settings = Self {
-        //     version: VERSION,
-        //     id: next_id,
-        //     settings: settings.clone(),
-        // };
+        // write the header to storage
+        let header = PersistedSettingsHeader::store(settings_partition);
+        if header.is_err() {
+            // header write failed
+            return Err(());
+        }
 
-        // // create the byte buffer to be written
-        // return match postcard::to_vec::<PersistedSettings, PERSISTED_STORAGE_SZ_MAX>(&persisted_settings)
-        // {
-        //     Ok(bytes) => {
-        //         // erase enough sectors to hold the byte buffer
-        //         let sector_count = bytes.len().div_ceil(settings_partition.sector_size());
-        //         match settings_partition.erase_sectors(0, sector_count)
-        //         {
-        //             Ok(_) => {
-        //                 // write the data
-        //                 match settings_partition.write(0, &bytes[0..])
-        //                 {
-        //                     Ok(_) => { Ok(()) }
-        //                     Err(_) => {
-        //                         warn!("{TAG} failed to store");
-        //                         Err(())
-        //                     }
-        //                 }
-        //             }
-        //             Err(_e) => {
-        //                 // FIXME storage should expose the underlying error
-        //                 // warn!("{TAG} failed to erase sectors, aborting store [{:?}]", e);
-        //                 warn!("{TAG} failed to erase sectors, aborting store");
-        //                 Err(())
-        //             }
-        //         }
-        //     }
-        //     Err(_) => {
-        //         error!(
-        //             "{TAG} failed to serialize settings, \
-        //                 check PERSISTED_SETTINGS_SZ_MAX [{PERSISTED_STORAGE_SZ_MAX}]"
-        //         );
-        //         Err(())
-        //     }
-        // }
+        // serialize the data
+        let settings = PersistedSettings {
+            id: next_id,
+            settings: *settings,
+        };
+        let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
+        match postcard::to_slice(&settings, &mut buffer) {
+            Ok(bytes) => {
+                if PERSISTED_SETTINGS_BUFFER_SZ != bytes.len() {
+                    panic!(
+                        "{TAG} incorrect PERSISTED_SETTINGS_SZ! \
+                           (is: {:?}, should be: {PERSISTED_SETTINGS_SZ})",
+                        bytes.len()
+                    );
+                }
+            }
+            Err(e) => {
+                error!("{TAG} failed to serialize data: {e}");
+                return Err(());
+            }
+        }
+
+        // write the data to storage
+        return match settings_partition.write(PERSISTED_SETTINGS_HEADER_BUFFER_SZ, &buffer) {
+            Ok(()) => {
+                debug!("{TAG} wrote settings to storage");
+                Ok(())
+            }
+            Err(e) => {
+                error!("{TAG} failed to write settings: {:?}", e);
+                Err(())
+            }
+        };
     }
 }
 
@@ -216,6 +215,12 @@ fn choose_latest_settings(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[allow(lint_name)]
+    fn validate_PERSISTED_SETTINGS_SZ() {
+        let settings = PersistedSettings{ id: 0, settings: crate::Settings::default() };
+    }
 
     #[test]
     fn test_choose_latest_setting() {
