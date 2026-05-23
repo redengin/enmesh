@@ -12,13 +12,10 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_SZ: usize = 100;
-/// size (in bytes) of the buffer (padded for generic 32bit alignment)
-const PERSISTED_SETTINGS_BUFFER_SZ: usize = 100;
-const _: () = assert!(
-    (PERSISTED_SETTINGS_BUFFER_SZ % (crate::storage::WordSize::max() as usize)) == 0,
-    "the current PERSISTED_SETTINGS_BUFFER_SZ does support max word size"
-);
+const PERSISTED_SETTINGS_SZ: usize = 29;
+/// size (in bytes) of the buffer (padded for generic alignment)
+const PERSISTED_SETTINGS_BUFFER_SZ: usize =
+    crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
 #[derive(Serialize, Deserialize)]
 struct PersistedSettings {
     /// <details>
@@ -219,7 +216,23 @@ mod tests {
     #[test]
     #[allow(lint_name)]
     fn validate_PERSISTED_SETTINGS_SZ() {
-        let settings = PersistedSettings{ id: 0, settings: crate::Settings::default() };
+        let settings = PersistedSettings {
+            id: 0,
+            settings: crate::Settings::default(),
+        };
+
+        let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
+        match postcard::to_slice(&settings, &mut buffer) {
+            Ok(bytes) => {
+                let actual_len = bytes.len();
+                assert_eq!(
+                    PERSISTED_SETTINGS_SZ, actual_len,
+                    "incorrect PERSISTED_SETTINGS_SZ  (is: {PERSISTED_SETTINGS_SZ}, should be: {actual_len})");
+            }
+            Err(e) => {
+                panic!("failed to serialize");
+            }
+        }
     }
 
     #[test]

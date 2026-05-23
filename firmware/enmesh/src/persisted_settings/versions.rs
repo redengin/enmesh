@@ -25,13 +25,10 @@ impl Versions {
 /// * only changes when there is a change to crate::Settings
 pub const CURRENT_VERSION: u8 = Versions::current() as u8;
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_HEADER_SZ: usize = 100;
-/// size (in bytes) of the buffer (padded for generic 32bit alignment)
-pub const PERSISTED_SETTINGS_HEADER_BUFFER_SZ: usize = 100;
-const _: () = assert!(
-    (PERSISTED_SETTINGS_HEADER_BUFFER_SZ % (crate::storage::WordSize::max() as usize)) == 0,
-    "the current PERSISTED_SETTINGS_HEADER_BUFFER_SZ does support max word size"
-);
+const PERSISTED_SETTINGS_HEADER_SZ: usize = 1;
+/// size (in bytes) of the buffer (padded for generic alignment)
+pub const PERSISTED_SETTINGS_HEADER_BUFFER_SZ: usize =
+    crate::storage::utils::buffer_size(PERSISTED_SETTINGS_HEADER_SZ, crate::storage::WordSize::max());
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
 pub(crate) struct PersistedSettingsHeader {
@@ -106,5 +103,32 @@ impl PersistedSettingsHeader {
                 Err(())
             }
         };
+    }
+}
+
+
+// TESTING
+//--------------------------------------------------------------------------------
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[allow(lint_name)]
+    fn validate_PERSISTED_SETTINGS_HEADER_SZ() {
+        let header = PersistedSettingsHeader::new();
+
+        let mut buffer = [0u8; PERSISTED_SETTINGS_HEADER_BUFFER_SZ];
+        match postcard::to_slice(&header, &mut buffer) {
+            Ok(bytes) => {
+                let actual_len = bytes.len();
+                assert_eq!(
+                    PERSISTED_SETTINGS_HEADER_SZ, actual_len,
+                    "incorrect PERSISTED_SETTINGS_HEADER_SZ  (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be: {actual_len})");
+            }
+            Err(e) => {
+                panic!("failed to serialize");
+            }
+        }
     }
 }
