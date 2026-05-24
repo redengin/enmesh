@@ -1,3 +1,5 @@
+use core::ops::DerefMut;
+
 // provide the shared crates via re-export
 use common::*;
 
@@ -82,7 +84,6 @@ impl PersistedSettings {
     /// Write the persisted settings to storage
     /// * assumes destination is erased
     pub fn store(
-        &self,
         settings_partition: &mut impl crate::storage::Storage,
         next_id: u8,
         settings: &crate::Settings,
@@ -132,19 +133,18 @@ impl PersistedSettings {
 
 pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
-    settings_partition_a: Option<&mut impl crate::storage::Storage>,
-    settings_partition_b: Option<&mut impl crate::storage::Storage>,
+    mut settings_partition_a: Option<&mut impl crate::storage::Storage>,
+    mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
 ) {
-    let mut persisted_settings_a: Option<PersistedSettings> = None;
-    let mut persisted_settings_b: Option<PersistedSettings> = None;
-    if let Some(p) = settings_partition_a {
-        debug!("{TAG} loading settings partition a");
-        persisted_settings_a = PersistedSettings::load(p);
-    }
-    if let Some(p) = settings_partition_b {
-        debug!("{TAG} loading settings partition b");
-        persisted_settings_b = PersistedSettings::load(p);
-    }
+    // load the persisted settings
+    let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
+        Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
+        None => None,
+    };
+    let persisted_settings_b: Option<PersistedSettings> = match settings_partition_b {
+        Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
+        None => None,
+    };
 
     // choose most recent settings
     let mut id: u8 = 0;
@@ -153,27 +153,84 @@ pub async fn run(
         // use the returned tuple to update our state
         id = latest.0;
         current_settings = Some(latest.1);
+
+        // update the global state
+        let mut global_state_lock = global_state.write().await;
+        global_state_lock.settings = current_settings.unwrap();
+        drop(global_state_lock);
     }
 
-    // only update the persisted settings periodically
-    // * allows settings changes to coalesce before update the persisted settings partitions
+    // update the persisted settings periodically
+    // * allows settings changes to coalesce over a short duration
     const PERSISTED_SETTINGS_UPDATE_PERDIOD: embassy_time::Duration =
-        embassy_time::Duration::from_secs(1);
+        embassy_time::Duration::from_secs(10);
     loop {
         // compare the "active"
         let global_state_lock = global_state.read().await;
         let active_settings = global_state_lock.settings;
         drop(global_state_lock);
-        if let Some(persisted_settings) = current_settings {
-            // TODO persist_settings(active_settings);
-        } else {
-            // TODO persist_settings(active_settings);
+        if current_settings.is_none() || (current_settings.unwrap() != active_settings) {
+            // update the persisted settings
+            id += 1;
+            current_settings = Some(active_settings);
+
+            // store the persisted settings
+            const PERSISTED_SIZE: usize = PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
+            match settings_partition_a {
+                Some(ref mut p) => {
+                    // erase the storage
+                    let sector_count = crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
+                    let _ = p.erase_sectors(0, sector_count);
+                    // write the settings
+                    let _ = PersistedSettings::store(p.deref_mut(), id, &active_settings);
+                }
+                None => {}
+            };
+            match settings_partition_b {
+                Some(ref mut p) => {
+                    // erase the storage
+                    let sector_count = crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
+                    let _ = p.erase_sectors(0, sector_count);
+                    // write the settings
+                    let _ = PersistedSettings::store(p.deref_mut(), id, &active_settings);
+                }
+                None => {}
+            };
         }
 
         // wait for the next period
         embassy_time::Timer::after(PERSISTED_SETTINGS_UPDATE_PERDIOD).await;
     }
 }
+
+// fn persist_settings(
+//     id: u8,
+//     settings: crate::Settings,
+//     mut settings_partition_a: &mut Option<&mut impl crate::storage::Storage>,
+//     mut settings_partition_b: &mut Option<&mut impl crate::storage::Storage>,
+// ) {
+//     // create a new persisted settings
+//     let persisted_settings = PersistedSettings{id, settings};
+
+//     // determine storage size
+//     const SIZE: usize = PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
+
+//     // update settings partition a first
+//     if let Some(partition) = settings_partition_a {
+//         // erase the sector(s)
+//         let sector_count = crate::storage::utils::sector_count(SIZE, partition.sector_size());
+//         match partition.erase_sectors(0, sector_count) {
+//             Ok(_) => { }
+//             Err(e) => {
+//                 error!("{TAG} failed to erase sectors for setting partition a");
+//             }
+//         }
+//     }
+
+
+//     // update settings partition b second
+
+// }
 
 /// returns tuple (id, settings)
 /// * id - id of chosen settings
@@ -205,12 +262,6 @@ fn choose_latest_settings(
 
     // no persisted settings
     None
-}
-
-fn persist_settings(
-    _settings: &crate::Settings,
-    _settings_partition: &Option<&mut impl crate::storage::Storage>,
-) {
 }
 
 // TESTING
