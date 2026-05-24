@@ -27,8 +27,10 @@ pub const CURRENT_VERSION: u8 = Versions::current() as u8;
 /// size (in bytes) of the serialized header
 const PERSISTED_SETTINGS_HEADER_SZ: usize = 1;
 /// size (in bytes) of the buffer (padded for generic alignment)
-pub const PERSISTED_SETTINGS_HEADER_BUFFER_SZ: usize =
-    crate::storage::utils::buffer_size(PERSISTED_SETTINGS_HEADER_SZ, crate::storage::WordSize::max());
+pub const PERSISTED_SETTINGS_HEADER_BUFFER_SZ: usize = crate::storage::utils::buffer_size(
+    PERSISTED_SETTINGS_HEADER_SZ,
+    crate::storage::WordSize::max(),
+);
 /// stored version of Settings
 #[derive(Serialize, Deserialize)]
 pub(crate) struct PersistedSettingsHeader {
@@ -48,9 +50,11 @@ impl PersistedSettingsHeader {
         // read the data from storage
         let mut buffer = [0u8; PERSISTED_SETTINGS_HEADER_BUFFER_SZ];
         match settings_partition.read(0, &mut buffer) {
-            Ok(()) => {}
+            Ok(()) => {
+                debug!("{TAG} storage read successful");
+            }
             Err(e) => {
-                error!("{TAG} failed to read header: {:?}", e);
+                error!("{TAG} storage read failed: {:?}", e);
                 return None;
             }
         }
@@ -60,11 +64,11 @@ impl PersistedSettingsHeader {
             &buffer[..PERSISTED_SETTINGS_HEADER_SZ + 1],
         ) {
             Ok(header) => {
-                debug!("{TAG} successfully deserialized header");
+                debug!("{TAG} deserialized");
                 Some(header)
             }
             Err(e) => {
-                warn!("{TAG} unable to deserialize header [{e}]");
+                warn!("{TAG} deserialization failed [{e}]");
                 None
             }
         };
@@ -78,16 +82,17 @@ impl PersistedSettingsHeader {
         let header = PersistedSettingsHeader::new();
         match postcard::to_slice(&header, &mut buffer) {
             Ok(bytes) => {
+                debug!("{TAG} stored");
                 if PERSISTED_SETTINGS_HEADER_SZ != bytes.len() {
                     panic!(
-                        "{TAG} incorrect PERSISTED_SETTINGS_HEADER_SZ! \
-                           (is: {:?}, should be: {PERSISTED_SETTINGS_HEADER_SZ})",
+                        "{TAG} incorrect PERSISTED_SETTINGS_HEADER_SZ \
+                           (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be: {:?})",
                         bytes.len()
                     );
                 }
             }
             Err(e) => {
-                error!("{TAG} failed to serialize header: {e}");
+                error!("{TAG} failed to serialize: {e}");
                 return Err(());
             }
         }
@@ -95,17 +100,16 @@ impl PersistedSettingsHeader {
         // write the header to storage
         return match settings_partition.write(0, &buffer) {
             Ok(()) => {
-                debug!("{TAG} wrote header to storage");
+                debug!("{TAG} wrote to storage");
                 Ok(())
             }
             Err(e) => {
-                error!("{TAG} failed to write header: {:?}", e);
+                error!("{TAG} failed write to storage: {:?}", e);
                 Err(())
             }
         };
     }
 }
-
 
 // TESTING
 //--------------------------------------------------------------------------------
@@ -115,6 +119,7 @@ mod tests {
 
     #[test]
     #[allow(lint_name)]
+    /// used to validate PERSISTED_SETTINGS_HEADER_SZ
     fn validate_PERSISTED_SETTINGS_HEADER_SZ() {
         let header = PersistedSettingsHeader::new();
 
@@ -124,7 +129,8 @@ mod tests {
                 let actual_len = bytes.len();
                 assert_eq!(
                     PERSISTED_SETTINGS_HEADER_SZ, actual_len,
-                    "incorrect PERSISTED_SETTINGS_HEADER_SZ  (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be: {actual_len})");
+                    "incorrect PERSISTED_SETTINGS_HEADER_SZ  (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be: {actual_len})"
+                );
             }
             Err(e) => {
                 panic!("failed to serialize");

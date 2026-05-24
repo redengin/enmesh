@@ -20,49 +20,48 @@ const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
 #[derive(Serialize, Deserialize)]
 struct PersistedSettings {
-    /// <details>
-    ///     <summary> the id is used to find the most recent copy of the settings</summary>
-    ///     This implementation uses sequential ids (i.e. increment by one with wrap-around support)
-    ///     * To support wrap-around, this implementation updates both copies with the same id.
-    ///         * should non-sequential ids be found, the implementation will use the largest id
-    ///             * upon wrap-around this would provide the incorrect values
-    /// </details>
+    /// The id is used to find the most recent copy of the settings</summary>
+    /// * This implementation uses sequential ids (i.e. increment by one with wrap-around support)
     id: u8,
     settings: crate::Settings,
 }
 
+// provide support for converting older versions of persisted settings
 mod versions;
 use versions::{PERSISTED_SETTINGS_HEADER_BUFFER_SZ, PersistedSettingsHeader};
 
 impl PersistedSettings {
     pub fn load(settings_partition: &mut impl crate::storage::Storage) -> Option<Self> {
         // load the header
-        let header = PersistedSettingsHeader::load(settings_partition);
-        if header.is_none() {
-            // no header found
-            return None;
-        }
-        // determine if we can load it directly or need to covert from an earlier version
-        if let Some(header) = header {
-            match header.version {
-                versions::CURRENT_VERSION => {
-                    // continue with serialization/deserialization using current version
+        match PersistedSettingsHeader::load(settings_partition) {
+            Some(header) => {
+                match header.version {
+                    versions::CURRENT_VERSION => {
+                        // continue with serialization/deserialization using current version
+                        debug!("{TAG} header found using current version");
+                    }
+                    _ => {
+                        error!("{TAG} support for other versions not implemented");
+                        // TODO versions::PersistedSettings_v1::load(settings_partition) -> Option<PersistedSettings>
+                        // implement just like below but convert previous PersistedSettings version to current
+                        return None;
+                    }
                 }
-                _ => {
-                    error!("{TAG} support for other versions not implemented");
-                    // TODO versions::PersistedSettings_v1::load(settings_partition) -> Option<PersistedSettings>
-                    // implement just like below but convert previous PersistedSettings version to current
-                    return None;
-                }
+            }
+            None => {
+                debug!("{TAG} no header found");
+                return None;
             }
         }
 
         // read the data from storage
         let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
         match settings_partition.read(PERSISTED_SETTINGS_HEADER_BUFFER_SZ, &mut buffer) {
-            Ok(()) => {}
+            Ok(()) => {
+                debug!("{TAG} storage read successful");
+            }
             Err(e) => {
-                error!("{TAG} failed to read settings: {:?}", e);
+                error!("{TAG} storage read failed: {:?}", e);
                 return None;
             }
         }
@@ -71,11 +70,11 @@ impl PersistedSettings {
         return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ + 1])
         {
             Ok(settings) => {
-                debug!("{TAG} successfully deserialized settings");
+                debug!("{TAG} deserialized settings");
                 Some(settings)
             }
             Err(e) => {
-                warn!("{TAG} unable to deserialize settings [{e}]");
+                warn!("{TAG} deserialization failed [{e}]");
                 None
             }
         };
@@ -103,16 +102,17 @@ impl PersistedSettings {
         let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
         match postcard::to_slice(&settings, &mut buffer) {
             Ok(bytes) => {
-                if PERSISTED_SETTINGS_BUFFER_SZ != bytes.len() {
+                debug!("{TAG} stored");
+                if PERSISTED_SETTINGS_SZ != bytes.len() {
                     panic!(
-                        "{TAG} incorrect PERSISTED_SETTINGS_SZ! \
-                           (is: {:?}, should be: {PERSISTED_SETTINGS_SZ})",
+                        "{TAG} incorrect PERSISTED_SETTINGS_SZ \
+                           (is: {PERSISTED_SETTINGS_SZ}, should be: {:?})",
                         bytes.len()
                     );
                 }
             }
             Err(e) => {
-                error!("{TAG} failed to serialize data: {e}");
+                error!("{TAG} failed to serialize: {e}");
                 return Err(());
             }
         }
@@ -120,11 +120,11 @@ impl PersistedSettings {
         // write the data to storage
         return match settings_partition.write(PERSISTED_SETTINGS_HEADER_BUFFER_SZ, &buffer) {
             Ok(()) => {
-                debug!("{TAG} wrote settings to storage");
+                debug!("{TAG} wrote to storage");
                 Ok(())
             }
             Err(e) => {
-                error!("{TAG} failed to write settings: {:?}", e);
+                error!("{TAG} failed write to storage: {:?}", e);
                 Err(())
             }
         };
@@ -162,8 +162,7 @@ pub async fn run(
 
     // update the persisted settings periodically
     // * allows settings changes to coalesce over a short duration
-    const PERSISTED_SETTINGS_UPDATE_PERDIOD: embassy_time::Duration =
-        embassy_time::Duration::from_secs(10);
+    const PERSISTED_SETTINGS_UPDATE_PERDIOD: Duration = Duration::from_secs(10);
     loop {
         // compare the "active"
         let global_state_lock = global_state.read().await;
@@ -175,11 +174,13 @@ pub async fn run(
             current_settings = Some(active_settings);
 
             // store the persisted settings
-            const PERSISTED_SIZE: usize = PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
+            const PERSISTED_SIZE: usize =
+                PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
             match settings_partition_a {
                 Some(ref mut p) => {
                     // erase the storage
-                    let sector_count = crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
+                    let sector_count =
+                        crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
                     let _ = p.erase_sectors(0, sector_count);
                     // write the settings
                     let _ = PersistedSettings::store(p.deref_mut(), id, &active_settings);
@@ -189,7 +190,8 @@ pub async fn run(
             match settings_partition_b {
                 Some(ref mut p) => {
                     // erase the storage
-                    let sector_count = crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
+                    let sector_count =
+                        crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
                     let _ = p.erase_sectors(0, sector_count);
                     // write the settings
                     let _ = PersistedSettings::store(p.deref_mut(), id, &active_settings);
@@ -202,35 +204,6 @@ pub async fn run(
         embassy_time::Timer::after(PERSISTED_SETTINGS_UPDATE_PERDIOD).await;
     }
 }
-
-// fn persist_settings(
-//     id: u8,
-//     settings: crate::Settings,
-//     mut settings_partition_a: &mut Option<&mut impl crate::storage::Storage>,
-//     mut settings_partition_b: &mut Option<&mut impl crate::storage::Storage>,
-// ) {
-//     // create a new persisted settings
-//     let persisted_settings = PersistedSettings{id, settings};
-
-//     // determine storage size
-//     const SIZE: usize = PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
-
-//     // update settings partition a first
-//     if let Some(partition) = settings_partition_a {
-//         // erase the sector(s)
-//         let sector_count = crate::storage::utils::sector_count(SIZE, partition.sector_size());
-//         match partition.erase_sectors(0, sector_count) {
-//             Ok(_) => { }
-//             Err(e) => {
-//                 error!("{TAG} failed to erase sectors for setting partition a");
-//             }
-//         }
-//     }
-
-
-//     // update settings partition b second
-
-// }
 
 /// returns tuple (id, settings)
 /// * id - id of chosen settings
@@ -272,6 +245,7 @@ mod tests {
 
     #[test]
     #[allow(lint_name)]
+    /// used to validate PERSISTED_SETTINGS_SZ
     fn validate_PERSISTED_SETTINGS_SZ() {
         let settings = PersistedSettings {
             id: 0,
