@@ -23,7 +23,7 @@ pub async fn task_ble_companion(
     use trouble_host::prelude::ExternalController;
     let ble_controller: ExternalController<_, 1> = ExternalController::new(ble_connector);
 
-    // start the enmesh firmware ble host
+    // start the enmesh firmware ble host (advertising per the MAC)
     use esp_hal::efuse::*;
     let mac_address = interface_mac_address(InterfaceMacAddress::Bluetooth);
     let mac: [u8; 6] = mac_address.as_bytes().try_into().expect("invalid mac length");

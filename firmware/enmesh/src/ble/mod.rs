@@ -41,36 +41,27 @@ pub async fn run(
         // initialize the ble host address
         .set_random_address(Address::random(mac))
         .set_random_generator_seed(random_generator)
-        .set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly)
+        // assumes device has a screen with ability to select (i.e. button or mouse)
+        .set_io_capabilities(trouble_host::IoCapabilities::DisplayYesNo)
         .build();
 
-    // start the stack
+    // create the ble host
     let runner = stack.runner();
     let mut peripheral = stack.peripheral();
-
-    // start advertising
-    let name = heapless::format!(32; "enmesh-{:X}{:X}{:X}{:X}{:X}{:X}",
-        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
-    .unwrap();
-
-
-    info!("{TAG} advertising '{}'", name.as_str());
     let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
-        // name: "enmesh",
-        name: name.as_str(),
+        name: "enmesh",
         appearance: &appearance::network_device::MESH_DEVICE,
     }))
     .unwrap();
 
+    // start the ble host
     let _ = join(ble_task(runner), async {
         loop {
-            match advertise("Trouble Example", &mut peripheral, &server).await {
+            match advertise(mac, &mut peripheral, &server).await {
                 Ok(conn) => gatt_events_task(global_state, &server, &conn)
                     .await
                     .unwrap(),
                 Err(e) => {
-                    // #[cfg(feature = "defmt")]
-                    // let e = defmt::Debug2Format(&e);
                     panic!("{TAG} error: {:?}", e);
                 }
             }
@@ -79,23 +70,27 @@ pub async fn run(
     .await;
 }
 
-/// This is a background task that is required to run forever alongside any other BLE tasks.
+/// background task that is required to run forever alongside any other BLE tasks
 async fn ble_task<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
     loop {
         if let Err(e) = runner.run().await {
-            // #[cfg(feature = "defmt")]
-            // let e = defmt::Debug2Format(&e);
             panic!("{TAG} error: {:?}", e);
         }
     }
 }
 
-/// Create an advertiser to use to connect to a BLE Central, and wait for it to connect.
+/// BLE advertiser task that awaits a connection
 async fn advertise<'values, 'server, C: Controller>(
-    name: &'values str,
+    mac: [u8;6],
     peripheral: &mut Peripheral<'values, C, DefaultPacketPool>,
     server: &'server Server<'values>,
 ) -> Result<GattConnection<'values, 'server, DefaultPacketPool>, BleHostError<C::Error>> {
+    // create the advertisement name
+    const BLE_NAME_SIZE_MAX: usize = 29;
+    let name = heapless::format!(BLE_NAME_SIZE_MAX; "EnMesh-{:X}{:X}{:X}{:X}{:X}{:X}",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
+    .unwrap();
+    // create the advertisement
     let mut advertiser_data = [0; 31];
     let len = AdStructure::encode_slice(
         &[
@@ -105,6 +100,8 @@ async fn advertise<'values, 'server, C: Controller>(
         ],
         &mut advertiser_data[..],
     )?;
+    info!("{TAG} advertising '{}'", name.as_str());
+    // advertise and await a connection
     let advertiser = peripheral
         .advertise(
             &Default::default(),
@@ -114,26 +111,24 @@ async fn advertise<'values, 'server, C: Controller>(
             },
         )
         .await?;
-    debug!("{TAG} advertising");
+    debug!("{TAG} connecting");
     let conn = advertiser.accept().await?.with_attribute_server(server)?;
     debug!("{TAG} connection established");
     Ok(conn)
 }
 
-/// provide GATT READ/WRITE handlers
+/// provide support for MeshCore BLE compantion
 mod meshcore;
 
-/// Stream Events until the connection closes.
-///
-/// This function will handle the GATT events and process them.
-/// This is how we interact with read and write requests.
+/// Handle GATT Events until the connection closes
 async fn gatt_events_task<P: PacketPool>(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     server: &Server<'_>,
     conn: &GattConnection<'_, '_, P>,
 ) -> Result<(), Error> {
-    debug!("{TAG} connected");
     // publish that we have a BLE connection
+    debug!("{TAG} connected");
+    // update the global state
     let mut global_state_lock = global_state.write().await;
     global_state_lock.ble_status = crate::state::BleStatus::Connected;
     drop(global_state_lock);
@@ -188,9 +183,11 @@ async fn gatt_events_task<P: PacketPool>(
     };
 
     // publish that the BLE connection ended
+    debug!("{TAG} disconnected: {:?}", reason);
+    // update the global state
     let mut global_state_lock = global_state.write().await;
     global_state_lock.ble_status = crate::state::BleStatus::Disconnected;
     drop(global_state_lock);
-    debug!("{TAG} disconnected: {:?}", reason);
+
     Ok(())
 }
