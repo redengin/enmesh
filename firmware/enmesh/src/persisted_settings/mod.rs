@@ -140,7 +140,6 @@ pub async fn run(
     let mut id: u8 = 0;
     let mut current_settings: Option<crate::Settings> = None;
     {
-        let start_time = Instant::now();
         let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
             Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
             None => None,
@@ -161,8 +160,6 @@ pub async fn run(
             global_state_lock.settings = current_settings.unwrap();
             drop(global_state_lock);
         }
-        let elapsed_time = Instant::now() - start_time;
-        info!("persisted settings loaded ({} ms)", elapsed_time.as_millis());
     }
 
     // update the persisted settings periodically
