@@ -7,6 +7,7 @@ pub mod prelude {
     pub use common::embassy_sync::blocking_mutex::raw::NoopRawMutex;
     pub use common::embassy_time::Timer;
     pub use common::embassy_time::Duration;
+    pub use common::embassy_time::Instant;
 }
 
 /// globally shared state for firmware

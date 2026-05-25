@@ -137,27 +137,32 @@ pub async fn run(
     mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
 ) {
     // load the persisted settings
-    let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
-        Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
-        None => None,
-    };
-    let persisted_settings_b: Option<PersistedSettings> = match settings_partition_b {
-        Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
-        None => None,
-    };
-
-    // choose most recent settings
     let mut id: u8 = 0;
     let mut current_settings: Option<crate::Settings> = None;
-    if let Some(latest) = choose_latest_settings(&persisted_settings_a, &persisted_settings_b) {
-        // use the returned tuple to update our state
-        id = latest.0;
-        current_settings = Some(latest.1);
+    {
+        let start_time = Instant::now();
+        let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
+            Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
+            None => None,
+        };
+        let persisted_settings_b: Option<PersistedSettings> = match settings_partition_b {
+            Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
+            None => None,
+        };
 
-        // update the global state
-        let mut global_state_lock = global_state.write().await;
-        global_state_lock.settings = current_settings.unwrap();
-        drop(global_state_lock);
+        // choose most recent settings
+        if let Some(latest) = choose_latest_settings(&persisted_settings_a, &persisted_settings_b) {
+            // use the returned tuple to update our state
+            id = latest.0;
+            current_settings = Some(latest.1);
+
+            // update the global state
+            let mut global_state_lock = global_state.write().await;
+            global_state_lock.settings = current_settings.unwrap();
+            drop(global_state_lock);
+        }
+        let elapsed_time = Instant::now() - start_time;
+        info!("persisted settings loaded ({} ms)", elapsed_time.as_millis());
     }
 
     // update the persisted settings periodically
