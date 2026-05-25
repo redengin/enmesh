@@ -19,6 +19,7 @@ embedded-layout = "*"
 # embedded-storage = "*"
 # critical-section = "*"
 #-------------------------------------------------------------------------------
+rand_core = { version = "*", default-features = false }
 
 # use the embassay RTOS
 #-------------------------------------------------------------------------------

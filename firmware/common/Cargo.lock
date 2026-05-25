@@ -175,6 +175,7 @@ dependencies = [
  "log",
  "lora-modulation",
  "lora-phy",
+ "rand_core",
  "ssd1306",
  "static_cell",
  "trouble-host",

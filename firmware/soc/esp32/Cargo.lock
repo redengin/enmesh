@@ -231,6 +231,7 @@ dependencies = [
  "log",
  "lora-modulation",
  "lora-phy",
+ "rand_core 0.6.4",
  "ssd1306",
  "static_cell",
  "trouble-host",

@@ -5,10 +5,10 @@ use common::*;
 use log::*;
 const TAG: &str = "[BLE Host]";
 
+use embassy_futures::join::join;
+use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 /// provide scheduling primitives
 use embassy_sync::rwlock::RwLock;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_futures::join::join;
 
 // provide BLE primitives
 use trouble_host::prelude::*;
@@ -24,9 +24,11 @@ pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     ble_controller: impl trouble_host::Controller,
     mac: [u8; 6],
+    random_generator: &mut (impl rand_core::RngCore + rand_core::CryptoRng),
 ) {
     debug!("{TAG} starting...");
 
+    // create the stack
     const CONNECTIONS_MAX: usize = 1;
     const L2CAP_CHANNELS_MAX: usize = 1; // FIXME
     let mut resources: trouble_host::HostResources<
@@ -35,17 +37,27 @@ pub async fn run(
         CONNECTIONS_MAX,
         L2CAP_CHANNELS_MAX,
     > = trouble_host::HostResources::new();
-
     let stack = trouble_host::new(ble_controller, &mut resources)
         // initialize the ble host address
         .set_random_address(Address::random(mac))
+        .set_random_generator_seed(random_generator)
+        .set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly)
         .build();
+
+    // start the stack
     let runner = stack.runner();
     let mut peripheral = stack.peripheral();
 
-    info!("{TAG} advertising");
+    // start advertising
+    let name = heapless::format!(32; "enmesh-{:X}{:X}{:X}{:X}{:X}{:X}",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
+    .unwrap();
+
+
+    info!("{TAG} advertising '{}'", name.as_str());
     let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
-        name: "enmesh",
+        // name: "enmesh",
+        name: name.as_str(),
         appearance: &appearance::network_device::MESH_DEVICE,
     }))
     .unwrap();

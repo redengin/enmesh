@@ -122,7 +122,7 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     if cfg!(feature = "ble-companion") {
         debug!("creating enmesh ble compantion task...");
-        spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT).unwrap());
+        spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT, peripherals.RNG, peripherals.ADC1).unwrap());
         debug!("enmesh ble companion task created");
     }
 

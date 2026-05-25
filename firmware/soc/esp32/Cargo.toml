@@ -21,7 +21,7 @@ features = ["unstable"]
 # provide println driver for logging
 [dependencies.esp-println]
 git = "https://github.com/esp-rs/esp-hal"
-features = ["log-04"]
+features = ["log-04", "timestamp"]
 
 # (optional) provide ESP32 supplied panic handler
 [dependencies.esp-backtrace]
