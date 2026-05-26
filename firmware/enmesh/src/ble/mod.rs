@@ -44,12 +44,20 @@ pub async fn run(
         // assumes device has a screen with ability to select (i.e. button or mouse)
         .set_io_capabilities(trouble_host::IoCapabilities::DisplayYesNo)
         .build();
-    // add any stored bonds
+    // add any stored bonds (i.e. previous pairings)
     let global_state_lock = global_state.read().await;
-    if let Some(bound_key) = &global_state_lock.settings.ble_settings.bond {
-        // stack.add_bond_information(bond_information)
-    }
+    let bonds = global_state_lock.settings.ble_settings.bonds.clone();
     drop(global_state_lock);
+    for bond in bonds {
+        if let Some(bond_information) = bond {
+            match stack.add_bond_information(bond_information) {
+                Ok(()) => {}
+                Err(e) => {
+                    warn!("{TAG} failed to add bond information: {:?}", e);
+                }
+            }
+        }
+    }
 
 
     // create the ble host

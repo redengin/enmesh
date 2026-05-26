@@ -14,7 +14,7 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_SZ: usize = 29;
+const PERSISTED_SETTINGS_SZ: usize = 31;
 /// size (in bytes) of the buffer (padded for generic alignment)
 const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
