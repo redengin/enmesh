@@ -44,6 +44,13 @@ pub async fn run(
         // assumes device has a screen with ability to select (i.e. button or mouse)
         .set_io_capabilities(trouble_host::IoCapabilities::DisplayYesNo)
         .build();
+    // add any stored bonds
+    let global_state_lock = global_state.read().await;
+    if let Some(bound_key) = &global_state_lock.settings.ble_settings.bond {
+        // stack.add_bond_information(bond_information)
+    }
+    drop(global_state_lock);
+
 
     // create the ble host
     let runner = stack.runner();
@@ -138,6 +145,9 @@ async fn gatt_events_task<P: PacketPool>(
 
     let reason = loop {
         match conn.next().await {
+            // GattConnectionEvent::PassKeyConfirm()
+
+
             GattConnectionEvent::Disconnected { reason } => break reason,
             GattConnectionEvent::Gatt { event } => {
                 let reply = match event {

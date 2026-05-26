@@ -97,7 +97,7 @@ impl PersistedSettings {
         // serialize the data
         let settings = PersistedSettings {
             id: next_id,
-            settings: *settings,
+            settings: settings.clone(),
         };
         let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
         match postcard::to_slice(&settings, &mut buffer) {
@@ -157,7 +157,7 @@ pub async fn run(
 
             // update the global state
             let mut global_state_lock = global_state.write().await;
-            global_state_lock.settings = current_settings.unwrap();
+            global_state_lock.settings = current_settings.clone().unwrap();
             drop(global_state_lock);
         }
     }
@@ -168,12 +168,12 @@ pub async fn run(
     loop {
         // compare the "active"
         let global_state_lock = global_state.read().await;
-        let active_settings = global_state_lock.settings;
+        let active_settings = global_state_lock.settings.clone();
         drop(global_state_lock);
-        if current_settings.is_none() || (current_settings.unwrap() != active_settings) {
+        if current_settings.is_none() || (current_settings.clone().unwrap() != active_settings) {
             // update the persisted settings
             id += 1;
-            current_settings = Some(active_settings);
+            current_settings = Some(active_settings.clone());
 
             // store the persisted settings
             const PERSISTED_SIZE: usize =

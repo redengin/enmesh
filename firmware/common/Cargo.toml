@@ -54,6 +54,7 @@ git = "https://github.com/embassy-rs/trouble"
 default-features = false
 features = [
     "derive",                       # provide macros
+    "serde",                        # support storing the BondInformation
     "peripheral",
     "gatt",
     "central",                      # required for security feature // FIXME  this shouldn't be necessary

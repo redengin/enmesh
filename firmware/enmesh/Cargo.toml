@@ -10,7 +10,7 @@ common = { path = "../common" }
 meshcore = { path = "../../MeshCore" }
 
 serde = { version = "*", default-features = false, features = ["derive"]}
-serde_with = { version = "*", default-features = false, features = ["macros"]}
+# serde_with = { version = "*", default-features = false, features = ["macros"]}
 postcard = "*"
 
 [dev-dependencies]

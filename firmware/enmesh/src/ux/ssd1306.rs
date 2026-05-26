@@ -82,7 +82,7 @@ pub async fn run<ScreenInterface, ScreenSize>(
 
         // update the UX
         use crate::ux::Page;
-        let model = *global_state.read().await;
+        let model = global_state.read().await.clone();
         ux.refresh(&mut rgb_screen, &model, &theme);
         screen.flush().ok(); // must call flush to commit the changes to the screen
 

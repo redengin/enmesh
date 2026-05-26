@@ -10,7 +10,7 @@ use embassy_sync::rwlock::RwLock;
 pub static STATE: static_cell::StaticCell<RwLock<NoopRawMutex, State>> =
     static_cell::StaticCell::new();
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Clone)]
 pub struct State {
     pub firmware_version: &'static str,
 

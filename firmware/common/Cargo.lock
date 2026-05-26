@@ -91,6 +91,7 @@ dependencies = [
  "embedded-io-async",
  "futures-intrusive",
  "heapless 0.9.3",
+ "serde",
 ]
 
 [[package]]
@@ -99,6 +100,7 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5f48f1e9b0aad0a4f05d17bdeae0fa20ff798e272a03a6940ca27ad9c5a6ae7"
 dependencies = [
+ "serde",
  "uuid",
 ]
 
@@ -1455,6 +1457,7 @@ dependencies = [
  "rand",
  "rand_chacha",
  "rand_core",
+ "serde",
  "static_cell",
  "trouble-host-macros",
  "zerocopy",
