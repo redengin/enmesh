@@ -19,7 +19,9 @@ embedded-layout = "*"
 # embedded-storage = "*"
 # critical-section = "*"
 #-------------------------------------------------------------------------------
-rand_core = { version = "*", default-features = false }
+
+#locked to 0.6 because of trouble-host
+rand_core = { version = "0.6", default-features = false }
 
 # use the embassay RTOS
 #-------------------------------------------------------------------------------
