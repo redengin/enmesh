@@ -14,7 +14,7 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_SZ: usize = 31;
+const PERSISTED_SETTINGS_SZ: usize = 42;
 /// size (in bytes) of the buffer (padded for generic alignment)
 const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
@@ -103,11 +103,9 @@ impl PersistedSettings {
         match postcard::to_slice(&settings, &mut buffer) {
             Ok(bytes) => {
                 debug!("{TAG} stored");
-                if PERSISTED_SETTINGS_SZ != bytes.len() {
+                if PERSISTED_SETTINGS_SZ < bytes.len() {
                     panic!(
-                        "{TAG} incorrect PERSISTED_SETTINGS_SZ \
-                           (is: {PERSISTED_SETTINGS_SZ}, should be: {:?})",
-                        bytes.len()
+                        "{TAG} incorrect PERSISTED_SETTINGS_SZ (use test validate_PERSISTED_SETTINGS_SZ to find correct value)"
                     );
                 }
             }
@@ -243,15 +241,44 @@ fn choose_latest_settings(
 //--------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use super::*;
+
+use crate::settings::BleSettings;
+
+use super::*;
+
+    impl crate::Settings {
+        // replace all Option<> with Some()
+        fn default_full() -> Self {
+
+            // fill the ble settings 
+            let dummy_bond = trouble_host::BondInformation{
+                ltk: trouble_host::LongTermKey(0u128),
+                identity: trouble_host::Identity{
+                    addr: trouble_host::Address::random([0u8; 6]), 
+                    irk: trouble_host::IdentityResolvingKey::from_le_bytes([0u8; 16])
+                },
+                is_bonded: true,  
+                security_level: trouble_host::connection::SecurityLevel::NoEncryption,
+            };
+            let ble_settings = BleSettings{
+                oldest_bond_index: 0,
+                bonds: [Some(dummy_bond); crate::settings::MAX_BLE_BONDS as usize],
+            };
+
+            Self {
+                ble_settings,
+                ..Default::default()
+            }
+        }
+    }
 
     #[test]
-    #[allow(lint_name)]
+    #[allow(non_snake_case)]
     /// used to validate PERSISTED_SETTINGS_SZ
     fn validate_PERSISTED_SETTINGS_SZ() {
         let settings = PersistedSettings {
             id: 0,
-            settings: crate::Settings::default(),
+            settings: crate::Settings::default_full(),
         };
 
         let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
@@ -264,7 +291,7 @@ mod tests {
                 );
             }
             Err(e) => {
-                panic!("failed to serialize");
+                panic!("failed to serialize: {e}");
             }
         }
     }

@@ -24,7 +24,8 @@ pub struct UxSettings {
 }
 
 /// maximum number of ble bonds (i.e. stored pairings)
-const MAX_BLE_BONDS: u8 = 1;
+/// - only support one bond for now, as that is the current design of MeshCore
+pub const MAX_BLE_BONDS: u8 = 1;
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BleSettings {
     /// tracks wrapping of the array, so that when a new binding is added

@@ -41,8 +41,8 @@ pub async fn run(
         // initialize the ble host address
         .set_random_address(Address::random(mac))
         .set_random_generator_seed(random_generator)
-        // assumes device has a screen with ability to select (i.e. button or mouse)
-        .set_io_capabilities(trouble_host::IoCapabilities::DisplayYesNo)
+        // require the client to input the passkey displayed on the device to pair
+        .set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly)
         .build();
     // add any stored bonds (i.e. previous pairings)
     let global_state_lock = global_state.read().await;
@@ -59,12 +59,12 @@ pub async fn run(
         }
     }
 
-
     // create the ble host
     let runner = stack.runner();
     let mut peripheral = stack.peripheral();
     let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
         name: "enmesh",
+        // FIXME find a supported appearance
         appearance: &appearance::network_device::MESH_DEVICE,
     }))
     .unwrap();
@@ -73,9 +73,17 @@ pub async fn run(
     let _ = join(ble_task(runner), async {
         loop {
             match advertise(mac, &mut peripheral, &server).await {
-                Ok(conn) => gatt_events_task(global_state, &server, &conn)
-                    .await
-                    .unwrap(),
+                Ok(conn) => {
+                    // support bonding
+                    conn.raw().set_bondable(true).unwrap();
+                    // handle the connection
+                    let _ = gatt_events_task(global_state, &server, &conn).await;
+
+                    // connection ended - update the global state
+                    let mut global_state_lock = global_state.write().await;
+                    global_state_lock.ble_status = crate::state::BleStatus::Disconnected;
+                    drop(global_state_lock);
+                }
                 Err(e) => {
                     panic!("{TAG} error: {:?}", e);
                 }
@@ -96,7 +104,7 @@ async fn ble_task<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
 
 /// BLE advertiser task that awaits a connection
 async fn advertise<'values, 'server, C: Controller>(
-    mac: [u8;6],
+    mac: [u8; 6],
     peripheral: &mut Peripheral<'values, C, DefaultPacketPool>,
     server: &'server Server<'values>,
 ) -> Result<GattConnection<'values, 'server, DefaultPacketPool>, BleHostError<C::Error>> {
@@ -153,10 +161,30 @@ async fn gatt_events_task<P: PacketPool>(
 
     let reason = loop {
         match conn.next().await {
-            // GattConnectionEvent::PassKeyConfirm()
+            GattConnectionEvent::PassKeyDisplay(passkey) => {
+                debug!("{TAG} received a PassKeyDisplay {passkey}");
+            }
+            GattConnectionEvent::PassKeyConfirm(passkey) => {
+                debug!("{TAG} received a PassKeyConfirm {passkey}");
+            }
 
+            GattConnectionEvent::PairingComplete { security_level, bond } => {
+                debug!("{TAG} pairing complete: security level: {:?}, bond: {:?}", security_level, bond);
 
-            GattConnectionEvent::Disconnected { reason } => break reason,
+                if let Some(bond_information) = bond {
+                    // add the new bond information to the settings
+                    let mut global_state_lock = global_state.write().await;
+                    global_state_lock.ble_status = crate::state::BleStatus::Connected;
+                    global_state_lock.settings.ble_settings.add_binding(bond_information);
+                    drop(global_state_lock);
+                }
+            }
+
+            GattConnectionEvent::PairingFailed(err) => {
+                warn!("{TAG} pairing failed: {:?}", err);
+            }
+            GattConnectionEvent::Disconnected { reason } => { break reason }
+
             GattConnectionEvent::Gatt { event } => {
                 let reply = match event {
                     GattEvent::Read(event) => {
@@ -187,25 +215,22 @@ async fn gatt_events_task<P: PacketPool>(
                             _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
                         }
                     }
-                    _ => event.accept(),
+                    _ => event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
                 };
-                // This step is also performed at drop(), but writing it explicitly is necessary
-                // in order to ensure reply is sent.
+
+                // send response
                 match reply {
                     Ok(reply) => reply.send().await,
                     Err(e) => warn!("{TAG} error sending response: {:?}", e),
-                };
+                }
             }
+
             _ => {} // ignore other Gatt Connection Events
         }
     };
 
     // publish that the BLE connection ended
     debug!("{TAG} disconnected: {:?}", reason);
-    // update the global state
-    let mut global_state_lock = global_state.write().await;
-    global_state_lock.ble_status = crate::state::BleStatus::Disconnected;
-    drop(global_state_lock);
 
     Ok(())
 }

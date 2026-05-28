@@ -118,7 +118,7 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(lint_name)]
+    #[allow(non_snake_case)]
     /// used to validate PERSISTED_SETTINGS_HEADER_SZ
     fn validate_PERSISTED_SETTINGS_HEADER_SZ() {
         let header = PersistedSettingsHeader::new();
@@ -133,7 +133,7 @@ mod tests {
                 );
             }
             Err(e) => {
-                panic!("failed to serialize");
+                panic!("failed to serialize: {e}");
             }
         }
     }
