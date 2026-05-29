@@ -54,7 +54,7 @@ impl PersistedSettingsHeader {
                 debug!("{TAG} storage read successful");
             }
             Err(e) => {
-                error!("{TAG} storage read failed: {:?}", e);
+                error!("{TAG} storage read failed [buffer_sz: {}]: {:?}", buffer.len(), e);
                 return None;
             }
         }
@@ -68,7 +68,7 @@ impl PersistedSettingsHeader {
                 Some(header)
             }
             Err(e) => {
-                warn!("{TAG} deserialization failed [{e}]");
+                error!("{TAG} deserialization failed [buffer_sz: {}]: {e}", buffer.len());
                 None
             }
         };
@@ -84,15 +84,15 @@ impl PersistedSettingsHeader {
             Ok(bytes) => {
                 debug!("{TAG} stored");
                 if PERSISTED_SETTINGS_HEADER_SZ != bytes.len() {
-                    panic!(
-                        "{TAG} incorrect PERSISTED_SETTINGS_HEADER_SZ \
-                           (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be: {:?})",
-                        bytes.len()
-                    );
+                    if PERSISTED_SETTINGS_HEADER_SZ < bytes.len() {
+                        // (see test validate_PERSISTED_SETTINGS_HEADER_SZ to find correct value)
+                        warn!("{TAG} incorrect PERSISTED_SETTINGS_HEADER_SZ \
+                            (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be at least: {})", bytes.len());
+                    }
                 }
             }
             Err(e) => {
-                error!("{TAG} failed to serialize: {e}");
+                error!("{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_HEADER_BUFFER_SZ}]: {e}");
                 return Err(());
             }
         }
@@ -119,7 +119,6 @@ mod tests {
 
     #[test]
     #[allow(non_snake_case)]
-    /// used to validate PERSISTED_SETTINGS_HEADER_SZ
     fn validate_PERSISTED_SETTINGS_HEADER_SZ() {
         let header = PersistedSettingsHeader::new();
 
@@ -127,9 +126,9 @@ mod tests {
         match postcard::to_slice(&header, &mut buffer) {
             Ok(bytes) => {
                 let actual_len = bytes.len();
-                assert_eq!(
-                    PERSISTED_SETTINGS_HEADER_SZ, actual_len,
-                    "incorrect PERSISTED_SETTINGS_HEADER_SZ  (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be: {actual_len})"
+                assert!(
+                    PERSISTED_SETTINGS_HEADER_SZ >= actual_len,
+                    "incorrect PERSISTED_SETTINGS_HEADER_SZ  (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be at least: {actual_len})"
                 );
             }
             Err(e) => {

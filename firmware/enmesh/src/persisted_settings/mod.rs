@@ -14,7 +14,7 @@ use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_SZ: usize = 42;
+const PERSISTED_SETTINGS_SZ: usize = 60;
 /// size (in bytes) of the buffer (padded for generic alignment)
 const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
@@ -61,20 +61,20 @@ impl PersistedSettings {
                 debug!("{TAG} storage read successful");
             }
             Err(e) => {
-                error!("{TAG} storage read failed: {:?}", e);
+                error!("{TAG} storage read failed [buffer_sz: {}]: {:?}", buffer.len(), e);
                 return None;
             }
         }
 
         // deserialize the buffer (using current version)
-        return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ + 1])
+        return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ])
         {
             Ok(settings) => {
                 debug!("{TAG} deserialized settings");
                 Some(settings)
             }
             Err(e) => {
-                warn!("{TAG} deserialization failed [{e}]");
+                error!("{TAG} deserialization failed [buffer_sz: {}]: {e}", buffer.len());
                 None
             }
         };
@@ -104,13 +104,13 @@ impl PersistedSettings {
             Ok(bytes) => {
                 debug!("{TAG} stored");
                 if PERSISTED_SETTINGS_SZ < bytes.len() {
-                    panic!(
-                        "{TAG} incorrect PERSISTED_SETTINGS_SZ (use test validate_PERSISTED_SETTINGS_SZ to find correct value)"
-                    );
+                    // (see test validate_PERSISTED_SETTINGS_SZ to find correct value)
+                    warn!("{TAG} incorrect PERSISTED_SETTINGS_SZ \
+                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})", bytes.len());
                 }
             }
             Err(e) => {
-                error!("{TAG} failed to serialize: {e}");
+                error!("{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_BUFFER_SZ}]: {e}");
                 return Err(());
             }
         }
@@ -162,7 +162,7 @@ pub async fn run(
 
     // update the persisted settings periodically
     // * allows settings changes to coalesce over a short duration
-    const PERSISTED_SETTINGS_UPDATE_PERDIOD: Duration = Duration::from_secs(10);
+    const PERSISTED_SETTINGS_UPDATE_PERIOD: Duration = Duration::from_secs(10);
     loop {
         // compare the "active"
         let global_state_lock = global_state.read().await;
@@ -201,7 +201,7 @@ pub async fn run(
         }
 
         // wait for the next period
-        embassy_time::Timer::after(PERSISTED_SETTINGS_UPDATE_PERDIOD).await;
+        embassy_time::Timer::after(PERSISTED_SETTINGS_UPDATE_PERIOD).await;
     }
 }
 
@@ -247,6 +247,7 @@ use crate::settings::BleSettings;
 use super::*;
 
     impl crate::Settings {
+        // FIXME postcard appears to use some level of compression
         // replace all Option<> with Some()
         fn default_full() -> Self {
 
@@ -261,7 +262,7 @@ use super::*;
                 security_level: trouble_host::connection::SecurityLevel::NoEncryption,
             };
             let ble_settings = BleSettings{
-                oldest_bond_index: 0,
+                oldest_bond_index: 1,
                 bonds: [Some(dummy_bond); crate::settings::MAX_BLE_BONDS as usize],
             };
 
@@ -274,20 +275,22 @@ use super::*;
 
     #[test]
     #[allow(non_snake_case)]
-    /// used to validate PERSISTED_SETTINGS_SZ
     fn validate_PERSISTED_SETTINGS_SZ() {
+        // create a persisted settings with all fields populated (i.e. no None)
         let settings = PersistedSettings {
             id: 0,
             settings: crate::Settings::default_full(),
         };
 
-        let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
+        // serialize the settings
+        const PERSISTED_SETTINGS_BUFFER_SZ_MAX: usize = 4096;
+        let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ_MAX];
         match postcard::to_slice(&settings, &mut buffer) {
             Ok(bytes) => {
                 let actual_len = bytes.len();
-                assert_eq!(
-                    PERSISTED_SETTINGS_SZ, actual_len,
-                    "incorrect PERSISTED_SETTINGS_SZ  (is: {PERSISTED_SETTINGS_SZ}, should be: {actual_len})"
+                assert!(
+                    PERSISTED_SETTINGS_SZ >= actual_len,
+                    "incorrect PERSISTED_SETTINGS_SZ  (is: {PERSISTED_SETTINGS_SZ}, should be at least: {actual_len})"
                 );
             }
             Err(e) => {
