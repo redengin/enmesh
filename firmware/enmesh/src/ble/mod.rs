@@ -148,7 +148,7 @@ mod meshcore;
 async fn gatt_events_task<P: PacketPool>(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     server: &Server<'_>,
-    conn: &GattConnection<'_, '_, P>,
+    gatt_connection: &GattConnection<'_, '_, P>,
 ) -> Result<(), Error> {
     // publish that we have a BLE connection
     debug!("{TAG} connected");
@@ -161,7 +161,7 @@ async fn gatt_events_task<P: PacketPool>(
     let mut meshcore_handler = meshcore::MeshCoreGattHandler::new(global_state);
 
     let reason = loop {
-        match conn.next().await {
+        match gatt_connection.next().await {
             GattConnectionEvent::PassKeyDisplay(passkey) => {
                 debug!("{TAG} received a PassKeyDisplay {passkey}");
             }
