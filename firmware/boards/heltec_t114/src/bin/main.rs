@@ -10,7 +10,7 @@ use soc_esp32::*; // (provides the panic handler)
 // provide logging primitives
 use log::*;
 
-// provide scheduling primitives
+// provide enmesh firmware primitives
 use enmesh_firmware::prelude::*;
 
 /// provide task implementations
@@ -42,9 +42,6 @@ async fn main(spawner: embassy_executor::Spawner) {
     // TODO by default idle hook simply runs WFI - but perhaps we want to do more to save power?
     // esp_rtos::start_with_idle_hook(timg0.timer0, sw_int.software_interrupt0, idle_hook);
 
-    debug!("initializing storage...");
-    let storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
-
     debug!("initializing global state...");
     // create globally shared state
     let state = enmesh_firmware::State {
@@ -52,9 +49,18 @@ async fn main(spawner: embassy_executor::Spawner) {
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
+    debug!("initializing storage...");
+    let mut storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
+    let persisted_settings_manager = enmesh_firmware::persisted_settings::PersistedSettingsManager::init(
+        global_state,
+        storage.settings_partition_a.as_mut(),
+        storage.settings_partition_b.as_mut(),
+    ).await;
+
     spawner.spawn(
         task_persisted_settings(
             global_state,
+            persisted_settings_manager,
             storage.settings_partition_a,
             storage.settings_partition_b,
         )
@@ -132,16 +138,13 @@ async fn main(spawner: embassy_executor::Spawner) {
 #[embassy_executor::task]
 pub async fn task_persisted_settings(
     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    mut persisted_settings_manager: enmesh_firmware::persisted_settings::PersistedSettingsManager,
     mut settings_partition_a: Option<enmesh_storage::Partition>,
     mut settings_partition_b: Option<enmesh_storage::Partition>,
 ) {
     debug!("creating persisted settings task...");
 
-    enmesh_firmware::persisted_settings::run(
-        global_state, 
-        settings_partition_a.as_mut(),
-        settings_partition_b.as_mut(),
-    ).await;
+    persisted_settings_manager.run(global_state, settings_partition_a.as_mut(), settings_partition_b.as_mut()).await;
 
     error!("persisted settings task ended");
 }

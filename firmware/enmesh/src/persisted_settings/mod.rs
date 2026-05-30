@@ -1,5 +1,3 @@
-use core::ops::DerefMut;
-
 // provide the shared crates via re-export
 use common::*;
 
@@ -7,8 +5,149 @@ use common::*;
 use log::*;
 const TAG: &str = "[PersistedSettings]";
 
-// provide scheduling primitives
+// provide enmesh firmware primitives
 use crate::prelude::*;
+
+pub struct PersistedSettingsManager {
+    // FIXME
+    // settings_partition_a: Option<&'static mut impl crate::storage::Storage>,
+    // settings_partition_b: Option<&'static mut impl crate::storage::Storage>,
+    id: u8,
+    current_settings: Option<crate::Settings>,
+}
+impl PersistedSettingsManager {
+    /// loads the persisted settings and updates the global settings
+    pub async fn init(
+        global_state: &'static RwLock<NoopRawMutex, crate::State>,
+        mut settings_partition_a: Option<&mut impl crate::storage::Storage>,
+        mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
+    ) -> Self {
+        // load the persisted settings
+        let mut id: u8 = 0;
+        let mut current_settings: Option<crate::Settings> = None;
+        {
+            use core::ops::DerefMut;
+
+            let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
+                Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
+                None => None,
+            };
+            let persisted_settings_b: Option<PersistedSettings> = match settings_partition_b {
+                Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
+                None => None,
+            };
+
+            // choose most recent settings
+            if let Some(latest) =
+                choose_latest_settings(&persisted_settings_a, &persisted_settings_b)
+            {
+                // use the returned tuple to update our state
+                id = latest.0;
+                current_settings = Some(latest.1);
+
+                // update the global state
+                let mut global_state_lock = global_state.write().await;
+                global_state_lock.settings = current_settings.clone().unwrap();
+                drop(global_state_lock);
+            }
+        }
+
+        Self {
+            // FIXME
+            // settings_partition_a,
+            // settings_partition_b,
+            id,
+            current_settings,
+        }
+    }
+
+    /// periodically persists updated settings
+    pub async fn run(
+        &mut self,
+        global_state: &'static RwLock<NoopRawMutex, crate::State>,
+        mut settings_partition_a: Option<&mut impl crate::storage::Storage>,
+        mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
+    ) {
+        // update the persisted settings periodically
+        // * allows settings changes to coalesce over a short duration
+        const PERSISTED_SETTINGS_UPDATE_PERIOD: Duration = Duration::from_secs(10);
+        loop {
+            // compare the "active"
+            let global_state_lock = global_state.read().await;
+            let active_settings = global_state_lock.settings.clone();
+            drop(global_state_lock);
+            if self.current_settings.is_none()
+                || (self.current_settings.clone().unwrap() != active_settings)
+            {
+                // update the persisted settings
+                self.id += 1;
+                self.current_settings = Some(active_settings.clone());
+
+                // store the persisted settings
+                use core::ops::DerefMut;
+                const PERSISTED_SIZE: usize =
+                    PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
+                match settings_partition_a {
+                    Some(ref mut p) => {
+                        // erase the storage
+                        let sector_count =
+                            crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
+                        let _ = p.erase_sectors(0, sector_count);
+                        // write the settings
+                        let _ = PersistedSettings::store(p.deref_mut(), self.id, &active_settings);
+                    }
+                    None => {}
+                };
+                match settings_partition_b {
+                    Some(ref mut p) => {
+                        // erase the storage
+                        let sector_count =
+                            crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
+                        let _ = p.erase_sectors(0, sector_count);
+                        // write the settings
+                        let _ = PersistedSettings::store(p.deref_mut(), self.id, &active_settings);
+                    }
+                    None => {}
+                };
+            }
+
+            // wait for the next period
+            embassy_time::Timer::after(PERSISTED_SETTINGS_UPDATE_PERIOD).await;
+        }
+    }
+}
+
+/// returns tuple (id, settings)
+/// * id - latest id from either of the persisted settings
+fn choose_latest_settings(
+    settings_a: &Option<PersistedSettings>,
+    settings_b: &Option<PersistedSettings>,
+) -> Option<(u8, crate::Settings)> {
+    if let Some(a) = settings_a {
+        if let Some(b) = settings_b {
+            // support wrapping max id
+            if (a.id == u8::MIN) && (b.id == u8::MAX) {
+                return Some((a.id, a.settings.clone()));
+            } else if (b.id == u8::MIN) && (a.id == u8::MAX) {
+                return Some((b.id, b.settings.clone()));
+            }
+            // support max id
+            else if a.id > b.id {
+                return Some((a.id, a.settings.clone()));
+            } else {
+                return Some((b.id, b.settings.clone()));
+            }
+        }
+        // only A so return A
+        return Some((a.id, a.settings.clone()));
+    } else if let Some(b) = settings_b {
+        // only B so return B
+        return Some((b.id, b.settings.clone()));
+    }
+
+    // no persisted settings
+    None
+}
 
 // provide the serialization traits
 use serde::{Deserialize, Serialize};
@@ -61,20 +200,26 @@ impl PersistedSettings {
                 debug!("{TAG} storage read successful");
             }
             Err(e) => {
-                error!("{TAG} storage read failed [buffer_sz: {}]: {:?}", buffer.len(), e);
+                error!(
+                    "{TAG} storage read failed [buffer_sz: {}]: {:?}",
+                    buffer.len(),
+                    e
+                );
                 return None;
             }
         }
 
         // deserialize the buffer (using current version)
-        return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ])
-        {
+        return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ]) {
             Ok(settings) => {
                 debug!("{TAG} deserialized settings");
                 Some(settings)
             }
             Err(e) => {
-                error!("{TAG} deserialization failed [buffer_sz: {}]: {e}", buffer.len());
+                error!(
+                    "{TAG} deserialization failed [buffer_sz: {}]: {e}",
+                    buffer.len()
+                );
                 None
             }
         };
@@ -105,12 +250,17 @@ impl PersistedSettings {
                 debug!("{TAG} stored");
                 if PERSISTED_SETTINGS_SZ < bytes.len() {
                     // (see test validate_PERSISTED_SETTINGS_SZ to find correct value)
-                    warn!("{TAG} incorrect PERSISTED_SETTINGS_SZ \
-                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})", bytes.len());
+                    warn!(
+                        "{TAG} incorrect PERSISTED_SETTINGS_SZ \
+                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})",
+                        bytes.len()
+                    );
                 }
             }
             Err(e) => {
-                error!("{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_BUFFER_SZ}]: {e}");
+                error!(
+                    "{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_BUFFER_SZ}]: {e}"
+                );
                 return Err(());
             }
         }
@@ -129,139 +279,30 @@ impl PersistedSettings {
     }
 }
 
-pub async fn run(
-    global_state: &'static RwLock<NoopRawMutex, crate::State>,
-    mut settings_partition_a: Option<&mut impl crate::storage::Storage>,
-    mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
-) {
-    // load the persisted settings
-    let mut id: u8 = 0;
-    let mut current_settings: Option<crate::Settings> = None;
-    {
-        let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
-            Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
-            None => None,
-        };
-        let persisted_settings_b: Option<PersistedSettings> = match settings_partition_b {
-            Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
-            None => None,
-        };
-
-        // choose most recent settings
-        if let Some(latest) = choose_latest_settings(&persisted_settings_a, &persisted_settings_b) {
-            // use the returned tuple to update our state
-            id = latest.0;
-            current_settings = Some(latest.1);
-
-            // update the global state
-            let mut global_state_lock = global_state.write().await;
-            global_state_lock.settings = current_settings.clone().unwrap();
-            drop(global_state_lock);
-        }
-    }
-
-    // update the persisted settings periodically
-    // * allows settings changes to coalesce over a short duration
-    const PERSISTED_SETTINGS_UPDATE_PERIOD: Duration = Duration::from_secs(10);
-    loop {
-        // compare the "active"
-        let global_state_lock = global_state.read().await;
-        let active_settings = global_state_lock.settings.clone();
-        drop(global_state_lock);
-        if current_settings.is_none() || (current_settings.clone().unwrap() != active_settings) {
-            // update the persisted settings
-            id += 1;
-            current_settings = Some(active_settings.clone());
-
-            // store the persisted settings
-            const PERSISTED_SIZE: usize =
-                PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
-            match settings_partition_a {
-                Some(ref mut p) => {
-                    // erase the storage
-                    let sector_count =
-                        crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
-                    let _ = p.erase_sectors(0, sector_count);
-                    // write the settings
-                    let _ = PersistedSettings::store(p.deref_mut(), id, &active_settings);
-                }
-                None => {}
-            };
-            match settings_partition_b {
-                Some(ref mut p) => {
-                    // erase the storage
-                    let sector_count =
-                        crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
-                    let _ = p.erase_sectors(0, sector_count);
-                    // write the settings
-                    let _ = PersistedSettings::store(p.deref_mut(), id, &active_settings);
-                }
-                None => {}
-            };
-        }
-
-        // wait for the next period
-        embassy_time::Timer::after(PERSISTED_SETTINGS_UPDATE_PERIOD).await;
-    }
-}
-
-/// returns tuple (id, settings)
-/// * id - id of chosen settings
-fn choose_latest_settings(
-    settings_a: &Option<PersistedSettings>,
-    settings_b: &Option<PersistedSettings>,
-) -> Option<(u8, crate::Settings)> {
-    if let Some(a) = settings_a {
-        if let Some(b) = settings_b {
-            // support wrapping max id
-            if (a.id == u8::MIN) && (b.id == u8::MAX) {
-                return Some((a.id, a.settings.clone()));
-            } else if (b.id == u8::MIN) && (a.id == u8::MAX) {
-                return Some((b.id, b.settings.clone()));
-            }
-            // support max id
-            else if a.id > b.id {
-                return Some((a.id, a.settings.clone()));
-            } else {
-                return Some((b.id, b.settings.clone()));
-            }
-        }
-        // only A so return A
-        return Some((a.id, a.settings.clone()));
-    } else if let Some(b) = settings_b {
-        // only B so return B
-        return Some((b.id, b.settings.clone()));
-    }
-
-    // no persisted settings
-    None
-}
-
 // TESTING
 //--------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
 
-use crate::settings::BleSettings;
-
-use super::*;
+    use super::*;
 
     impl crate::Settings {
         // FIXME postcard appears to use some level of compression
         // replace all Option<> with Some()
         fn default_full() -> Self {
+            use crate::settings::BleSettings;
 
-            // fill the ble settings 
-            let dummy_bond = trouble_host::BondInformation{
+            // fill the ble settings
+            let dummy_bond = trouble_host::BondInformation {
                 ltk: trouble_host::LongTermKey(0u128),
-                identity: trouble_host::Identity{
-                    addr: trouble_host::Address::random([0u8; 6]), 
-                    irk: trouble_host::IdentityResolvingKey::from_le_bytes([0u8; 16])
+                identity: trouble_host::Identity {
+                    addr: trouble_host::Address::random([0u8; 6]),
+                    irk: trouble_host::IdentityResolvingKey::from_le_bytes([0u8; 16]),
                 },
-                is_bonded: true,  
+                is_bonded: true,
                 security_level: trouble_host::connection::SecurityLevel::NoEncryption,
             };
-            let ble_settings = BleSettings{
+            let ble_settings = BleSettings {
                 oldest_bond_index: 1,
                 bonds: [Some(dummy_bond); crate::settings::MAX_BLE_BONDS as usize],
             };
