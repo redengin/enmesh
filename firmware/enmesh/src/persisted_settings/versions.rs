@@ -82,7 +82,7 @@ impl PersistedSettingsHeader {
         let header = PersistedSettingsHeader::new();
         match postcard::to_slice(&header, &mut buffer) {
             Ok(bytes) => {
-                debug!("{TAG} stored");
+                debug!("{TAG} serialization successful");
                 if PERSISTED_SETTINGS_HEADER_SZ != bytes.len() {
                     if PERSISTED_SETTINGS_HEADER_SZ < bytes.len() {
                         // (see test validate_PERSISTED_SETTINGS_HEADER_SZ to find correct value)

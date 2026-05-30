@@ -153,7 +153,7 @@ fn choose_latest_settings(
 use serde::{Deserialize, Serialize};
 
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_SZ: usize = 60;
+const PERSISTED_SETTINGS_SZ: usize = 100;
 /// size (in bytes) of the buffer (padded for generic alignment)
 const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
@@ -247,14 +247,11 @@ impl PersistedSettings {
         let mut buffer = [0u8; PERSISTED_SETTINGS_BUFFER_SZ];
         match postcard::to_slice(&settings, &mut buffer) {
             Ok(bytes) => {
-                debug!("{TAG} stored");
+                debug!("{TAG} serialization successful");
                 if PERSISTED_SETTINGS_SZ < bytes.len() {
                     // (see test validate_PERSISTED_SETTINGS_SZ to find correct value)
-                    warn!(
-                        "{TAG} incorrect PERSISTED_SETTINGS_SZ \
-                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})",
-                        bytes.len()
-                    );
+                    warn!("{TAG} incorrect PERSISTED_SETTINGS_SZ \
+                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})", bytes.len());
                 }
             }
             Err(e) => {

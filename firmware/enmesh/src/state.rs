@@ -84,36 +84,36 @@ impl core::fmt::Display for LoRaProtocol {
 
 #[derive(Default, Copy, Clone)]
 pub enum WiFiStatus {
+    #[default]
+    NotAvailable,
     NotConfigured,
     Connected,
     Disconnected,
-    #[default]
-    NotAvailable,
 }
 impl core::fmt::Display for WiFiStatus {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            Self::NotAvailable => f.write_str("N/A"),
             Self::NotConfigured => f.write_str("Not Configured"),
             Self::Connected => f.write_str("connected"),
             Self::Disconnected => f.write_str("connecting..."),
-            Self::NotAvailable => f.write_str("N/A"),
         }
     }
 }
 
 #[derive(Default, Copy, Clone)]
 pub enum BleStatus {
-    Connected,
-    Disconnected,
     #[default]
     NotAvailable,
+    Advertising,
+    Connected,
 }
 impl core::fmt::Display for BleStatus {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::Connected => f.write_str("connected"),
-            Self::Disconnected => f.write_str("not connected"),
             Self::NotAvailable => f.write_str("N/A"),
+            Self::Advertising => f.write_str("advertising"),
+            Self::Connected => f.write_str("connected"),
         }
     }
 }

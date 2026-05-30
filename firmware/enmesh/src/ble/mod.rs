@@ -50,6 +50,7 @@ pub async fn run(
     drop(global_state_lock);
     for bond in bonds {
         if let Some(bond_information) = bond {
+            debug!("{TAG} adding bond information: {:?}", bond_information);
             match stack.add_bond_information(bond_information) {
                 Ok(()) => {}
                 Err(e) => {
@@ -81,7 +82,7 @@ pub async fn run(
 
                     // connection ended - update the global state
                     let mut global_state_lock = global_state.write().await;
-                    global_state_lock.ble_status = crate::state::BleStatus::Disconnected;
+                    global_state_lock.ble_status = crate::state::BleStatus::Advertising;
                     drop(global_state_lock);
                 }
                 Err(e) => {
@@ -118,7 +119,7 @@ async fn advertise<'values, 'server, C: Controller>(
     let len = AdStructure::encode_slice(
         &[
             AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
-            AdStructure::IncompleteServiceUuids16(&[[0x0f, 0x18]]),
+            // AdStructure::IncompleteServiceUuids16(&[[0x0f, 0x18]]),
             AdStructure::CompleteLocalName(name.as_bytes()),
         ],
         &mut advertiser_data[..],
@@ -177,6 +178,8 @@ async fn gatt_events_task<P: PacketPool>(
                     global_state_lock.ble_status = crate::state::BleStatus::Connected;
                     global_state_lock.settings.ble_settings.add_binding(bond_information);
                     drop(global_state_lock);
+
+                    // FIXME this must report the binding to the client
                 }
             }
 
