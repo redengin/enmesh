@@ -44,6 +44,8 @@ pub async fn run(
         // require the client to input the passkey displayed on the device to pair
         .set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly)
         .build();
+    debug!("{TAG} stack created");
+
     // add any stored bonds (i.e. previous pairings)
     let global_state_lock = global_state.read().await;
     let bonds = global_state_lock.settings.ble_settings.bonds.clone();
@@ -65,28 +67,30 @@ pub async fn run(
     let mut peripheral = stack.peripheral();
     let server = Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
         name: "enmesh",
-        // FIXME find a supported appearance
+        // FIXME use a supported appearance
         appearance: &appearance::network_device::MESH_DEVICE,
     }))
     .unwrap();
+    debug!("{TAG} host created");
 
     // start the ble host
     let _ = join(ble_task(runner), async {
         loop {
+            // update the global state
+            let mut global_state_lock = global_state.write().await;
+            global_state_lock.ble_status = crate::state::BleStatus::Advertising;
+            drop(global_state_lock);
+
             match advertise(mac, &mut peripheral, &server).await {
                 Ok(conn) => {
+                    debug!("{TAG} connecting...");
                     // support bonding
                     conn.raw().set_bondable(true).unwrap();
                     // handle the connection
-                    let _ = gatt_events_task(global_state, &server, &conn).await;
-
-                    // connection ended - update the global state
-                    let mut global_state_lock = global_state.write().await;
-                    global_state_lock.ble_status = crate::state::BleStatus::Advertising;
-                    drop(global_state_lock);
+                    handle_connection(global_state, &server, &conn).await;
                 }
                 Err(e) => {
-                    panic!("{TAG} error: {:?}", e);
+                    error!("{TAG} failed to advertise: {:?}", e);
                 }
             }
         }
@@ -114,13 +118,15 @@ async fn advertise<'values, 'server, C: Controller>(
     let name = heapless::format!(BLE_NAME_SIZE_MAX; "EnMesh-{:X}{:X}{:X}{:X}{:X}{:X}",
         mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
     .unwrap();
+
     // create the advertisement
     let mut advertiser_data = [0; 31];
     let len = AdStructure::encode_slice(
         &[
-            AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
-            // AdStructure::IncompleteServiceUuids16(&[[0x0f, 0x18]]),
+            AdStructure::Flags(AD_FLAG_LE_LIMITED_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
             AdStructure::CompleteLocalName(name.as_bytes()),
+            // TODO should only allow bonding
+            // TODO should use appearance
         ],
         &mut advertiser_data[..],
     )?;
@@ -136,7 +142,6 @@ async fn advertise<'values, 'server, C: Controller>(
         )
         .await?;
     let conn = advertiser.accept().await?.with_attribute_server(server)?;
-    debug!("{TAG} connecting...");
     Ok(conn)
 }
 
@@ -144,11 +149,11 @@ async fn advertise<'values, 'server, C: Controller>(
 mod meshcore;
 
 /// Handle GATT Events until the connection closes
-async fn gatt_events_task<P: PacketPool>(
+async fn handle_connection<P: PacketPool>(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     server: &Server<'_>,
     gatt_connection: &GattConnection<'_, '_, P>,
-) -> Result<(), Error> {
+) {
     // publish that we have a BLE connection
     debug!("{TAG} connected");
     // update the global state
@@ -165,7 +170,9 @@ async fn gatt_events_task<P: PacketPool>(
                 debug!("{TAG} received a PassKeyDisplay {passkey}");
                 // notify the ux
                 let mut global_state_lock = global_state.write().await;
-                global_state_lock.ble_status = crate::state::BleStatus::Pairing { passkey: passkey.value() };
+                global_state_lock.ble_status = crate::state::BleStatus::Pairing {
+                    passkey: passkey.value(),
+                };
                 drop(global_state_lock);
             }
 
@@ -242,6 +249,4 @@ async fn gatt_events_task<P: PacketPool>(
     };
 
     debug!("{TAG} disconnected: {:?}", reason);
-
-    Ok(())
 }

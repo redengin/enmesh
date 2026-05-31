@@ -1,6 +1,3 @@
-// provide the shared crates via re-export
-// use common::*;
-
 /// provide the necessary primitives for page creation
 pub mod prelude {
     // provide enmesh ux
@@ -9,7 +6,15 @@ pub mod prelude {
     pub use embedded_graphics::prelude::*;
     // pub use embedded_graphics::pixelcolor::{Rgb888, BinaryColor};
     pub use embedded_graphics::pixelcolor::{Rgb888};
+    pub use embedded_graphics::primitives::PrimitiveStyleBuilder;
     pub use embedded_graphics::text::Text;
+    pub use embedded_graphics::text::renderer::TextRenderer;
+    pub use embedded_graphics::mono_font::{MonoTextStyle, ascii::*};
+    // pub use embedded_graphics::{primitives::Rectangle, text::renderer::TextRenderer};
+    pub use embedded_graphics::primitives::Rectangle;
+
+
+    // pub use embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder, text::{DecorationColor::TextColor, TextStyleBuilder}};
     // pub use embedded_graphics::image::ImageRaw;
 
     pub use embedded_layout::prelude::*;
@@ -19,6 +24,9 @@ pub mod prelude {
 
     pub use common::heapless::format;
 }
+
+
+
 mod home;
 pub(crate) use home::Home as Home;
 

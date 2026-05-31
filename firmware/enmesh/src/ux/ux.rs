@@ -93,9 +93,6 @@ impl Ux {
     }
 }
 
-use common::embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder, text::{DecorationColor::TextColor, TextStyleBuilder}};
-use embedded_graphics::{primitives::Rectangle, text::renderer::TextRenderer};
-
 impl Page for Ux {
     /// repaint the whole screen
     fn refresh(

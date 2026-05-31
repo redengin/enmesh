@@ -114,7 +114,7 @@ impl core::fmt::Display for BleStatus {
         match self {
             Self::NotAvailable => f.write_str("N/A"),
             Self::Advertising => f.write_str("advertising"),
-            Self::Pairing { passkey }=> f.write_str("pairing"),
+            Self::Pairing { passkey: _ }=> f.write_str("pairing"),
             Self::Connected => f.write_str("connected"),
         }
     }
