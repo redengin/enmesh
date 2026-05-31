@@ -135,9 +135,8 @@ async fn advertise<'values, 'server, C: Controller>(
             },
         )
         .await?;
-    debug!("{TAG} connecting");
     let conn = advertiser.accept().await?.with_attribute_server(server)?;
-    debug!("{TAG} connection established");
+    debug!("{TAG} connecting...");
     Ok(conn)
 }
 
@@ -164,19 +163,29 @@ async fn gatt_events_task<P: PacketPool>(
         match gatt_connection.next().await {
             GattConnectionEvent::PassKeyDisplay(passkey) => {
                 debug!("{TAG} received a PassKeyDisplay {passkey}");
-            }
-            GattConnectionEvent::PassKeyConfirm(passkey) => {
-                debug!("{TAG} received a PassKeyConfirm {passkey}");
+                // notify the ux
+                let mut global_state_lock = global_state.write().await;
+                global_state_lock.ble_status = crate::state::BleStatus::Pairing { passkey: passkey.value() };
+                drop(global_state_lock);
             }
 
-            GattConnectionEvent::PairingComplete { security_level, bond } => {
-                debug!("{TAG} pairing complete: security level: {:?}, bond: {:?}", security_level, bond);
+            GattConnectionEvent::PairingComplete {
+                security_level,
+                bond,
+            } => {
+                debug!(
+                    "{TAG} pairing complete: security level: {:?}, bond: {:?}",
+                    security_level, bond
+                );
 
                 if let Some(bond_information) = bond {
                     // add the new bond information to the settings
                     let mut global_state_lock = global_state.write().await;
                     global_state_lock.ble_status = crate::state::BleStatus::Connected;
-                    global_state_lock.settings.ble_settings.add_binding(bond_information);
+                    global_state_lock
+                        .settings
+                        .ble_settings
+                        .add_binding(bond_information);
                     drop(global_state_lock);
 
                     // FIXME this must report the binding to the client
@@ -186,7 +195,7 @@ async fn gatt_events_task<P: PacketPool>(
             GattConnectionEvent::PairingFailed(err) => {
                 warn!("{TAG} pairing failed: {:?}", err);
             }
-            GattConnectionEvent::Disconnected { reason } => { break reason }
+            GattConnectionEvent::Disconnected { reason } => break reason,
 
             GattConnectionEvent::Gatt { event } => {
                 let reply = match event {
@@ -218,7 +227,7 @@ async fn gatt_events_task<P: PacketPool>(
                             _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
                         }
                     }
-                    _ => event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
+                    _ => event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED),
                 };
 
                 // send response
@@ -232,7 +241,6 @@ async fn gatt_events_task<P: PacketPool>(
         }
     };
 
-    // publish that the BLE connection ended
     debug!("{TAG} disconnected: {:?}", reason);
 
     Ok(())

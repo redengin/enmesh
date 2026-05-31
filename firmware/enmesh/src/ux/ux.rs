@@ -34,7 +34,7 @@ pub struct Ux {
     meshcore_page: pages::MeshCore,
     meshtastic_page: pages::Meshtastic,
     // FIXME
-    // hibernate_page: pages::Home,
+    // hibernate_page: pages::Hibernate,
 }
 
 impl Ux {
@@ -55,29 +55,45 @@ impl Ux {
         const NOT_SELECTED: &str = "-";
         LinearLayout::horizontal(
             Chain::new(Text::new(
-                if self.current_page == Pages::Home { SELECTED } else { NOT_SELECTED },
-                Point::zero(), theme.text_style,
+                if self.current_page == Pages::Home {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::MeshCore { SELECTED } else { NOT_SELECTED },
-                Point::zero(), theme.text_style,
+                if self.current_page == Pages::MeshCore {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
             ))
             .append(Text::new(
-                if self.current_page == Pages::Meshtastic{ SELECTED } else { NOT_SELECTED },
-                Point::zero(), theme.text_style,
-            ))
-            // .append(Text::new(
-            //     if self.current_page == Pages::Hibernate{ SELECTED } else { NOT_SELECTED },
-            //     Point::zero(), theme.text_style,
-            // )),
+                if self.current_page == Pages::Meshtastic {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            )), // .append(Text::new(
+                //     if self.current_page == Pages::Hibernate{ SELECTED } else { NOT_SELECTED },
+                //     Point::zero(), theme.text_style,
+                // )),
         )
         .with_spacing(DistributeFill(display.bounding_box().size.width))
         .arrange()
         .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
-        .draw(display).ok();
+        .draw(display)
+        .ok();
     }
 }
 
+use common::embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder, text::{DecorationColor::TextColor, TextStyleBuilder}};
 use embedded_graphics::{primitives::Rectangle, text::renderer::TextRenderer};
 
 impl Page for Ux {
@@ -120,6 +136,32 @@ impl Page for Ux {
             size: Size::new(bounding_box.size.width, tab_bar_height),
         });
         self.tab_bar_refresh(&mut tab_bar_display, &theme);
+
+        // if ble pairing show a dialog with the passkey
+        match model.ble_status {
+            crate::state::BleStatus::Pairing { passkey } => {
+                let style = PrimitiveStyleBuilder::new()
+                    .stroke_color(theme.color)
+                    .stroke_width(1)
+                    .fill_color(theme.background)
+                    .build();
+
+                let frame = Rectangle::new(Point::zero(), Size::new(120, 40))
+                    .into_styled(style)
+                    .align_to(&bounding_box, horizontal::Center, vertical::Center);
+                frame.draw(screen) .ok();
+                let passkey_style = MonoTextStyle::new(&FONT_10X20, theme.color);
+                LinearLayout::vertical(
+                    Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style))
+                        .append(Text::new(format!(6; "{passkey}").unwrap().as_str(), Point::zero(), passkey_style))
+                )
+                .with_alignment(horizontal::Center)
+                .arrange()
+                .align_to(&frame, horizontal::Center, vertical::Center)
+                .draw(screen).ok();
+            }
+            _ => { /* no dialog */ }
+        }
     }
 
     /// handle HidEvent

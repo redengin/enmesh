@@ -106,6 +106,7 @@ pub enum BleStatus {
     #[default]
     NotAvailable,
     Advertising,
+    Pairing{passkey: u32},
     Connected,
 }
 impl core::fmt::Display for BleStatus {
@@ -113,6 +114,7 @@ impl core::fmt::Display for BleStatus {
         match self {
             Self::NotAvailable => f.write_str("N/A"),
             Self::Advertising => f.write_str("advertising"),
+            Self::Pairing { passkey }=> f.write_str("pairing"),
             Self::Connected => f.write_str("connected"),
         }
     }
