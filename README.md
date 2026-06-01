@@ -1,10 +1,14 @@
-Secure distributed communications enhanced by anonymity of LoRa
+Secure distributed communications enhanced by LoRa anonymity
 ================================================================================
 Objectives
 --------------------------------------------------------------------------------
+* Communication Access
+  - LoRa protocols that are robust to denial of service attacks
 * Anonymous Communication
-  - sender's location is obfuscated by the mesh network
-* Minimize contention for LoRa air time
+  - sender's can communicate freely by making the sender's location difficult to
+      locate
+    * whistleblowers can share information
+    * users can overcome censorship to share information
 
 Background
 --------------------------------------------------------------------------------
@@ -16,31 +20,60 @@ creating LoRa hardware that is readily purchasable by users.
 "sovereign" communication networks that bridge LoRa traffic over additional
 channels (e.g. internet).
 
-### LoRa Evolution
-While novel protocols have increased the usage of LoRa, LoRa needs to evolve
-via consensus make efficient use of the bandwidth.
-The [IETF](https://www.ietf.org/) has managed the evolution of the internet
-and should be used to evolve LoRa.
-[see RFCs](https://github.com/redengin/enmesh/wiki/RFC)
+### LoRa Protocol Evolution
+While novel protocols have increased the usage of LoRa, LoRa needs to evolve to
+meet the demands of users. The [IETF](https://www.ietf.org/) has managed the
+evolution of the internet and should be used to evolve LoRa.
+([see RFCs](https://github.com/redengin/enmesh/wiki/RFC))
 
-<!--
-### Societal Evolution
-The primary human right is the ability to communicate. Societies that restrict
-communication impede the evolution of the society, making them susceptible to
-being overcome by larger societies.
+Current LoRa protocols designs are insufficient to meet the objectives of EnMesh.
+Rather than EnMesh become yet-another-protocol, the hope is that current
+LoRa mesh protocols evolve via the RFC's.
 
-Censoring communication is used by people that wish to control societal
-evolution. Currently, most people won't talk to another person directly -
-but would rather use a social platform to provide some level of anonymity.
+What is EnMesh?
+================================================================================
+EnMesh is a [Rust](https://rust-lang.org/) implementation for distributed
+communication using LoRa platforms. The EnMesh architecture allows simple
+adaptation of LoRa platforms leveraging the power of Rust (i.e. to support new
+LoRa platforms, one only needs to implement a simple interface layer to leverage
+EnMesh).
 
-**For societal evolution to be possible, people need to be able to communicate
-anonymously.**
+EnMesh firmware supports multiple LoRa protocols (i.e. Meshtastic, MeshCore).
+Even supporting multiple LoRa protocols simultaneously by
+[time-division multiplexing](https://en.wikipedia.org/wiki/Time-division_multiplexing).
 
-There will be communications that you find abhorent and you should use
-your ability to communicate to stop the perpetrators.
--->
+EnMesh firmware supports access via [BLE](https://en.wikipedia.org/wiki/Bluetooth_Low_Energy)
+per the novel protocols.
 
-Enmesh Physical Architecture
+EnMesh firmware supports [MQTT](https://en.wikipedia.org/wiki/MQTT) as a bridge
+over [WiFi](https://en.wikipedia.org/wiki/Wi-Fi) - supporting services like
+[letsmesh.net](LetsMesh.net).
+
+Yet-Another Protocol?
+---------------------------------------------------------------------------------
+The hope is that popular Mesh LoRa designs will refactor per the accepted RFC
+designs. 
+
+To support the evolution toward RFC based design, EnMesh will provide the rust
+implementation for novel protocols per the RFC. If novel protocol maintainers
+fail to adhere to RFC, then EnMesh will create yet-another-protocol per the
+RFC design.
+
+
+
+
+Repository Overview
+================================================================================
+* [Firmware](firmware) - board support for common hardware
+  - [Hardware](firmware/boards) - implemenations of enmesh for common hardware
+    * [Heltec-T114](firmware/boards/heltec_t114/)
+* [MeshTastic Library](MeshCore) - Rust implementation of MeshCore
+  * IN-WORK: MeshCore rapidly evolves, this should become a separate repo
+* [MeshCore Library](MeshCore) - Rust implementation of MeshCore
+  * IN-WORK: Meshtastic rapidly evolves, this should become a separate repo
+
+
+<!-- Enmesh Physical Architecture
 --------------------------------------------------------------------------------
 ```mermaid
 C4Component
@@ -64,7 +97,7 @@ C4Component
     BiRel(mobile_app, enmesh_endpoint, "bridges local <br> LoRa to internet")
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
-```
+``` -->
 <!--
 * Secured by encryption
   * MeshCore - [uses asymmetric cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography)
@@ -89,7 +122,7 @@ C4Component
         * as the exchange doesn't expose the private keys, exchanges between an `enmesh endpoint`
             and `node` are secured.
 -->
-
+<!-- 
 Universal LoRa Communication
 --------------------------------------------------------------------------------
 Only a few local LoRa nodes need to support a bridge to support anonymous 
@@ -104,30 +137,5 @@ universal messaging via LoRa.
 
 The [enmesh design](docs/design.md) describes how enmesh nodes connect local
 LoRa traffic (Meshtastic/MeshCore) to the world.
-
-Repository Overview
-================================================================================
-* [Firmware](firmware) - board support for common hardware
-  - [Hardware](firmware/boards) - implemenations of enmesh for common hardware
-    * [Heltec-T114 (v3)](firmware/boards/heltec_t114_v3/)
-<!--
-* [Enmesh Endpoint Implementation](endpoint) - internet service to bridge LoRa traffic
 -->
-<!--
-* [LoRa Node Implementation(s)](firmware) - supports local LoRa traffic
-    * LoRa Meshes
-        * [Meshtastic](https://meshtastic.org/)
-        * [MeshCore](https://meshcore.co.uk/)
-        * enmesh - additional protocols as need arises
-    * enmesh WiFi bridge (per hardware support)
--->
-<!--
-* [Mobile Application](mobile_app) - provides enhanced support beyond Meshtastic/MeshCore
--->
-* [MeshTastic Library](MeshCore) - Rust implementation of MeshCore
-  * TODO: MeshCore rapidly evolves, this should become a separate repo
-* [MeshCore Library](MeshCore) - Rust implementation of MeshCore
-  * TODO: Meshtastic rapidly evolves, this should become a separate repo
-
-
 
