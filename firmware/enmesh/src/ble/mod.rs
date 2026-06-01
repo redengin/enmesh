@@ -133,9 +133,9 @@ async fn advertise<'values, 'server, C: Controller>(
     let mut scan_data = [0; BLE_ADV_DATA_SIZE_MAX];
     let scan_len = AdStructure::encode_slice(
         &[
-            AdStructure::CompleteServiceUuids128(&[
-                ::meshcore::ble::SERVICE_UUID.to_le_bytes(),
-            ]),
+            // AdStructure::CompleteServiceUuids128(&[
+            //     ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
+            // ]),
         ],
         &mut scan_data[..],
     )?;
