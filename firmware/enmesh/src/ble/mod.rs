@@ -120,15 +120,24 @@ async fn advertise<'values, 'server, C: Controller>(
     .unwrap();
 
     // create the advertisement
-    let mut advertiser_data = [0; 31];
-    let len = AdStructure::encode_slice(
+    const BLE_ADV_DATA_SIZE_MAX: usize = 31;
+    const _BLE5_ADV_DATA_SIZE_MAX: usize = 254;
+    let mut advertisement_data = [0; BLE_ADV_DATA_SIZE_MAX];
+    let advertisment_len = AdStructure::encode_slice(
         &[
-            AdStructure::Flags(AD_FLAG_LE_LIMITED_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
+            AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
             AdStructure::CompleteLocalName(name.as_bytes()),
-            // TODO should only allow bonding
-            // TODO should use appearance
         ],
-        &mut advertiser_data[..],
+        &mut advertisement_data[..],
+    )?;
+    let mut scan_data = [0; BLE_ADV_DATA_SIZE_MAX];
+    let scan_len = AdStructure::encode_slice(
+        &[
+            AdStructure::CompleteServiceUuids128(&[
+                ::meshcore::ble::SERVICE_UUID.to_le_bytes(),
+            ]),
+        ],
+        &mut scan_data[..],
     )?;
     info!("{TAG} advertising '{}'", name.as_str());
     // advertise and await a connection
@@ -136,8 +145,8 @@ async fn advertise<'values, 'server, C: Controller>(
         .advertise(
             &Default::default(),
             Advertisement::ConnectableScannableUndirected {
-                adv_data: &advertiser_data[..len],
-                scan_data: &[],
+                adv_data: &advertisement_data[..advertisment_len],
+                scan_data: &scan_data[..scan_len],
             },
         )
         .await?;
