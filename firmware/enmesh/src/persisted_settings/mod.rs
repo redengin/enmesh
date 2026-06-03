@@ -153,7 +153,8 @@ fn choose_latest_settings(
 use serde::{Deserialize, Serialize};
 
 /// size (in bytes) of the serialized header
-const PERSISTED_SETTINGS_SZ: usize = 100;
+// const PERSISTED_SETTINGS_SZ: usize = 100;
+const PERSISTED_SETTINGS_SZ: usize = 31;
 /// size (in bytes) of the buffer (padded for generic alignment)
 const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
@@ -280,7 +281,6 @@ impl PersistedSettings {
 //--------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     impl crate::Settings {
@@ -290,18 +290,10 @@ mod tests {
             use crate::settings::BleSettings;
 
             // fill the ble settings
-            let dummy_bond = trouble_host::BondInformation {
-                ltk: trouble_host::LongTermKey(0u128),
-                identity: trouble_host::Identity {
-                    addr: trouble_host::Address::random([0u8; 6]),
-                    irk: trouble_host::IdentityResolvingKey::from_le_bytes([0u8; 16]),
-                },
-                is_bonded: true,
-                security_level: trouble_host::connection::SecurityLevel::NoEncryption,
-            };
+            const DUMMY_BOND: crate::settings::BleLongTermKey = u128::MAX;
             let ble_settings = BleSettings {
                 oldest_bond_index: 1,
-                bonds: [Some(dummy_bond); crate::settings::MAX_BLE_BONDS as usize],
+                bonds: [Some(DUMMY_BOND); crate::settings::MAX_BLE_BONDS as usize],
             };
 
             Self {
@@ -318,6 +310,7 @@ mod tests {
         let settings = PersistedSettings {
             id: 0,
             settings: crate::Settings::default_full(),
+            // settings: crate::Settings::default(),
         };
 
         // serialize the settings
