@@ -10,6 +10,19 @@ common = { path = "../../common" }
 enmesh-firmware = { path = "../../enmesh" }
 embedded-storage = "*"
 
+# ESP32 crates
+#===============================================================================
+# FIXME ESP32 crates cause issues with linking xtensa-rt libraries
+#esp-hal = { version = "*", features = ["log-04", "unstable"]}
+#esp-println = { version = "*", features = ["log-04", "timestamp"]}
+#esp-backtrace= { optional = true, version = "*", features = ["println", "colors"]}
+#esp-rtos = { version = "*", features = ["embassy", "esp-radio", "esp-alloc"]}
+#esp-storage = "*"
+#esp-radio = { version = "*", features = ["log-04", "ble", "wifi", "unstable" ]}
+#esp-alloc = { version = "*", features = [
+#    #    # "internal-heap-stats",  # used to debug memory leaks in esp32 HAL radio
+#]}
+#esp-bootloader-esp-idf = "*"
 
 # ESP32 cargo using git (rather than cargo version)
 # - as cargo release isn't great for WiFi/Bluetooth

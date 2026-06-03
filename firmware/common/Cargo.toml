@@ -20,9 +20,6 @@ embedded-layout = "*"
 # critical-section = "*"
 #-------------------------------------------------------------------------------
 
-#locked to 0.6 because of trouble-host
-rand_core = { version = "0.6", default-features = false }
-
 # use the embassay RTOS
 #-------------------------------------------------------------------------------
 embassy-executor = { version = "*", features = ["log"] }
@@ -49,20 +46,40 @@ display-interface = "*"
 
 # provide BLE Host
 #-------------------------------------------------------------------------------
-[dependencies.trouble-host]
-git = "https://github.com/embassy-rs/trouble"
-default-features = false
-features = [
+#locked to 0.6 because of trouble-host
+rand_core = { version = "0.6", default-features = false }
+trouble-host = { version = "*", features = [
     "derive",                       # provide macros
-    "serde",                        # support storing the BondInformation
-    "peripheral",
-    "gatt",
-    "central",                      # required for security feature // FIXME  this shouldn't be necessary
-    "security",
+#    "serde",                        # support storing the BondInformation
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
-    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
-    #   for additional configuration by features
-]
+]}
+
+
+#trouble-host = { version = "*", default-features = false, features = [
+#    "derive",                       # provide macros
+#    "serde",                        # support storing the BondInformation
+#    "peripheral",
+#    "gatt",
+##    "central",                      # required for security feature // FIXME  this shouldn't be necessary
+#    "security",
+##    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
+#    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
+#    #   for additional configuration by features
+#]}
+#[dependencies.trouble-host]
+#git = "https://github.com/embassy-rs/trouble"
+#default-features = false
+#features = [
+#    "derive",                       # provide macros
+#    "serde",                        # support storing the BondInformation
+#    "peripheral",
+#    "gatt",
+#    "central",                      # required for security feature // FIXME  this shouldn't be necessary
+#    "security",
+#    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
+#    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
+#    #   for additional configuration by features
+#]
 #-------------------------------------------------------------------------------
 
 
