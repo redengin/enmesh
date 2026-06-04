@@ -46,13 +46,15 @@ display-interface = "*"
 
 # provide BLE Host
 #-------------------------------------------------------------------------------
-#locked to 0.6 because of trouble-host
-rand_core = { version = "0.6", default-features = false }
+# rand_core = { version = "0.6", default-features = false }
 trouble-host = { version = "*", features = [
     "derive",                       # provide macros
 #    "serde",                        # support storing the BondInformation
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
 ]}
+# provide traits necessary for trouble-host
+trouble-host-rand_core = { package ="rand_core", version = "0.6" }
+# trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
 
 
 #trouble-host = { version = "*", default-features = false, features = [
