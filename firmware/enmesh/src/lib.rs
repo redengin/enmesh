@@ -29,7 +29,7 @@ pub mod ux;
 pub mod lora;
 
 /// provide BLE support
-// pub mod ble;
+pub mod ble;
 
 /// provide serial configuration support
 pub mod serial;

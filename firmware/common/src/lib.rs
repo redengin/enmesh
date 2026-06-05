@@ -42,4 +42,4 @@ pub use ssd1306;
 //------------------------------------------------------------------------------
 pub use trouble_host;
 pub use trouble_host_rand_core;
-// pub use trouble_host_embassy_sync;
+pub use trouble_host_embassy_sync;

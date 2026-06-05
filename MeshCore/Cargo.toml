@@ -6,22 +6,15 @@ edition = "2024"
 publish = true 
 
 [dependencies]
-static_cell = "*"
-embassy-sync = { version = "*", features = ["log"] }
-
-[dependencies.trouble-host]
-git = "https://github.com/embassy-rs/trouble"
-default-features = false
-features = [
+trouble-host = { version = "0.6.0", features = [
+    "log",
     "peripheral",
     "gatt",
+    "central",                      # required for security feature // FIXME  this shouldn't be necessary
     "security",
     "derive",                       # provide macros
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
-    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
-    #   for additional configuration by features
-]
-
+]}
 
 [features]
 std = []

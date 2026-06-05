@@ -25,7 +25,7 @@ embedded-layout = "*"
 embassy-executor = { version = "*", features = ["log"] }
 embassy-time = { version = "*", features = ["log"] }
 embassy-embedded-hal = "*"
-embassy-sync = { version = "*", features = ["log"] }
+embassy-sync = { version = "> 0.7.2", features = ["log"] }  # trouble-host currently depends on 0.7.2 - but we want to use the latest version
 embassy-futures = { version = "*", features = ["log"] }
 embassy-usb = { version = "*", features = ["log"] }
 #-------------------------------------------------------------------------------
@@ -47,41 +47,19 @@ display-interface = "*"
 # provide BLE Host
 #-------------------------------------------------------------------------------
 # rand_core = { version = "0.6", default-features = false }
-trouble-host = { version = "*", features = [
+# trouble-host = { version = "*", features = [
+trouble-host = { version = "0.6.0", features = [
+    "log",
+    "peripheral",
+    "gatt",
+    "central",                      # required for security feature // FIXME  this shouldn't be necessary
+    "security",
     "derive",                       # provide macros
-#    "serde",                        # support storing the BondInformation
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
 ]}
-# provide traits necessary for trouble-host
+# provide dependencies of trouble-host
 trouble-host-rand_core = { package ="rand_core", version = "0.6" }
-# trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
-
-
-#trouble-host = { version = "*", default-features = false, features = [
-#    "derive",                       # provide macros
-#    "serde",                        # support storing the BondInformation
-#    "peripheral",
-#    "gatt",
-##    "central",                      # required for security feature // FIXME  this shouldn't be necessary
-#    "security",
-##    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
-#    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
-#    #   for additional configuration by features
-#]}
-#[dependencies.trouble-host]
-#git = "https://github.com/embassy-rs/trouble"
-#default-features = false
-#features = [
-#    "derive",                       # provide macros
-#    "serde",                        # support storing the BondInformation
-#    "peripheral",
-#    "gatt",
-#    "central",                      # required for security feature // FIXME  this shouldn't be necessary
-#    "security",
-#    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
-#    # see https://github.com/embassy-rs/trouble/blob/main/host/Cargo.toml#L59
-#    #   for additional configuration by features
-#]
+trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
 #-------------------------------------------------------------------------------
 
 
