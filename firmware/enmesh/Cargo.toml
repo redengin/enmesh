@@ -9,9 +9,11 @@ publish = false
 common = { path = "../common" }
 meshcore = { path = "../../MeshCore" }
 
+# serialization support for persisted settings
+#-------------------------------------------------------------------------------
 serde = { version = "*", default-features = false, features = ["derive"]}
-# serde_with = { version = "*", default-features = false, features = ["macros"]}
 postcard = "*"
+#-------------------------------------------------------------------------------
 
 [dev-dependencies]
 # ux example support

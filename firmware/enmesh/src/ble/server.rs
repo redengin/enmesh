@@ -12,9 +12,9 @@ use common::trouble_host_embassy_sync as embassy_sync;
 
 /// our BLE server
 #[gatt_server]
-struct Server {
+pub(crate) struct Server {
     /// support for meshcore companion BLE
-    meshcore_service: MeshCoreService,
+    pub(crate) meshcore_service: MeshCoreService,
 }
 
 /// MeshCore Companion BLE protocol

@@ -9,7 +9,8 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
 
 /// provide definition of MeshCore companion BLE service
-use meshcore::ble::MeshCoreService;
+// use ::meshcore::ble::MeshCoreService;
+use super::server::MeshCoreService;
 
 pub struct MeshCoreGattHandler {
     // FIXME
@@ -46,7 +47,8 @@ impl MeshCoreGattHandler {
     ) -> Result<Reply<'stack, P>, Error> {
         if handle == service.rx.handle {
             // TODO handle data
-            event.accept_unprocessed()
+            // event.accept_unprocessed()
+            todo!()
         } else {
             event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
         }
