@@ -38,6 +38,8 @@ pub async fn run(
         // initialize the ble host address
         .set_random_address(Address::random(mac))
         .set_random_generator_seed(random_generator);
+    // require the client to input the passkey displayed on the device to pair
+    stack.set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly);
     debug!("{TAG} stack created");
 
     // add any stored bonds (i.e. previous pairings)
@@ -193,15 +195,13 @@ async fn handle_connection<P: PacketPool>(
 
                 if let Some(_bond_information) = bond {
                     // add the new bond information to the settings
-                    // let mut global_state_lock = global_state.write().await;
-                    // global_state_lock.ble_status = crate::state::BleStatus::Connected;
+                    let mut global_state_lock = global_state.write().await;
+                    global_state_lock.ble_status = crate::state::BleStatus::Connected;
                     // global_state_lock
                     //     .settings
                     //     .ble_settings
                     //     .add_binding(bond_information);
-                    // drop(global_state_lock);
-
-                    // FIXME this must report the binding to the client
+                    drop(global_state_lock);
                 }
             }
 

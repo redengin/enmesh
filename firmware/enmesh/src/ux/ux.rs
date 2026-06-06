@@ -150,7 +150,7 @@ impl Page for Ux {
                 let passkey_style = MonoTextStyle::new(&FONT_10X20, theme.color);
                 LinearLayout::vertical(
                     Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style))
-                        .append(Text::new(format!(6; "{passkey}").unwrap().as_str(), Point::zero(), passkey_style))
+                        .append(Text::new(format!(6; "{:06}", passkey).unwrap().as_str(), Point::zero(), passkey_style))
                 )
                 .with_alignment(horizontal::Center)
                 .arrange()
