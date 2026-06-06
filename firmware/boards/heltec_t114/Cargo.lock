@@ -107,9 +107,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.12.1"
+version = "2.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84d7ced0ae9557296835c32bf1b1e02b44c746701f898460fb000d7eaa84f00a"
+checksum = "b4388bee8683e3d04af747c73422af53102d2bd24d9eadb6cbc100baef4b43f8"
 
 [[package]]
 name = "block-buffer"
@@ -737,7 +737,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a25746d8b152b72fbf2a217f489a083dbbe243f281f09184a1f2cfbe9bbb245f"
 dependencies = [
- "bitflags 2.12.1",
+ "bitflags 2.13.0",
  "embassy-futures",
  "embassy-net-driver-channel",
  "embassy-sync 0.8.0",
@@ -953,7 +953,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "esp-alloc"
 version = "0.10.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "allocator-api2",
  "cfg-if",
@@ -968,7 +968,7 @@ dependencies = [
 [[package]]
 name = "esp-backtrace"
 version = "0.19.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -984,7 +984,7 @@ dependencies = [
 [[package]]
 name = "esp-bootloader-esp-idf"
 version = "0.5.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -1000,7 +1000,7 @@ dependencies = [
 [[package]]
 name = "esp-config"
 version = "0.7.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "document-features",
  "esp-metadata-generated",
@@ -1012,10 +1012,10 @@ dependencies = [
 [[package]]
 name = "esp-hal"
 version = "1.1.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "bitfield 0.19.4",
- "bitflags 2.12.1",
+ "bitflags 2.13.0",
  "bytemuck",
  "cfg-if",
  "critical-section",
@@ -1067,7 +1067,7 @@ dependencies = [
 [[package]]
 name = "esp-hal-procmacros"
 version = "0.22.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "document-features",
  "object",
@@ -1081,12 +1081,12 @@ dependencies = [
 [[package]]
 name = "esp-metadata-generated"
 version = "0.4.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 
 [[package]]
 name = "esp-phy"
 version = "0.2.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -1102,7 +1102,7 @@ dependencies = [
 [[package]]
 name = "esp-println"
 version = "0.17.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "document-features",
  "esp-metadata-generated",
@@ -1114,7 +1114,7 @@ dependencies = [
 [[package]]
 name = "esp-radio"
 version = "1.0.0-beta.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "allocator-api2",
  "bt-hci",
@@ -1151,7 +1151,7 @@ dependencies = [
 [[package]]
 name = "esp-radio-rtos-driver"
 version = "0.3.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "cfg-if",
  "esp-sync",
@@ -1161,7 +1161,7 @@ dependencies = [
 [[package]]
 name = "esp-riscv-rt"
 version = "0.14.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "document-features",
  "riscv",
@@ -1171,7 +1171,7 @@ dependencies = [
 [[package]]
 name = "esp-rom-sys"
 version = "0.1.4"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -1182,7 +1182,7 @@ dependencies = [
 [[package]]
 name = "esp-rtos"
 version = "0.3.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "allocator-api2",
  "cfg-if",
@@ -1207,7 +1207,7 @@ dependencies = [
 [[package]]
 name = "esp-storage"
 version = "0.9.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "document-features",
  "embedded-storage",
@@ -1221,7 +1221,7 @@ dependencies = [
 [[package]]
 name = "esp-sync"
 version = "0.2.1"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "cfg-if",
  "document-features",
@@ -1984,7 +1984,7 @@ version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "679341d22c78c6c649893cbd6c3278dcbe9fc4faa62fea3a9296ae2b50c14625"
 dependencies = [
- "bitflags 2.12.1",
+ "bitflags 2.13.0",
  "memchr",
  "unicase",
 ]
@@ -2800,7 +2800,7 @@ dependencies = [
 [[package]]
 name = "xtensa-lx"
 version = "0.13.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "critical-section",
 ]
@@ -2808,7 +2808,7 @@ dependencies = [
 [[package]]
 name = "xtensa-lx-rt"
 version = "0.22.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "document-features",
  "xtensa-lx",
@@ -2818,7 +2818,7 @@ dependencies = [
 [[package]]
 name = "xtensa-lx-rt-proc-macros"
 version = "0.5.0"
-source = "git+https://github.com/esp-rs/esp-hal#946a7fb8fe514cb31de842d5035c272048f46d7e"
+source = "git+https://github.com/esp-rs/esp-hal#b412755f8514720d1789005b569e9261311b105c"
 dependencies = [
  "proc-macro2",
  "quote",

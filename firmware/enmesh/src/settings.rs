@@ -26,29 +26,28 @@ pub struct UxSettings {
 /// maximum number of ble bonds (i.e. stored pairings)
 /// - only support one bond for now, as that is the current design of MeshCore
 pub const MAX_BLE_BONDS: u8 = 1;
-pub type BleLongTermKey = u128;
 #[derive(Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BleSettings {
     /// tracks wrapping of the array, so that when a new binding is added
     /// it will replace the oldest one
     pub oldest_bond_index: u8,
-    pub bonds: [Option<BleLongTermKey>; MAX_BLE_BONDS as usize],
+    pub bonds: [Option<crate::ble::StoredBleBond>; MAX_BLE_BONDS as usize],
 }
 impl BleSettings {
     /// add a new paired binding
     /// * if no binding slots are available, replaces the oldest binding slot
-    pub fn add_binding(&mut self, long_term_key: BleLongTermKey) {
+    pub fn add_binding(&mut self, new_bond: trouble_host::BondInformation) {
         // find an None to fill
         for bond in self.bonds.iter_mut() {
             if bond.is_none() {
                 debug!("{TAG} using an empty bond");
-                *bond = Some(long_term_key);
+                *bond = Some(new_bond.into());
                 return;
             }
         }
         // replace the oldest
         debug!("{TAG} replacing the oldest bond @ {}", self.oldest_bond_index);
-        self.bonds[self.oldest_bond_index as usize] = Some(long_term_key);
+        self.bonds[self.oldest_bond_index as usize] = Some(new_bond.into());
         self.oldest_bond_index = (self.oldest_bond_index + 1) % MAX_BLE_BONDS;
         debug!("{TAG} next oldest bond @ {}", self.oldest_bond_index);
     }

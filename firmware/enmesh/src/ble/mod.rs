@@ -5,6 +5,7 @@ use common::*;
 
 // provide logging primitives
 use log::*;
+use serde::{Deserialize, Serialize};
 const TAG: &str = "[BLE Host]";
 
 // provide the enmesh firmware interfaces
@@ -16,7 +17,6 @@ use trouble_host_rand_core as rand_core;
 
 // provide additional sync primitives
 use embassy_futures::join::join;
-
 
 pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
@@ -43,30 +43,32 @@ pub async fn run(
     debug!("{TAG} stack created");
 
     // add any stored bonds (i.e. previous pairings)
-    // FIXME
-    // let global_state_lock = global_state.read().await;
-    // let bonds = global_state_lock.settings.ble_settings.bonds.clone();
-    // drop(global_state_lock);
-    // for bond in bonds {
-    //     if let Some(bond_information) = bond {
-    //         debug!("{TAG} adding bond information: {:?}", bond_information);
-    //         match stack.add_bond_information(bond_information) {
-    //             Ok(()) => {}
-    //             Err(e) => {
-    //                 warn!("{TAG} failed to add bond information: {:?}", e);
-    //             }
-    //         }
-    //     }
-    // }
+    let global_state_lock = global_state.read().await;
+    let stored_bonds = global_state_lock.settings.ble_settings.bonds.clone();
+    drop(global_state_lock);
+    for stored_bond in stored_bonds {
+        if let Some(bond) = stored_bond {
+            // debug!("{TAG} adding bond information: [bond: {:?}]", bond);
+            match stack.add_bond_information(bond.into()) {
+                Ok(()) => {}
+                Err(e) => {
+                    warn!("{TAG} failed to add bond information: {:?}", e);
+                }
+            }
+        }
+    }
 
     // create the BLE host
-    let Host { mut peripheral, runner, .. } = stack.build();
-    let server = server::Server::new_with_config(
-        GapConfig::Peripheral(PeripheralConfig {
-            name: "enmesh", // internal label, not advertised over BLE
-            appearance: &appearance::network_device::MESH_DEVICE,
-        })
-    ).unwrap();
+    let Host {
+        mut peripheral,
+        runner,
+        ..
+    } = stack.build();
+    let server = server::Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
+        name: "enmesh", // internal label, not advertised over BLE
+        appearance: &appearance::network_device::MESH_DEVICE,
+    }))
+    .unwrap();
     debug!("{TAG} host created");
 
     // start the ble host
@@ -93,7 +95,6 @@ pub async fn run(
     })
     .await;
 }
-
 
 /// background task that is required to run forever alongside any other BLE tasks
 async fn ble_task<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
@@ -151,8 +152,6 @@ async fn advertise<'values, 'server, C: Controller>(
     Ok(conn)
 }
 
-
-
 // provide support for MeshCore BLE companion
 mod meshcore;
 
@@ -193,14 +192,14 @@ async fn handle_connection<P: PacketPool>(
                     security_level, bond
                 );
 
-                if let Some(_bond_information) = bond {
+                if let Some(bond_information) = bond {
                     // add the new bond information to the settings
                     let mut global_state_lock = global_state.write().await;
                     global_state_lock.ble_status = crate::state::BleStatus::Connected;
-                    // global_state_lock
-                    //     .settings
-                    //     .ble_settings
-                    //     .add_binding(bond_information);
+                    global_state_lock
+                        .settings
+                        .ble_settings
+                        .add_binding(bond_information.into());
                     drop(global_state_lock);
                 }
             }
@@ -256,3 +255,34 @@ async fn handle_connection<P: PacketPool>(
 
     debug!("{TAG} disconnected: {:?}", reason);
 }
+
+/// support for storing BLE bonds
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
+pub struct StoredBleBond {
+    /// BLE long term key
+    long_term_key: u128,
+    /// BLE peer address
+    peer_address: [u8; 6],
+}
+impl From<trouble_host::BondInformation> for StoredBleBond {
+    fn from(bond_information: trouble_host::BondInformation) -> Self {
+        Self {
+            long_term_key: bond_information.ltk.0,
+            peer_address: bond_information.identity.bd_addr.0,
+        }
+    }
+}
+impl From<StoredBleBond> for trouble_host::BondInformation {
+    fn from(stored_bond: StoredBleBond) -> Self {
+        Self {
+            ltk: trouble_host::LongTermKey(stored_bond.long_term_key),
+            identity: trouble_host::Identity {
+                bd_addr: BdAddr::new(stored_bond.peer_address),
+                irk: None,
+            },
+            is_bonded: true,
+            security_level: trouble_host::connection::SecurityLevel::EncryptedAuthenticated,
+        }
+    }
+}
+

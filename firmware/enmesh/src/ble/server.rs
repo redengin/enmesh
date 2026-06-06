@@ -31,4 +31,11 @@ pub struct MeshCoreService {
     /// https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/src/BLE2902.cpp#L61
     /// payload is a tuple (data, number of bytes not tranmitted))
     pub rx: [u8; 2],
+
+    /// Battery Level
+    #[descriptor(uuid = descriptors::VALID_RANGE, read, value = [0, 100])]
+    #[descriptor(uuid = descriptors::MEASUREMENT_DESCRIPTION, name = "hello", read, value = "Battery Level", type = &'static str)]
+    // #[characteristic(uuid = characteristic::BATTERY_LEVEL, read, notify, value = 10, permissions(encrypted))]
+    #[characteristic(uuid = characteristic::BATTERY_LEVEL, read, notify, value = 10)]
+    pub level: u8,
 }
