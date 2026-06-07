@@ -9,8 +9,7 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
 
 /// provide definition of MeshCore companion BLE service
-// use ::meshcore::ble::MeshCoreService;
-use super::server::MeshCoreService;
+use ::meshcore::ble::MeshCoreService;
 
 pub struct MeshCoreGattHandler {
     // FIXME

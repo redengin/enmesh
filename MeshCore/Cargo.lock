@@ -563,6 +563,8 @@ checksum = "953f07c43838f8e6f9758cab68bf5bed85465e7587ebe0b823f1bcd81978ad3a"
 name = "meshcore"
 version = "0.1.0"
 dependencies = [
+ "embassy-sync 0.7.2",
+ "static_cell",
  "trouble-host",
 ]
 
