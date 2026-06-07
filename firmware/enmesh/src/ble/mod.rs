@@ -184,7 +184,7 @@ async fn handle_connection<P: PacketPool>(
                     passkey: passkey.value(),
                 };
                 drop(global_state_lock);
-                needs_bind = true;
+                needs_bond = true;
             }
 
             GattConnectionEvent::PairingComplete {
