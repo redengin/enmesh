@@ -48,9 +48,11 @@ pub async fn run(
     drop(global_state_lock);
     for stored_bond in stored_bonds {
         if let Some(bond) = stored_bond {
-            // debug!("{TAG} adding bond information: [bond: {:?}]", bond);
-            match stack.add_bond_information(bond.into()) {
-                Ok(()) => {}
+            let bond_information: trouble_host::BondInformation = bond.into();
+            match stack.add_bond_information(bond_information.clone()) {
+                Ok(()) => {
+                    debug!("{TAG} adding bond information: [{:?}]", bond_information);
+                }
                 Err(e) => {
                     warn!("{TAG} failed to add bond information: {:?}", e);
                 }
@@ -64,8 +66,13 @@ pub async fn run(
         runner,
         ..
     } = stack.build();
+    const BLE_NAME_SIZE_MAX: usize = 29;
+    let name = heapless::format!(BLE_NAME_SIZE_MAX; "EnMesh-{:X}{:X}{:X}{:X}{:X}{:X}",
+        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
+    .unwrap();
+
     let server = server::Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
-        name: "enmesh", // internal label, not advertised over BLE
+        name: name.as_str(),
         appearance: &appearance::network_device::MESH_DEVICE,
     }))
     .unwrap();
@@ -79,10 +86,10 @@ pub async fn run(
             global_state_lock.ble_status = crate::state::BleStatus::Advertising;
             drop(global_state_lock);
 
-            match advertise(mac, &mut peripheral, &server).await {
+            match advertise(name.as_str(), &mut peripheral, &server).await {
                 Ok(conn) => {
                     debug!("{TAG} connecting...");
-                    // support bonding
+                    // support binding
                     conn.raw().set_bondable(true).unwrap();
                     // handle the connection
                     handle_connection(global_state, &server, &conn).await;
@@ -107,16 +114,10 @@ async fn ble_task<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
 
 /// BLE advertiser task that awaits a connection
 async fn advertise<'values, 'server, C: Controller>(
-    mac: [u8; 6],
+    name: &str,
     peripheral: &mut Peripheral<'values, C, DefaultPacketPool>,
     server: &'server server::Server<'values>,
 ) -> Result<GattConnection<'values, 'server, DefaultPacketPool>, BleHostError<C::Error>> {
-    // create the advertisement name
-    const BLE_NAME_SIZE_MAX: usize = 29;
-    let name = heapless::format!(BLE_NAME_SIZE_MAX; "EnMesh-{:X}{:X}{:X}{:X}{:X}{:X}",
-        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
-    .unwrap();
-
     // create the advertisement
     const BLE_ADV_DATA_SIZE_MAX: usize = 31;
     const _BLE5_ADV_DATA_SIZE_MAX: usize = 254;
@@ -137,7 +138,7 @@ async fn advertise<'values, 'server, C: Controller>(
         ],
         &mut scan_data[..],
     )?;
-    info!("{TAG} advertising '{}'", name.as_str());
+    info!("{TAG} advertising '{name}'");
     // advertise and await a connection
     let advertiser = peripheral
         .advertise(
@@ -171,6 +172,8 @@ async fn handle_connection<P: PacketPool>(
     // create gatt handlers for the new connection
     let mut meshcore_handler = meshcore::MeshCoreGattHandler::new(global_state);
 
+    let mut needs_bond = false;
+
     let reason = loop {
         match gatt_connection.next().await {
             GattConnectionEvent::PassKeyDisplay(passkey) => {
@@ -181,6 +184,7 @@ async fn handle_connection<P: PacketPool>(
                     passkey: passkey.value(),
                 };
                 drop(global_state_lock);
+                needs_bind = true;
             }
 
             GattConnectionEvent::PairingComplete {
@@ -191,17 +195,20 @@ async fn handle_connection<P: PacketPool>(
                     "{TAG} pairing complete: security level: {:?}, bond: {:?}",
                     security_level, bond
                 );
-
-                if let Some(bond_information) = bond {
+                if needs_bond {
                     // add the new bond information to the settings
-                    let mut global_state_lock = global_state.write().await;
-                    global_state_lock.ble_status = crate::state::BleStatus::Connected;
-                    global_state_lock
-                        .settings
-                        .ble_settings
-                        .add_binding(bond_information.into());
-                    drop(global_state_lock);
+                    if let Some(bond_information) = bond {
+                        let mut global_state_lock = global_state.write().await;
+                        global_state_lock
+                            .settings
+                            .ble_settings
+                            .add_binding(bond_information.into());
+                        drop(global_state_lock);
+                    }
                 }
+                let mut global_state_lock = global_state.write().await;
+                global_state_lock.ble_status = crate::state::BleStatus::Connected;
+                drop(global_state_lock);
             }
 
             GattConnectionEvent::PairingFailed(err) => {
