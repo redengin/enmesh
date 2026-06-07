@@ -239,7 +239,7 @@ async fn handle_connection<P: PacketPool>(
                             _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
                         }
                     }
-                    _ => event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED),
+                    _ => event.accept()
                 };
 
                 // send response
