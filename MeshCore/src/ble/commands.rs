@@ -1,36 +1,8 @@
-use trouble_host::prelude::*;
-use trouble_host_embassy_sync as embassy_sync;
-use trouble_host_static_cell as static_cell;
-
 /// MeshCore Companion BLE protocol
 ///=============================================================================
 /// * https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md
 /// * https://docs.meshcore.io/companion_protocol/
-/// * https://github.com/ruuvi/docs/blob/master/communication/bluetooth-connection/nordic-uart-service-nus/README.md
-pub const NORDIC_UART_SERVICE_UUID: BluetoothUuid128 =
-    BluetoothUuid128::new(0x6E400001_B5A3_F393_E0A9_E50E24DCCA9E);
-pub const NORDIC_UART_TX_CHARACTERISTIC_UUID: BluetoothUuid128 =
-    BluetoothUuid128::new(0x6E400003_B5A3_F393_E0A9_E50E24DCCA9E);
-pub const NORDIC_UART_RX_CHARACTERISTIC_UUID: BluetoothUuid128 =
-    BluetoothUuid128::new(0x6E400002_B5A3_F393_E0A9_E50E24DCCA9E);
-
-/// MeshCore Companion BLE protocol
-#[gatt_service(uuid = NORDIC_UART_SERVICE_UUID)]
-pub struct MeshCoreService {
-    // #[descriptor(uuid = NORDIC_UART_TX_CHARACTERISTIC_UUID, read)]
-    #[characteristic(uuid = NORDIC_UART_TX_CHARACTERISTIC_UUID,
-        notify, read, permissions(encrypted), value = [0u8; 2])]
-    /// https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/src/BLE2902.cpp#L61
-    /// payload is a tuple (data byte, number of bytes remaining)
-    pub tx: [u8; 2],
-
-    #[characteristic(uuid = NORDIC_UART_RX_CHARACTERISTIC_UUID, write, permissions(encrypted))]
-    /// https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/src/BLE2902.cpp#L61
-    /// payload is a tuple (data byte, number of bytes remaining)
-    pub rx: [u8; 2],
-}
-
-enum MeshCoreBleCommands<'a> {
+pub enum MeshCoreBleCommands<'a> {
     AppStart {
         reserved: &'a [u8],
         application_name: &'a [u8],
@@ -115,30 +87,29 @@ impl<'a> MeshCoreBleCommands<'a> {
 #[cfg(test)]
 mod tests {
 
-    use trouble_host::gatt::GattConnectionEvent::PassKeyInput;
-
     use super::*;
 
     #[test]
+    #[allow(non_snake_case)]
     fn serde_MeshCoreBleCommands() {
         /// https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md#mtu-maximum-transmission-unit
         const MAX_PACKET_SIZE: usize = 50;
         {
             // APP_START
             // https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md#1-app-start
-            let example_data: [u8; _] = [
+            const EXAMPLE_DATA: [u8; 13] = [
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6d, 0x63, 0x63, 0x6c, 0x69,
             ];
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&example_data) {
+            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::AppStart {
                         reserved,
                         application_name,
                     } => {
-                        assert_eq!(&example_data[1..8], reserved);
-                        assert_eq!(&example_data[8..], application_name);
+                        assert_eq!(&EXAMPLE_DATA[1..8], reserved);
+                        assert_eq!(&EXAMPLE_DATA[8..], application_name);
                     }
                     _ => panic!("should have found an AppStart"),
                 }
@@ -148,14 +119,14 @@ mod tests {
 
             // test serialization
             let app_start = MeshCoreBleCommands::AppStart {
-                reserved: &example_data[1..7],
-                application_name: &example_data[8..],
+                reserved: &EXAMPLE_DATA[1..7],
+                application_name: &EXAMPLE_DATA[8..],
             };
             let mut buffer = [0u8; MAX_PACKET_SIZE];
             match app_start.to_bytes(&mut buffer) {
                 Ok(used_bytes) => {
-                    assert_eq!(example_data.len(), used_bytes);
-                    assert_eq!(example_data, buffer[..used_bytes]);
+                    assert_eq!(EXAMPLE_DATA.len(), used_bytes);
+                    assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
                 }
                 Err(e) => panic!("failed serialization of APP_START: {e}"),
             }
@@ -163,10 +134,10 @@ mod tests {
         {
             // DEVICE_QUERY
             // https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md#2-device-query
-            let example_data: [u8; _] = [0x16, 0x03];
+            const EXAMPLE_DATA: [u8; 2] = [0x16, 0x03];
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&example_data) {
+            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::DeviceQuery => { /* ok */ }
                     _ => panic!("should have found an DeviceQuery"),
@@ -178,8 +149,8 @@ mod tests {
             let mut buffer = [0u8; MAX_PACKET_SIZE];
             match device_query.to_bytes(&mut buffer) {
                 Ok(used_bytes) => {
-                    assert_eq!(example_data.len(), used_bytes);
-                    assert_eq!(example_data, buffer[..used_bytes]);
+                    assert_eq!(EXAMPLE_DATA.len(), used_bytes);
+                    assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
                 }
                 Err(e) => panic!("failed serialization of DEVICE_QUERY: {e}"),
             }
@@ -187,13 +158,13 @@ mod tests {
         {
             // GET_CHANNEL_INFO
             // https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md#3-get-channel-info
-            let example_data: [u8; _] = [0x1F, 0x01];
+            const EXAMPLE_DATA: [u8; 2] = [0x1F, 0x01];
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&example_data) {
+            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::GetChannelInfo { channel_index } => {
-                        assert_eq!(example_data[1], *channel_index);
+                        assert_eq!(EXAMPLE_DATA[1], *channel_index);
                     }
                     _ => panic!("should have found an GET_CHANNEL_INFO"),
                 }
@@ -204,8 +175,8 @@ mod tests {
             let mut buffer = [0u8; MAX_PACKET_SIZE];
             match get_channel_info.to_bytes(&mut buffer) {
                 Ok(used_bytes) => {
-                    assert_eq!(example_data.len(), used_bytes);
-                    assert_eq!(example_data, buffer[..used_bytes]);
+                    assert_eq!(EXAMPLE_DATA.len(), used_bytes);
+                    assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
                 }
                 Err(e) => panic!("failed serialization of GET_CHANNEL_INFO: {e}"),
             }
@@ -213,25 +184,27 @@ mod tests {
         {
             // SET_CHANNEL
             // https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md#4-set-channel
-            let mut example_data: [u8; 50] = [0u8; 50];
-            example_data[0] = 0x20;
-            example_data[1] = 0x01;
+            let mut mut_example_data: [u8; 50] = [0u8; 50];
+            mut_example_data[0] = 0x20;
+            mut_example_data[1] = 0x01;
             const NAME: [u8; 4] = [0x53, 0x4D, 0x53, 0x00];
-            example_data[2..(2 + NAME.len())].copy_from_slice(&NAME);
+            mut_example_data[2..(2 + NAME.len())].copy_from_slice(&NAME);
             const SECRET: [u8; 16] = u128::MAX.to_le_bytes();
-            example_data[34..].copy_from_slice(&SECRET);
+            mut_example_data[34..].copy_from_slice(&SECRET);
+            #[allow(non_snake_case)]
+            let EXAMPLE_DATA: [u8; 50] = mut_example_data;
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&example_data) {
+            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::SetChannel {
                         channel_index,
                         channel_name,
                         secret,
                     } => {
-                        assert_eq!(example_data[1], *channel_index);
+                        assert_eq!(EXAMPLE_DATA[1], *channel_index);
                         assert_eq!(
-                            example_data[2..(2 + NAME.len())],
+                            EXAMPLE_DATA[2..(2 + NAME.len())],
                             channel_name[..NAME.len()]
                         );
                         assert_eq!(SECRET, secret);
@@ -249,8 +222,8 @@ mod tests {
             let mut buffer = [0u8; MAX_PACKET_SIZE];
             match set_channel.to_bytes(&mut buffer) {
                 Ok(used_bytes) => {
-                    assert_eq!(example_data.len(), used_bytes);
-                    assert_eq!(example_data, buffer[..used_bytes]);
+                    assert_eq!(EXAMPLE_DATA.len(), used_bytes);
+                    assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
                 }
                 Err(e) => panic!("failed serialization of SET_CHANNEL: {e}"),
             }
