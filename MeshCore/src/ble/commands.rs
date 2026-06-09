@@ -11,11 +11,34 @@ pub enum MeshCoreBleCommands<'a> {
     GetChannelInfo {
         channel_index: &'a u8,
     },
+    /// FIXME - this command is insecure and inefficient
+    /// * places private secrets onto remote devices, allowing those secrets to be
+    ///     exposed by a malicious actor
+    /// * begets implementations that require the remote device to encrypt/decrypt
+    ///     * this is inefficient as the companion sender has greater compute
+    ///         resources available to perform the encryption/decryption
+    /// 
     SetChannel {
         channel_index: &'a u8,
         channel_name: &'a [u8],
         secret: &'a [u8],
     },
+    // FIXME - this command is insecure and ineffecient
+    // * see above comments on SetChannel for details
+    // SendChannelMessage {
+    //     channel_index: &'a u8,
+    //     timestamp: &'a [u8],
+    //     message: &'a [u8],
+    // }
+    // FIXME - not even sure what this is to be, but it's security/efficiency is questionable
+    // * see above comments on SetChannel for details
+    // SendChannelDataDatagram {
+    //     channel_index: &'a u8,
+    //     path_length: &'a u8,
+    //     path: &'a [u8],
+    //     type: &'a [u8],
+    //     payload: &'a [u8],
+    // }
 }
 impl<'a> MeshCoreBleCommands<'a> {
     pub fn from_bytes(buffer: &'a [u8]) -> Option<Self> {
