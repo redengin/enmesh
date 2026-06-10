@@ -22,12 +22,13 @@ impl<'a> MeshCoreLoraPacket<'a> {
     pub fn from_buffer(buffer: &'a [u8]) -> Option<Self> {
         todo!()
     }
-    pub fn to_buffer(buffer: &mut [u8]) -> Option<Self> {
+
+    /// * if Ok, returns the size of the buffer used
+    /// * else returns a string describing the error
+    pub fn to_buffer(&self, buffer: &mut [u8]) -> Result<usize, &str> {
         todo!()
     }
 }
-
-
 
 pub enum MeshCoreVersion {
     _1 = 0x00,
@@ -95,7 +96,6 @@ pub enum MeshCoreHashSize {
     _3 = 0x10,
 }
 
-
 // TESTING
 //--------------------------------------------------------------------------------
 #[cfg(test)]
@@ -105,23 +105,29 @@ mod tests {
 
     #[test]
     #[allow(non_snake_case)]
-    fn serde_MeshCorePacket() {
-        {
-            // No transport codes, LEGACY (default) 1 byte hash for paths
-            const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket{
-                version: MeshCoreVersion::_1,
-                payload_type: MeshCorePayloadType::ACK,
-                route_type: MeshCoreRouteType::DIRECT,
-                transport_codes: None,
-                path: MeshCorePath {
-                    hop_count: 1,
-                    hash_size: MeshCoreHashSize::LEGACY,
-                    path_data: &[1u8; 100],
-                },
-                payload: &[1u8, 100],
-            };
+    fn serde_MeshCorePacket_NoTransportCodes_1_byte_hash_path() {
+        // No transport codes, LEGACY (default) 1 byte hash for paths
+        const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket {
+            version: MeshCoreVersion::_1,
+            payload_type: MeshCorePayloadType::ACK,
+            route_type: MeshCoreRouteType::DIRECT,
+            transport_codes: None,
+            path: MeshCorePath {
+                hop_count: 1,
+                hash_size: MeshCoreHashSize::LEGACY,
+                path_data: &[1u8; 100],
+            },
+            payload: &[1u8, 100],
+        };
 
+        let mut buffer = [0u8; 1000];
+        match PACKET.to_buffer(&mut buffer) {
+            Ok(_used) => {
 
+            }
+            Err(e) => {
+                panic!("failed to serialize [{e}]")
+            }
         }
     }
 }
