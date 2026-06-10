@@ -17,8 +17,17 @@ Possibly Insecure MeshCore Designs
 MeshCore support of these until a design flaw is identified.
 * MeshCore LoRa Protocol - the [description of the protocol](https://docs.meshcore.io/packet_format/)
   doesn't provide guidance as to how these protocols are to be used.
-    * the documentation doesn't specifically describe what is encrypted vs clear-text
-       * only the PAYLOAD_TYPE_CONTROL is identified as **clear text**
-       * for **encrypted** packets, the location of private keys used is not specified
+    * documentation doesn't specifiy what is **encrypted** vs **clear-text**
+        * only the PAYLOAD_TYPE_CONTROL is identified as **clear text**
+            * what this packet is used for is not described
+        * for **encrypted** packets, the location of private keys used is not specified
             * if private keys must be distributed on the Mesh, MeshCore is by design
-                insecure.
+                insecure
+        * there is no guidadance on which encryption method must be used
+            * nor, does the packet protocol allow multiple encryption methods to
+                be used - this makes evolving toward a more secure encryption method
+                difficult as it requires all participants to update to the one-and-only
+                supported encryption method
+    * documentation doesn't specify if *tracing* is required to support the Mesh
+        * for senders desiring anonymity, they shouldn't have to expose their location
+            by the initial hop onto the Mesh
