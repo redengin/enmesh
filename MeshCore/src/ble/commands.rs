@@ -41,7 +41,7 @@ pub enum MeshCoreBleCommands<'a> {
     // }
 }
 impl<'a> MeshCoreBleCommands<'a> {
-    pub fn from_bytes(buffer: &'a [u8]) -> Option<Self> {
+    pub fn from_buffer(buffer: &'a [u8]) -> Option<Self> {
         return match buffer[0] {
             0x01 => Some(Self::AppStart {
                 reserved: &buffer[1..8],
@@ -66,7 +66,7 @@ impl<'a> MeshCoreBleCommands<'a> {
         };
     }
 
-    pub fn to_bytes(&self, buffer: &mut [u8]) -> Result<usize, &str> {
+    pub fn to_buffer(&self, buffer: &mut [u8]) -> Result<usize, &str> {
         return match self {
             MeshCoreBleCommands::AppStart {
                 reserved,
@@ -125,7 +125,7 @@ mod tests {
             ];
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
+            if let Some(command) = MeshCoreBleCommands::from_buffer(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::AppStart {
                         reserved,
@@ -146,7 +146,7 @@ mod tests {
                 application_name: &EXAMPLE_DATA[8..],
             };
             let mut buffer = [0u8; MAX_PACKET_SIZE];
-            match app_start.to_bytes(&mut buffer) {
+            match app_start.to_buffer(&mut buffer) {
                 Ok(used_bytes) => {
                     assert_eq!(EXAMPLE_DATA.len(), used_bytes);
                     assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
@@ -160,7 +160,7 @@ mod tests {
             const EXAMPLE_DATA: [u8; 2] = [0x16, 0x03];
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
+            if let Some(command) = MeshCoreBleCommands::from_buffer(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::DeviceQuery => { /* ok */ }
                     _ => panic!("should have found an DeviceQuery"),
@@ -170,7 +170,7 @@ mod tests {
             // test serialization
             let device_query = MeshCoreBleCommands::DeviceQuery;
             let mut buffer = [0u8; MAX_PACKET_SIZE];
-            match device_query.to_bytes(&mut buffer) {
+            match device_query.to_buffer(&mut buffer) {
                 Ok(used_bytes) => {
                     assert_eq!(EXAMPLE_DATA.len(), used_bytes);
                     assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
@@ -184,7 +184,7 @@ mod tests {
             const EXAMPLE_DATA: [u8; 2] = [0x1F, 0x01];
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
+            if let Some(command) = MeshCoreBleCommands::from_buffer(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::GetChannelInfo { channel_index } => {
                         assert_eq!(EXAMPLE_DATA[1], *channel_index);
@@ -196,7 +196,7 @@ mod tests {
             // test serialization
             let get_channel_info = MeshCoreBleCommands::GetChannelInfo { channel_index: &1 };
             let mut buffer = [0u8; MAX_PACKET_SIZE];
-            match get_channel_info.to_bytes(&mut buffer) {
+            match get_channel_info.to_buffer(&mut buffer) {
                 Ok(used_bytes) => {
                     assert_eq!(EXAMPLE_DATA.len(), used_bytes);
                     assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
@@ -218,7 +218,7 @@ mod tests {
             let EXAMPLE_DATA: [u8; 50] = mut_example_data;
 
             // test deserialization
-            if let Some(command) = MeshCoreBleCommands::from_bytes(&EXAMPLE_DATA) {
+            if let Some(command) = MeshCoreBleCommands::from_buffer(&EXAMPLE_DATA) {
                 match command {
                     MeshCoreBleCommands::SetChannel {
                         channel_index,
@@ -243,7 +243,7 @@ mod tests {
                 secret: &SECRET,
             };
             let mut buffer = [0u8; MAX_PACKET_SIZE];
-            match set_channel.to_bytes(&mut buffer) {
+            match set_channel.to_buffer(&mut buffer) {
                 Ok(used_bytes) => {
                     assert_eq!(EXAMPLE_DATA.len(), used_bytes);
                     assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
