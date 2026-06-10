@@ -14,7 +14,7 @@ Insecure MeshCore Designs
 
 Possibly Insecure MeshCore Designs
 --------------------------------------------------------------------------------
-MeshCore support of these until a design flaw is identified - updated the above.
+MeshCore support of these until a design flaw is identified.
 * MeshCore LoRa Protocol - the [description of the protocol](https://docs.meshcore.io/packet_format/)
   doesn't provide guidance as to how these protocols are to be used.
     * the documentation doesn't specifically describe what is encrypted vs clear-text
