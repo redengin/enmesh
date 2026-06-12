@@ -15,7 +15,7 @@ pub const MAX_PACKET_PAYLOAD: usize = 184;
 pub struct MeshCoreLoraPacket<'a> {
     pub header: MeshCoreHeader,
     /// optional transport codes (little-endian)
-    pub transport_codes: Option<u16>,
+    pub transport_codes: Option<[u16; 2]>,
     pub path: MeshCorePath<'a>,
     pub payload: &'a [u8],
 }
@@ -28,13 +28,20 @@ impl<'a> MeshCoreLoraPacket<'a> {
             used += 1;
 
             let transport_codes = if header.route_type.has_transport_codes() {
-                let transport_codes = u16::from_le_bytes(
+                let transport_codes_0 = u16::from_le_bytes(
                     buffer[used..(used + 2)]
                         .try_into()
                         .expect("invalid dimensions"),
                 );
                 used += 2;
-                Some(transport_codes)
+                let transport_codes_1 = u16::from_le_bytes(
+                    buffer[used..(used + 2)]
+                        .try_into()
+                        .expect("invalid dimensions"),
+                );
+                used += 2;
+
+                Some([transport_codes_0, transport_codes_1])
             } else {
                 None
             };
@@ -47,7 +54,7 @@ impl<'a> MeshCoreLoraPacket<'a> {
                     transport_codes,
                     path,
                     payload: &buffer[used..],
-                })
+                });
             } else {
                 return None;
             }
@@ -63,14 +70,21 @@ impl<'a> MeshCoreLoraPacket<'a> {
         self.header.to_byte(&mut buffer[0]);
         used += 1;
 
-        if let Some(transport_codes) = self.transport_codes {
-            buffer[used..(used + 2)].copy_from_slice(&transport_codes.to_le_bytes());
-            used += 2;
+        // add transport codes if needed
+        if self.header.route_type.has_transport_codes() {
+            match self.transport_codes {
+                Some(transport_codes) => {
+                    buffer[used..(used+2)].copy_from_slice(&transport_codes[0].to_le_bytes());
+                    used += 2;
+                    buffer[used..(used+2)].copy_from_slice(&transport_codes[1].to_le_bytes());
+                    used += 2;
+                }
+                None => { return Err("required transport codes not provided") }
+            }
         }
 
-        let path_length = ((self.path.hash_size as u8) << 6) | self.path.hop_count;
-        buffer[used] = path_length;
-        used += 1;
+        let path_used = self.path.to_buffer(&mut buffer[used..]);
+        used += path_used;
 
         let path_size = (self.path.hop_count as usize) * self.path.hash_size.len();
         buffer[used..(used + path_size)].copy_from_slice(self.path.path_data);
@@ -255,6 +269,20 @@ pub struct MeshCorePath<'a> {
     path_data: &'a [u8],
 }
 impl<'a> MeshCorePath<'a> {
+
+    fn to_buffer(&self, buffer: &mut [u8]) -> usize {
+        let mut used:usize = 0;
+        let path_length = ((self.hash_size as u8) << 6) | self.hop_count;
+        buffer[used] = path_length;
+        used += 1;
+
+        let path_size = self.path_data.len();
+        buffer[used..(used+path_size)].copy_from_slice(self.path_data);
+        used += path_size;
+
+        used
+    }
+
     fn from_buffer(buffer: &'a [u8]) -> Option<(Self, usize /* bytes used */)> {
         let mut used: usize = 0;
 
@@ -326,7 +354,7 @@ mod tests {
 
     #[test]
     #[allow(non_snake_case)]
-    fn serde_MeshCorePacket_NoTransportCodes_1_byte_hash_path() {
+    fn serde_MeshCorePacket_NoTransportCodes_no_hash_path() {
         // No transport codes, LEGACY (default) 1 byte hash for paths
         const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket {
             header: MeshCoreHeader {
@@ -336,9 +364,9 @@ mod tests {
             },
             transport_codes: None,
             path: MeshCorePath {
-                hop_count: 1,
+                hop_count: 0,
                 hash_size: MeshCoreHashSize::LEGACY,
-                path_data: &[1u8; 1],
+                path_data: &[0u8; 0],
             },
             payload: &[1u8; 100],
         };
