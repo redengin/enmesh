@@ -11,7 +11,7 @@ pub const MAX_PATH_SIZE: usize = 64;
 /// * v1.12.0 firmware and older drops packets with payload sizes larger than 184
 pub const MAX_PACKET_PAYLOAD: usize = 184;
 
-#[derive(Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct MeshCoreLoraPacket<'a> {
     pub header: MeshCoreHeader,
     /// optional transport codes (little-endian)
@@ -24,9 +24,12 @@ impl<'a> MeshCoreLoraPacket<'a> {
     /// * else returns None
     pub fn from_buffer(buffer: &'a [u8]) -> Option<Self> {
         let mut used: usize = 0;
+
+        // deserialize the header
         if let Some(header) = MeshCoreHeader::from_header(&buffer[0]) {
             used += 1;
 
+            // deserialize transport codes (if they exist)
             let transport_codes = if header.route_type.has_transport_codes() {
                 let transport_codes_0 = u16::from_le_bytes(
                     buffer[used..(used + 2)]
@@ -49,6 +52,7 @@ impl<'a> MeshCoreLoraPacket<'a> {
             if let Some((path, path_used)) = MeshCorePath::from_buffer(&buffer[used..]) {
                 used += path_used;
 
+                // deserialized all the data, the rest is payload
                 return Some(Self {
                     header,
                     transport_codes,
@@ -56,9 +60,11 @@ impl<'a> MeshCoreLoraPacket<'a> {
                     payload: &buffer[used..],
                 });
             } else {
+                // invalid path
                 return None;
             }
         } else {
+            // invalid header
             return None;
         }
     }
@@ -67,54 +73,48 @@ impl<'a> MeshCoreLoraPacket<'a> {
     /// * else returns a string describing the error
     pub fn to_buffer(&self, buffer: &mut [u8]) -> Result<usize, &str> {
         let mut used = 0;
+
+        // deserialize the header
         self.header.to_header(&mut buffer[0]);
         used += 1;
 
-        // add transport codes if needed
+        // serialize transport codes (if they exist)
         if self.header.route_type.has_transport_codes() {
             match self.transport_codes {
                 Some(transport_codes) => {
-                    buffer[used..(used+2)].copy_from_slice(&transport_codes[0].to_le_bytes());
+                    buffer[used..(used + 2)].copy_from_slice(&transport_codes[0].to_le_bytes());
                     used += 2;
-                    buffer[used..(used+2)].copy_from_slice(&transport_codes[1].to_le_bytes());
+                    buffer[used..(used + 2)].copy_from_slice(&transport_codes[1].to_le_bytes());
                     used += 2;
                 }
-                None => { return Err("required transport codes not provided") }
+                None => return Err("required transport codes not provided"),
             }
         }
 
+        // serialize path
         let path_used = self.path.to_buffer(&mut buffer[used..]);
         used += path_used;
-
         let path_size = (self.path.hop_count as usize) * self.path.hash_size.len();
         buffer[used..(used + path_size)].copy_from_slice(self.path.path_data);
         used += path_size;
 
+        // serialize the payload
         buffer[used..(used + self.payload.len())].copy_from_slice(self.payload);
         used += self.payload.len();
-        assert_eq!(100, self.payload.len());
 
         Ok(used)
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct MeshCoreHeader {
     pub version: MeshCoreVersion,
     pub payload_type: MeshCorePayloadType,
     pub route_type: MeshCoreRouteType,
 }
 impl MeshCoreHeader {
-    pub fn version(&self) -> MeshCoreVersion {
-        self.version
-    }
-    pub fn payload_type(&self) -> MeshCorePayloadType {
-        self.payload_type
-    }
-    pub fn route_type(&self) -> MeshCoreRouteType {
-        self.route_type
-    }
-
+    /// * if Ok, returns valid header object
+    /// * else None
     fn from_header(header: &u8) -> Option<Self> {
         if let Some(version) = MeshCoreVersion::from_header(header) {
             if let Some(payload_type) = MeshCorePayloadType::from_header(header) {
@@ -138,22 +138,22 @@ impl MeshCoreHeader {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum MeshCoreVersion {
     _1 = 0x00,
 }
 impl MeshCoreVersion {
-    pub fn from_header(header: &u8) -> Option<Self> {
+    fn from_header(header: &u8) -> Option<Self> {
         let version_value = header >> 6;
-        if version_value == Self::_1 as u8 {
-            return Some(Self::_1);
-        }
 
-        None
+        return match version_value {
+            id if id == Self::_1 as u8 => Some(Self::_1),
+            _ => None,
+        };
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 #[allow(non_camel_case_types)]
 pub enum MeshCorePayloadType {
     /// Request (destination/source hashes + MAC)
@@ -184,54 +184,32 @@ pub enum MeshCorePayloadType {
     RAW_CUSTOM = 0x0F,
 }
 impl MeshCorePayloadType {
-    pub fn from_header(header: &u8) -> Option<Self> {
+    /// * if Ok, returns valid payload type object
+    /// * else None
+    fn from_header(header: &u8) -> Option<Self> {
         const PAYLOAD_TYPE_MASK: u8 = 0b0011_1100;
         let payload_type_value = (header & PAYLOAD_TYPE_MASK) >> 2;
-        if Self::REQ as u8 == payload_type_value {
-            return Some(Self::REQ);
-        }
-        if Self::RESPONSE as u8 == payload_type_value {
-            return Some(Self::RESPONSE);
-        }
-        if Self::TEXT_MSG as u8 == payload_type_value {
-            return Some(Self::TEXT_MSG);
-        }
-        if Self::ACK as u8 == payload_type_value {
-            return Some(Self::ACK);
-        }
-        if Self::ADVERT as u8  == payload_type_value {
-            return Some(Self::ADVERT);
-        }
-        if Self::GRP_TXT as u8 == payload_type_value {
-            return Some(Self::GRP_TXT);
-        }
-        if Self::GRP_DATA as u8 == payload_type_value {
-            return Some(Self::GRP_DATA);
-        }
-        if Self::ANON_REQ as u8 == payload_type_value {
-            return Some(Self::ANON_REQ);
-        }
-        if Self::PATH as u8 == payload_type_value {
-            return Some(Self::PATH);
-        }
-        if Self::TRACE as u8 == payload_type_value {
-            return Some(Self::TRACE);
-        }
-        if Self::MULTIPART as u8 == payload_type_value {
-            return Some(Self::MULTIPART);
-        }
-        if Self::CONTROL as u8 == payload_type_value {
-            return Some(Self::CONTROL);
-        }
-        if Self::RAW_CUSTOM as u8 == payload_type_value {
-            return Some(Self::RAW_CUSTOM);
-        }
-
-        None
+        return match payload_type_value {
+            id if id == Self::REQ as u8 => Some(Self::REQ),
+            id if id == Self::RESPONSE as u8 => Some(Self::RESPONSE),
+            id if id == Self::TEXT_MSG as u8 => Some(Self::TEXT_MSG),
+            id if id == Self::ACK as u8 => Some(Self::ACK),
+            id if id == Self::ADVERT as u8 => Some(Self::ADVERT),
+            id if id == Self::GRP_TXT as u8 => Some(Self::GRP_TXT),
+            id if id == Self::GRP_DATA as u8 => Some(Self::GRP_DATA),
+            id if id == Self::ANON_REQ as u8 => Some(Self::ANON_REQ),
+            id if id == Self::PATH as u8 => Some(Self::PATH),
+            id if id == Self::TRACE as u8 => Some(Self::TRACE),
+            id if id == Self::MULTIPART as u8 => Some(Self::MULTIPART),
+            id if id == Self::CONTROL as u8 => Some(Self::CONTROL),
+            id if id == Self::RAW_CUSTOM as u8 => Some(Self::RAW_CUSTOM),
+            // no patterns matched
+            _ => None,
+        };
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 #[allow(non_camel_case_types)]
 pub enum MeshCoreRouteType {
     /// Flood Routing + Transport Codes
@@ -244,49 +222,47 @@ pub enum MeshCoreRouteType {
     TRANSPORT_DIRECT = 0x03,
 }
 impl MeshCoreRouteType {
-    pub fn from_header(header: &u8) -> Option<Self> {
+    /// * if Ok, returns valid payload type object
+    /// * else None
+    fn from_header(header: &u8) -> Option<Self> {
         const ROUTE_TYPE_MASK: u8 = 0b0000_0011;
-        let route_type_value= header & ROUTE_TYPE_MASK;
-        if Self::TRANSPORT_FLOOD as u8 == route_type_value {
-            return Some(Self::TRANSPORT_FLOOD);
-        }
-        if Self::FLOOD as u8 == route_type_value {
-            return Some(Self::FLOOD);
-        }
-        if Self::DIRECT as u8 == route_type_value {
-            return Some(Self::DIRECT);
-        }
-        if Self::TRANSPORT_DIRECT as u8 == route_type_value {
-            return Some(Self::TRANSPORT_DIRECT);
-        }
-        None
+        let route_type_value = header & ROUTE_TYPE_MASK;
+        return match route_type_value {
+            id if id == Self::TRANSPORT_FLOOD as u8 => Some(Self::TRANSPORT_FLOOD),
+            id if id == Self::FLOOD as u8 => Some(Self::FLOOD),
+            id if id == Self::DIRECT as u8 => Some(Self::DIRECT),
+            id if id == Self::TRANSPORT_DIRECT as u8 => Some(Self::TRANSPORT_DIRECT),
+            // no patterns matched
+            _ => None,
+        };
     }
 
     fn has_transport_codes(&self) -> bool {
         return match self {
             Self::TRANSPORT_FLOOD | Self::TRANSPORT_DIRECT => true,
-
-            _ => false,
+            Self::FLOOD | Self::DIRECT => false,
         };
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct MeshCorePath<'a> {
     pub hop_count: u8,
     pub hash_size: MeshCoreHashSize,
     path_data: &'a [u8],
 }
 impl<'a> MeshCorePath<'a> {
-
     fn to_buffer(&self, buffer: &mut [u8]) -> usize {
-        let mut used:usize = 0;
+        let mut used: usize = 0;
+
+        // serialize the header (aka path_length)
         let path_length = ((self.hash_size as u8) << 6) | self.hop_count;
         buffer[used] = path_length;
         used += 1;
 
+        // serialize the data
         let path_size = self.path_data.len();
-        buffer[used..(used+path_size)].copy_from_slice(self.path_data);
+        buffer[used..(used + path_size)].copy_from_slice(self.path_data);
         used += path_size;
 
         used
@@ -301,7 +277,7 @@ impl<'a> MeshCorePath<'a> {
         if let Some(hash_size) = MeshCoreHashSize::from_path_length(&buffer[0]) {
             used += 1;
 
-            // take a slice
+            // take the sized slice
             let path_size = (hop_count as usize) * hash_size.len();
             let path_data = &buffer[used..(used + path_size)];
             used += path_size;
@@ -316,11 +292,12 @@ impl<'a> MeshCorePath<'a> {
             ));
         }
 
+        // invalid header (aka path_length)
         None
     }
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, PartialEq, Debug, Copy, Clone)]
 pub enum MeshCoreHashSize {
     /// 1 byte hashes
     #[default]
@@ -331,20 +308,20 @@ pub enum MeshCoreHashSize {
     _3 = 0x10,
 }
 impl MeshCoreHashSize {
+    /// * if Ok, returns path hash size object
+    /// * else None
     fn from_path_length(path_length: &u8) -> Option<Self> {
         let hash_size = path_length >> 6;
-        if hash_size == (Self::LEGACY as u8) {
-            return Some(Self::LEGACY);
-        }
-        if hash_size == (Self::_2 as u8) {
-            return Some(Self::_2);
-        }
-        if hash_size == (Self::_3 as u8) {
-            return Some(Self::_3);
-        }
-        None
+        return match hash_size {
+            id if id == Self::LEGACY as u8 => Some(Self::LEGACY),
+            id if id == Self::_2 as u8 => Some(Self::_2),
+            id if id == Self::_3 as u8 => Some(Self::_3),
+            // no patterns matched
+            _ => None
+        };
     }
 
+    /// returns the size (in bytes) of the hash size
     pub fn len(&self) -> usize {
         return match self {
             Self::LEGACY => 1,
@@ -360,6 +337,32 @@ impl MeshCoreHashSize {
 mod tests {
 
     use super::*;
+
+    /// evaluates the ability to serialize and deserialize by
+    /// * serializing the original packet
+    /// * deserializing from the serialized original packet
+    /// * asserting that the deserialized packet matches the original packet
+    fn serde_harness(packet: &MeshCoreLoraPacket) {
+
+        // serialize
+        let mut buffer = [0u8; 1000];
+        let buffer_used = match packet.to_buffer(&mut buffer) {
+            Ok(used) => used,
+            Err(e) => {
+                panic!("failed to serialize [{e}]")
+            }
+        };
+
+        // deserialize
+        match MeshCoreLoraPacket::from_buffer(&buffer[..buffer_used]) {
+            Some(expected_packet) => {
+                // the deserialized result should match the original packet
+                assert_eq!(*packet, expected_packet);
+
+            }
+            None => panic!("failed to deserialize"),
+        }
+    }
 
     #[test]
     #[allow(non_snake_case)]
@@ -380,19 +383,6 @@ mod tests {
             payload: &[1u8; 100],
         };
 
-        // test serialization
-        let mut buffer = [0u8; 1000];
-        let buffer_used = match PACKET.to_buffer(&mut buffer) {
-            Ok(used) => used,
-            Err(e) => {
-                panic!("failed to serialize [{e}]")
-            }
-        };
-
-        // test deserialization
-        match MeshCoreLoraPacket::from_buffer(&buffer[..buffer_used]) {
-            Some(_packet) => {}
-            None => panic!("failed to deserialize"),
-        }
+        serde_harness(&PACKET);
     }
 }
