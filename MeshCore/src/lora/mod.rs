@@ -94,9 +94,6 @@ impl<'a> MeshCoreLoraPacket<'a> {
         // serialize path
         let path_used = self.path.to_buffer(&mut buffer[used..]);
         used += path_used;
-        let path_size = (self.path.hop_count as usize) * self.path.hash_size.len();
-        buffer[used..(used + path_size)].copy_from_slice(self.path.path_data);
-        used += path_size;
 
         // serialize the payload
         buffer[used..(used + self.payload.len())].copy_from_slice(self.payload);
@@ -322,7 +319,7 @@ impl MeshCoreHashSize {
     }
 
     /// returns the size (in bytes) of the hash size
-    pub fn len(&self) -> usize {
+    const fn len(&self) -> usize {
         return match self {
             Self::LEGACY => 1,
             Self::_2 => 2,
@@ -366,8 +363,7 @@ mod tests {
 
     #[test]
     #[allow(non_snake_case)]
-    fn serde_MeshCorePacket_NoTransportCodes_no_hash_path() {
-        // No transport codes, LEGACY (default) 1 byte hash for paths
+    fn serde_MeshCorePacket_NoTransportCodes() {
         const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket {
             header: MeshCoreHeader {
                 version: MeshCoreVersion::_1,
@@ -378,7 +374,49 @@ mod tests {
             path: MeshCorePath {
                 hop_count: 0,
                 hash_size: MeshCoreHashSize::LEGACY,
-                path_data: &[0u8; 0],
+                path_data: &[u8::MAX; 0],
+            },
+            payload: &[1u8; 100],
+        };
+
+        serde_harness(&PACKET);
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn serde_MeshCorePacket_TransportCodes() {
+        const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket {
+            header: MeshCoreHeader {
+                version: MeshCoreVersion::_1,
+                payload_type: MeshCorePayloadType::ACK,
+                route_type: MeshCoreRouteType::TRANSPORT_DIRECT,
+            },
+            transport_codes: Some([1u16, 1u16]),
+            path: MeshCorePath {
+                hop_count: 0,
+                hash_size: MeshCoreHashSize::LEGACY,
+                path_data: &[u8::MAX; 0],
+            },
+            payload: &[1u8; 100],
+        };
+
+        serde_harness(&PACKET);
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn serde_MeshCorePacket_Path() {
+        const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket {
+            header: MeshCoreHeader {
+                version: MeshCoreVersion::_1,
+                payload_type: MeshCorePayloadType::ACK,
+                route_type: MeshCoreRouteType::DIRECT,
+            },
+            transport_codes: None,
+            path: MeshCorePath {
+                hop_count: 1,
+                hash_size: MeshCoreHashSize::LEGACY,
+                path_data: &[u8::MAX; MeshCoreHashSize::LEGACY.len()],
             },
             payload: &[1u8; 100],
         };
