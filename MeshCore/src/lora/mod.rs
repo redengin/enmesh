@@ -24,7 +24,7 @@ impl<'a> MeshCoreLoraPacket<'a> {
     /// * else returns None
     pub fn from_buffer(buffer: &'a [u8]) -> Option<Self> {
         let mut used: usize = 0;
-        if let Some(header) = MeshCoreHeader::from_byte(&buffer[0]) {
+        if let Some(header) = MeshCoreHeader::from_header(&buffer[0]) {
             used += 1;
 
             let transport_codes = if header.route_type.has_transport_codes() {
@@ -67,7 +67,7 @@ impl<'a> MeshCoreLoraPacket<'a> {
     /// * else returns a string describing the error
     pub fn to_buffer(&self, buffer: &mut [u8]) -> Result<usize, &str> {
         let mut used = 0;
-        self.header.to_byte(&mut buffer[0]);
+        self.header.to_header(&mut buffer[0]);
         used += 1;
 
         // add transport codes if needed
@@ -115,7 +115,7 @@ impl MeshCoreHeader {
         self.route_type
     }
 
-    fn from_byte(header: &u8) -> Option<Self> {
+    fn from_header(header: &u8) -> Option<Self> {
         if let Some(version) = MeshCoreVersion::from_header(header) {
             if let Some(payload_type) = MeshCorePayloadType::from_header(header) {
                 if let Some(route_type) = MeshCoreRouteType::from_header(header) {
@@ -131,7 +131,7 @@ impl MeshCoreHeader {
         None
     }
 
-    fn to_byte(&self, buffer: &mut u8) {
+    fn to_header(&self, buffer: &mut u8) {
         *buffer = ((self.version as u8) << 6)
             | ((self.payload_type as u8) << 2)
             | (self.route_type as u8);
@@ -185,45 +185,45 @@ pub enum MeshCorePayloadType {
 }
 impl MeshCorePayloadType {
     pub fn from_header(header: &u8) -> Option<Self> {
-        const PAYLOAD_TYPE_MASK: u8 = 0b00111100;
+        const PAYLOAD_TYPE_MASK: u8 = 0b0011_1100;
         let payload_type_value = (header & PAYLOAD_TYPE_MASK) >> 2;
-        if payload_type_value == Self::REQ as u8 {
+        if Self::REQ as u8 == payload_type_value {
             return Some(Self::REQ);
         }
-        if payload_type_value == Self::RESPONSE as u8 {
+        if Self::RESPONSE as u8 == payload_type_value {
             return Some(Self::RESPONSE);
         }
-        if payload_type_value == Self::TEXT_MSG as u8 {
+        if Self::TEXT_MSG as u8 == payload_type_value {
             return Some(Self::TEXT_MSG);
         }
-        if payload_type_value == Self::ACK as u8 {
+        if Self::ACK as u8 == payload_type_value {
             return Some(Self::ACK);
         }
-        if payload_type_value == Self::ADVERT as u8 {
+        if Self::ADVERT as u8  == payload_type_value {
             return Some(Self::ADVERT);
         }
-        if payload_type_value == Self::GRP_TXT as u8 {
+        if Self::GRP_TXT as u8 == payload_type_value {
             return Some(Self::GRP_TXT);
         }
-        if payload_type_value == Self::GRP_DATA as u8 {
+        if Self::GRP_DATA as u8 == payload_type_value {
             return Some(Self::GRP_DATA);
         }
-        if payload_type_value == Self::ANON_REQ as u8 {
+        if Self::ANON_REQ as u8 == payload_type_value {
             return Some(Self::ANON_REQ);
         }
-        if payload_type_value == Self::PATH as u8 {
+        if Self::PATH as u8 == payload_type_value {
             return Some(Self::PATH);
         }
-        if payload_type_value == Self::TRACE as u8 {
+        if Self::TRACE as u8 == payload_type_value {
             return Some(Self::TRACE);
         }
-        if payload_type_value == Self::MULTIPART as u8 {
+        if Self::MULTIPART as u8 == payload_type_value {
             return Some(Self::MULTIPART);
         }
-        if payload_type_value == Self::CONTROL as u8 {
+        if Self::CONTROL as u8 == payload_type_value {
             return Some(Self::CONTROL);
         }
-        if payload_type_value == Self::RAW_CUSTOM as u8 {
+        if Self::RAW_CUSTOM as u8 == payload_type_value {
             return Some(Self::RAW_CUSTOM);
         }
 
@@ -245,11 +245,20 @@ pub enum MeshCoreRouteType {
 }
 impl MeshCoreRouteType {
     pub fn from_header(header: &u8) -> Option<Self> {
-        // let payload_type_bits = header >> 6;
-        // if payload_type_bits == Self::_1 as u8 {
-        //     return Some(Self::_1)
-        // }
-
+        const ROUTE_TYPE_MASK: u8 = 0b0000_0011;
+        let route_type_value= header & ROUTE_TYPE_MASK;
+        if Self::TRANSPORT_FLOOD as u8 == route_type_value {
+            return Some(Self::TRANSPORT_FLOOD);
+        }
+        if Self::FLOOD as u8 == route_type_value {
+            return Some(Self::FLOOD);
+        }
+        if Self::DIRECT as u8 == route_type_value {
+            return Some(Self::DIRECT);
+        }
+        if Self::TRANSPORT_DIRECT as u8 == route_type_value {
+            return Some(Self::TRANSPORT_DIRECT);
+        }
         None
     }
 
