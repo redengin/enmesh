@@ -1,5 +1,3 @@
-use core::ptr::hash;
-
 /// https://docs.meshcore.io/packet_format/
 
 /// max size in bytes of path data
