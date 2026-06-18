@@ -1,6 +1,7 @@
 use crate::lora::MeshCoreHashSize;
 
 /// helper macro to provide sscanf functionality
+/// NOTE: str.split doesn't dedupe multiple separators (i.e. only one separator char is supported)
 macro_rules! scan {
     ( $string:expr, $( $x:ty ),+ ) => {{
         let mut iter = $string.split(is_separator);
@@ -93,7 +94,8 @@ pub enum CliCommands<'a> {
     SetFreq(f32),
     /// "get radio.rxgain" - show if rxgain is enabled
     ShowRxGainStatus,
-    /// "set radio.rxgain <state>" - enable/disable rxgain
+    /// "set radio.rxgain <state>" - "on": enable rx gain
+    ///                              "off": disable rx gain
     SetRxGain(bool),
 
     /// "get name" - show the name of this device
@@ -345,10 +347,11 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "time ";
             if s.starts_with(COMMAND_STRING) {
-                let epoch_string = &s[COMMAND_STRING.len()..];
-                match epoch_string.parse::<u32>() {
-                    Ok(epoch_time) => return Ok(Self::SetClock(epoch_time)),
-                    Err(_) => return Err("'{epoch_string}' must be an integer epoch time"),
+                let values = scan!(s[COMMAND_STRING.len()..], u32);
+                if let Some(time) = values.0 {
+                    return Ok(Self::SetClock(time));
+                } else {
+                    return Err("'{epoch_string}' must be an integer epoch time");
                 }
             }
         }
@@ -495,17 +498,76 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let values = scan!(s[COMMAND_STRING.len()..], i8);
                 if let Some(tx_power) = values.0 {
-                    return Ok(Self::SetTxPower(tx_power))
+                    return Ok(Self::SetTxPower(tx_power));
                 } else {
                     return Err("failed to parse tx power, should be an integer");
                 }
             }
         }
-
-
-
-
-
+        {
+            const COMMAND_STRING: &str = "tempradio ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32, f32, u8, u8, u8);
+                if let Some(freq) = values.0 {
+                    if let Some(bw) = values.1 {
+                        if let Some(sf) = values.2 {
+                            if let Some(cr) = values.3 {
+                                if let Some(duration_minutes) = values.4 {
+                                    return Ok(Self::SetTempRadioConfig { freq, bw, sf, cr, duration_minutes })
+                                }
+                                else {
+                                    return Err("failed to parse <timeout> (should be integer minutes)");
+                                }
+                            } else {
+                                return Err("failed to parse <cr>");
+                            }
+                        } else {
+                            return Err("failed to parse <sf>");
+                        }
+                    } else {
+                        return Err("failed to parse <bw> (should be in decimal Khz)");
+                    }
+                } else {
+                    return Err("failed to parse <freq> (should be in decimal Mhz)");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get freq";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowFreq);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set freq ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(freq) = values.0 {
+                    return Ok(Self::SetFreq(freq));
+                } else {
+                    return Err("'{epoch_string}' must be an integer epoch time");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get radio.rxgain";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRxGainStatus);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set radio.rxgain ";
+            if s.starts_with(COMMAND_STRING) {
+                let setting_str = &s[COMMAND_STRING.len()..];
+                if setting_str.eq("on") {
+                    return Ok(Self::SetRxGain(true))
+                }
+                if setting_str.eq("off") {
+                    return Ok(Self::SetRxGain(false))
+                }
+                return Err("faild to parse value - should be either 'on' or 'off' ")
+            }
+        }
 
 
 
@@ -780,9 +842,62 @@ mod tests {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
-
-
-
+        {
+            const FREQ: f32 = 869.525;
+            const BW: f32 = 7.8;
+            const SF: u8 = 5;
+            const CR: u8 = 8;
+            const TIMEOUT: u8 = 100;
+            const COMMAND_STR: &str = "tempradio 869.525,7.8,5,8,100";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetTempRadioConfig {
+                        freq: FREQ,
+                        bw: BW,
+                        sf: SF,
+                        cr: CR,
+                        duration_minutes: TIMEOUT
+                    },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get freq";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowFreq, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const FREQ: f32 = 869.525;
+            const COMMAND_STR: &str = "set freq 869.525";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetFreq(FREQ), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get radio.rxgain";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRxGainStatus, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const RX_GAIN: bool = true;
+            const COMMAND_STR: &str = "set radio.rxgain on";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetRxGain(RX_GAIN), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
 
 
 
