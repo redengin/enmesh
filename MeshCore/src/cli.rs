@@ -1,5 +1,21 @@
 use crate::lora::MeshCoreHashSize;
 
+/// helper macro to provide sscanf functionality
+macro_rules! scan {
+    ( $string:expr, $( $x:ty ),+ ) => {{
+        let mut iter = $string.split(is_separator);
+        ($(iter.next().and_then(|word| word.parse::<$x>().ok()),)*)
+    }}
+}
+/// use the MeshCore seperators
+fn is_separator(c: char) -> bool {
+    return if c.is_whitespace() || (c == ',') {
+        true
+    } else {
+        false
+    };
+}
+
 /// https://docs.meshcore.io/cli_commands/
 ///
 /// commands that can be sent to MeshCore Repeaters, Room Servers and Sensors.
@@ -46,9 +62,9 @@ pub enum CliCommands<'a> {
     /// "log stop" - stop logging rx
     StopRxLog,
     /// "log erase" - erase the logged data
-    EraseLog,
+    EraseRxLog,
     /// "log" - show the logged data
-    ShowLog,
+    ShowRxLog,
 
     /// "ver" - show version
     ShowVersion,
@@ -58,7 +74,7 @@ pub enum CliCommands<'a> {
     /// "get radio" - show radio config (<freq>,<bw>,<sf>,<cr>)
     ShowRadioConfig,
     /// "set radio <freq>,<bw>,<sf>,<cr>" - set the radio config
-    SetRadioConfig { freq: f32, bw: u16, sf: u8, cr: u8 },
+    SetRadioConfig { freq: f32, bw: f32, sf: u8, cr: u8 },
     /// "get tx" - show tx power (integer dBm)
     ShowTxPower,
     /// "set tx <dbm>" - set tx power (integer dBm)
@@ -66,7 +82,7 @@ pub enum CliCommands<'a> {
     /// "tempradio <freq>,<bw>,<sf>,<cr>,<timeout_mins>" - change radio parameters for a duration (minutes)
     SetTempRadioConfig {
         freq: f32,
-        bw: u16,
+        bw: f32,
         sf: u8,
         cr: u8,
         duration_minutes: u8,
@@ -293,37 +309,37 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "reboot";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::Reboot)
+                return Ok(Self::Reboot);
             }
         }
         {
             const COMMAND_STRING: &str = "poweroff";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::PowerOff)
+                return Ok(Self::PowerOff);
             }
         }
         {
             const COMMAND_STRING: &str = "shutdown";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::PowerOff)
+                return Ok(Self::PowerOff);
             }
         }
         {
             const COMMAND_STRING: &str = "clkreboot";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ResetClockAndReboot)
+                return Ok(Self::ResetClockAndReboot);
             }
         }
         {
             const COMMAND_STRING: &str = "clock sync";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ClockSync)
+                return Ok(Self::ClockSync);
             }
         }
         {
             const COMMAND_STRING: &str = "clock";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowClock)
+                return Ok(Self::ShowClock);
             }
         }
         {
@@ -332,47 +348,166 @@ impl<'a> CliCommands<'a> {
                 let epoch_string = &s[COMMAND_STRING.len()..];
                 match epoch_string.parse::<u32>() {
                     Ok(epoch_time) => return Ok(Self::SetClock(epoch_time)),
-                    Err(_) => return Err("<value> must be an integer epoch time")
+                    Err(_) => return Err("'{epoch_string}' must be an integer epoch time"),
                 }
             }
         }
         {
             const COMMAND_STRING: &str = "advert";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::SendFloodAdvert)
+                return Ok(Self::SendFloodAdvert);
             }
         }
         {
             const COMMAND_STRING: &str = "advert.zerohop";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::SendZeroHopAdvert)
+                return Ok(Self::SendZeroHopAdvert);
             }
         }
         {
             const COMMAND_STRING: &str = "start ota";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::StartOta)
+                return Ok(Self::StartOta);
             }
         }
         {
             const COMMAND_STRING: &str = "erase";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::FactoryReset)
+                return Ok(Self::FactoryReset);
             }
         }
         {
             const COMMAND_STRING: &str = "neighbors";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowLastAdverts)
+                return Ok(Self::ShowLastAdverts);
             }
         }
         {
             const COMMAND_STRING: &str = "neighbors.remove ";
             if s.starts_with(COMMAND_STRING) {
                 let neighbor_string = &s[COMMAND_STRING.len()..];
-                return Ok(Self::RemoveNeighbor(neighbor_string))
+                return Ok(Self::RemoveNeighbor(neighbor_string));
             }
         }
+        {
+            const COMMAND_STRING: &str = "discover.neighbors";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::DiscoverZeroHopNeighbors);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "clear stats";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ClearStatistics);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "stats-core";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowCoreStats);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "stats-radio";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRadioStats);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "stats-packet";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowPacketStats);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "log start";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::StartRxLog);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "log stop";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::StopRxLog);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "log erase";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::EraseRxLog);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "log";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRxLog);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "ver";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowVersion);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "board";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowHardwareName);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get radio";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRadioConfig);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set radio ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32, f32, u8, u8);
+                if let Some(freq) = values.0 {
+                    if let Some(bw) = values.1 {
+                        if let Some(sf) = values.2 {
+                            if let Some(cr) = values.3 {
+                                return Ok(Self::SetRadioConfig { freq, bw, sf, cr });
+                            } else {
+                                return Err("failed to parse <cr>");
+                            }
+                        } else {
+                            return Err("failed to parse <sf>");
+                        }
+                    } else {
+                        return Err("failed to parse <bw> (should be in decimal Khz)");
+                    }
+                } else {
+                    return Err("failed to parse <freq> (should be in decimal Mhz)");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get tx";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowTxPower);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set tx ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], i8);
+                if let Some(tx_power) = values.0 {
+                    return Ok(Self::SetTxPower(tx_power))
+                } else {
+                    return Err("failed to parse tx power, should be an integer");
+                }
+            }
+        }
+
+
+
+
+
+
+
 
 
 
@@ -512,6 +647,141 @@ mod tests {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
+        {
+            const COMMAND_STR: &str = "discover.neighbors";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::DiscoverZeroHopNeighbors, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "clear stats";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ClearStatistics, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "stats-core";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowCoreStats, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "stats-radio";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRadioStats, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "stats-packet";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowPacketStats, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "log start";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::StartRxLog, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "log stop";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::StopRxLog, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "log erase";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::EraseRxLog, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "log";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRxLog, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "ver";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowVersion, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "board";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowHardwareName, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get radio";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRadioConfig, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const FREQ: f32 = 869.525;
+            const BW: f32 = 7.8;
+            const SF: u8 = 5;
+            const CR: u8 = 8;
+            const COMMAND_STR: &str = "set radio 869.525,7.8,5,8,100";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetRadioConfig {
+                        freq: FREQ,
+                        bw: BW,
+                        sf: SF,
+                        cr: CR
+                    },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get tx";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowTxPower, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const TX_POWER: i8 = 20;
+            const COMMAND_STR: &str = "set tx 20";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetTxPower(TX_POWER), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+
+
 
 
 
