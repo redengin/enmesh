@@ -125,24 +125,22 @@ pub enum CliCommands<'a> {
     /// "set owner.info <text>" - set the owner information
     SetOwnerInfo(&'a str),
     /// "get adc.multiplier" - show the battery ADC scaling
-    GetBatteryGain,
+    ShowBatteryGain,
     /// "set adc.multiplier <value>" - set the battery ADC scaling
     SetBatteryGain(f32),
     /// "get public.key" - show the public key
     ShowPublicKey,
-    /// "get role" - show this nodes role
+    /// "get role" - show this node's role
     ShowRole,
     /// "powersaving" - show if power saving is enabled
-    ShowPowerSaving,
-    /// "powersaving on" - enable power saving
-    EnablePowerSaving,
-    /// "powersaving off" - disable power saving
-    DisablePowerSaving,
+    ShowPowerSavingState,
+    /// "powersaving <value>" - "on":enable power saving, "off": disable power saving
+    SetPowerSavingState(bool),
 
     /// "get repeat" - show if repeating is enabled
-    ShowRepeat,
+    ShowRepeatState,
     /// "set repeat <state>" - "on": enable / "off": disable
-    SetRepeat(bool),
+    SetRepeatState(bool),
     /// "get path.hash.mode" - show advert path hash-size
     ShowHashSize,
     /// "set path.hash.mode <value>" - 0: 1 byte hash, 1: 2 byte hash, 2: 3 byte hash
@@ -568,6 +566,176 @@ impl<'a> CliCommands<'a> {
                 return Err("faild to parse value - should be either 'on' or 'off' ")
             }
         }
+        {
+            const COMMAND_STRING: &str = "get name";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowName);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set name ";
+            if s.starts_with(COMMAND_STRING) {
+                let name = &s[COMMAND_STRING.len()..];
+                if name.len() > 0 {
+                    return Ok(Self::SetName(name))
+                } else {
+                    return Err("<name> no provided")
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get lat";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowLat);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set lat ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(lat) = values.0 {
+                    return Ok(Self::SetLat(lat));
+                } else {
+                    return Err("<lat> must be a decimal lattitude");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get lon";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowLon);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set lon ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(lon) = values.0 {
+                    return Ok(Self::SetLon(lon));
+                } else {
+                    return Err("<lon> must be a decimal longitude");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get prv.key";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowPrivateKey);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set prv.key ";
+            if s.starts_with(COMMAND_STRING) {
+                let prv_key = &s[COMMAND_STRING.len()..];
+                if prv_key.len() > 0 {
+                    return Ok(Self::SetPrivateKey(prv_key))
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "password ";
+            if s.starts_with(COMMAND_STRING) {
+                let password = &s[COMMAND_STRING.len()..];
+                if password.len() > 0 {
+                    return Ok(Self::SetAdminPassword(password))
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get guest.password";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowGuestPassword);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set guest.password ";
+            if s.starts_with(COMMAND_STRING) {
+                let password = &s[COMMAND_STRING.len()..];
+                if password.len() > 0 {
+                    return Ok(Self::SetGuestPassword(password))
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get owner.info";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowOwnerInfo);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set owner.info ";
+            if s.starts_with(COMMAND_STRING) {
+                let info = &s[COMMAND_STRING.len()..];
+                return Ok(Self::SetOwnerInfo(info))
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get adc.multiplier";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowBatteryGain);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set adc.multiplier ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(gain) = values.0 {
+                    return Ok(Self::SetBatteryGain(gain));
+                } else {
+                    return Err("<gain> must be a decimal");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get public.key";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowPublicKey);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get role";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRole);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "powersaving";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowPowerSavingState);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "powersaving ";
+            if s.starts_with(COMMAND_STRING) {
+                let setting_str = &s[COMMAND_STRING.len()..];
+                if setting_str.eq("on") {
+                    return Ok(Self::SetPowerSavingState(true))
+                }
+                if setting_str.eq("off") {
+                    return Ok(Self::SetPowerSavingState(false))
+                }
+                return Err("faild to parse value - should be either 'on' or 'off' ")
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get repeat";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRepeatState);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set repeat ";
+            if s.starts_with(COMMAND_STRING) {
+                let setting_str = &s[COMMAND_STRING.len()..];
+                if setting_str.eq("on") {
+                    return Ok(Self::SetRepeatState(true))
+                }
+                if setting_str.eq("off") {
+                    return Ok(Self::SetRepeatState(false))
+                }
+                return Err("faild to parse value - should be either 'on' or 'off' ")
+            }
+        }
 
 
 
@@ -898,10 +1066,219 @@ mod tests {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
+        {
+            const COMMAND_STR: &str = "get name";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowName, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const NAME: &str = "test-name";
+            const COMMAND_STR: &str = "set name test-name";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetName(NAME), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get lat";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowLat, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const LAT: f32 = 31.5;
+            const COMMAND_STR: &str = "set lat 31.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetLat(LAT), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get lon";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowLon, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const LON: f32 = 31.5;
+            const COMMAND_STR: &str = "set lon 31.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetLon(LON), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get prv.key";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowPrivateKey, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const PRV_KEY: &str = "123456789";
+            const COMMAND_STR: &str = "set prv.key 123456789";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetPrivateKey(PRV_KEY), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const PASSWORD: &str = "secret";
+            const COMMAND_STR: &str = "password secret";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetAdminPassword(PASSWORD), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get guest.password";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowGuestPassword, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const PASSWORD: &str = "secret";
+            const COMMAND_STR: &str = "set guest.password secret";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetGuestPassword(PASSWORD), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get owner.info";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowOwnerInfo, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const OWNER_INFO: &str = "it's a me mario";
+            const COMMAND_STR: &str = "set owner.info it's a me mario";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetOwnerInfo(OWNER_INFO), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get adc.multiplier";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowBatteryGain, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const BATTERY_GAIN: f32 = 30.1;
+            const COMMAND_STR: &str = "set adc.multiplier 30.1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBatteryGain(BATTERY_GAIN), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get public.key";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowPublicKey, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get role";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRole, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "powersaving";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowPowerSavingState, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "powersaving on";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetPowerSavingState(true), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "powersaving off";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetPowerSavingState(false), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get repeat";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRepeatState, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set repeat on";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetRepeatState(true), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set repeat off";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetRepeatState(false), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+  
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
 
     }
