@@ -167,7 +167,7 @@ pub enum CliCommands<'a> {
     /// "get dutycycle" - show duty cycle
     ShowDutyCycle,
     /// "set dutycycle <value>" - [0 .. 100]
-    SetDutyCycle,
+    SetDutyCycle(u8),
     /// "get af" - show airtime factor
     ShowAirtimeFactor,
     /// "set af <value>" - [0.0 .. 9.0]
@@ -792,6 +792,57 @@ impl<'a> CliCommands<'a> {
                 }
             }
         }
+        {
+            const COMMAND_STRING: &str = "get rxdelay";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowReceiveDelay);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set rxdelay ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(rx_delay) = values.0 {
+                    return Ok(Self::SetReceiveDelay(rx_delay));
+                } else {
+                    return Err("<rx delay> must be a decimal");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get dutycycle";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowDutyCycle);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set dutycycle ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(duty_cycle) = values.0 {
+                    return Ok(Self::SetDutyCycle(duty_cycle));
+                } else {
+                    return Err("<duty cycle> must be an integer [0..100]%");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get af";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowAirtimeFactor);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set af ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(af) = values.0 {
+                    return Ok(Self::SetAirtimeFactor(af));
+                } else {
+                    return Err("<af> must be a decimal");
+                }
+            }
+        }
 
 
 
@@ -823,7 +874,9 @@ pub enum PermissionLevel {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
+    use core::time::Duration;
+
+use super::*;
 
     #[test]
     fn cli_commands() {
@@ -1392,6 +1445,60 @@ mod tests {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
+        {
+            const COMMAND_STR: &str = "get rxdelay";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowReceiveDelay, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const RX_DELAY: f32 = 30.5;
+            const COMMAND_STR: &str = "set rxdelay 30.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetReceiveDelay(RX_DELAY), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get dutycycle";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowDutyCycle, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const DUTY_CYCLE: u8 = 30;
+            const COMMAND_STR: &str = "set dutycycle 30";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetDutyCycle(DUTY_CYCLE), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get af";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowAirtimeFactor, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const AF: f32 = 30.5;
+            const COMMAND_STR: &str = "set af 30.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetAirtimeFactor(AF), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+  
+  
+  
   
 
 
