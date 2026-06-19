@@ -305,6 +305,17 @@ pub enum MeshCoreHashSize {
 impl MeshCoreHashSize {
     /// * if Ok, returns path hash size object
     /// * else None
+    pub fn from_byte(value: &u8) -> Option<Self> {
+        return match value {
+            0 => Some(Self::LEGACY),
+            1 => Some(Self::_2),
+            2 => Some(Self::_3),
+            _ => None
+        }
+    }
+
+    /// * if Ok, returns path hash size object
+    /// * else None
     fn from_path_length(path_length: &u8) -> Option<Self> {
         let hash_size = path_length >> 6;
         return match hash_size {

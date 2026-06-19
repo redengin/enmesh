@@ -144,9 +144,9 @@ pub enum CliCommands<'a> {
     /// "get path.hash.mode" - show advert path hash-size
     ShowHashSize,
     /// "set path.hash.mode <value>" - 0: 1 byte hash, 1: 2 byte hash, 2: 3 byte hash
-    SetHashHize(MeshCoreHashSize),
+    SetHashSize(MeshCoreHashSize),
     /// "get loop.detect" - show if loop-detection enabled
-    ShowLoopDetection,
+    ShowLoopDetectState,
     /// "set loop.detect <state>" - "off": disabled,
     ///                             "minimal"  : 4 or more for 1 byte hash,
     ///                                          2 or more for 2 byte hash,
@@ -736,6 +736,62 @@ impl<'a> CliCommands<'a> {
                 return Err("faild to parse value - should be either 'on' or 'off' ")
             }
         }
+        {
+            const COMMAND_STRING: &str = "get path.hash.mode";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowHashSize);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set path.hash.mode ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(value) = &values.0 {
+                    if let Some(hash_size) = MeshCoreHashSize::from_byte(value) {
+                        return Ok(Self::SetHashSize(hash_size))
+                    }
+                    else {
+                        return Err("<value> must be a decimal [0..2]");
+                    }
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get loop.detect";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowLoopDetectState);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set loop.detect ";
+            if s.starts_with(COMMAND_STRING) {
+                let setting_str = &s[COMMAND_STRING.len()..];
+                return match setting_str {
+                    "off" => Ok(Self::SetLoopDetection(LoopDetection::Off)),
+                    "minimal" => Ok(Self::SetLoopDetection(LoopDetection::Minimal)),
+                    "moderate" => Ok(Self::SetLoopDetection(LoopDetection::Moderate)),
+                    "strict" => Ok(Self::SetLoopDetection(LoopDetection::Strict)),
+                    _ => Err("<value> should be one of [off, minimal, moderate, strict]")
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get txdelay";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowTransmitDelay);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set txdelay ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(tx_delay) = values.0 {
+                    return Ok(Self::SetTransmitDelay(tx_delay));
+                } else {
+                    return Err("<tx delay> must be a decimal");
+                }
+            }
+        }
 
 
 
@@ -1254,6 +1310,84 @@ mod tests {
             const COMMAND_STR: &str = "set repeat off";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(CliCommands::SetRepeatState(false), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get path.hash.mode";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowHashSize, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const HASH_SIZE: MeshCoreHashSize = MeshCoreHashSize::_3;
+            const COMMAND_STR: &str = "set path.hash.mode 2";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetHashSize(HASH_SIZE), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get loop.detect";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowLoopDetectState, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const LOOP_DETECT: LoopDetection = LoopDetection::Off;
+            const COMMAND_STR: &str = "set loop.detect off";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetLoopDetection(LOOP_DETECT), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const LOOP_DETECT: LoopDetection = LoopDetection::Minimal;
+            const COMMAND_STR: &str = "set loop.detect minimal";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetLoopDetection(LOOP_DETECT), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const LOOP_DETECT: LoopDetection = LoopDetection::Moderate;
+            const COMMAND_STR: &str = "set loop.detect moderate";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetLoopDetection(LOOP_DETECT), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const LOOP_DETECT: LoopDetection = LoopDetection::Strict;
+            const COMMAND_STR: &str = "set loop.detect strict";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetLoopDetection(LOOP_DETECT), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get txdelay";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowTransmitDelay, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const TX_DELAY: f32 = 30.5;
+            const COMMAND_STR: &str = "set txdelay 30.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetTransmitDelay(TX_DELAY), command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
