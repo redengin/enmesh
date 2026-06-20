@@ -1,3 +1,5 @@
+use core::f32::consts::E;
+
 use crate::lora::MeshCoreHashSize;
 
 /// helper macro to provide sscanf functionality
@@ -199,15 +201,15 @@ pub enum CliCommands<'a> {
 
     /// "setperm <pubkey> <permissions>"
     SetAclPermissions {
-        pubkey: &'a [u8],
+        pubkey: &'a str,
         permissions: PermissionLevel,
     },
     /// "get acl" - show the ACL
     ShowAcl,
     /// "get allow.read.only" - show if this room is read-only
-    ShowRoomMode,
+    ShowRoomAccess,
     /// "set allow.read.only <state>" - "on": read-only, "off" - read-write
-    SetRoomMode { read_only: bool },
+    SetRoomAccess(RoomAccess),
 
     /// "region load <name> [flood_flag]" - name: "*" represents wildcard region
     ///                                     (optional)flood_flag: "F" to allow flooding
@@ -511,10 +513,17 @@ impl<'a> CliCommands<'a> {
                         if let Some(sf) = values.2 {
                             if let Some(cr) = values.3 {
                                 if let Some(duration_minutes) = values.4 {
-                                    return Ok(Self::SetTempRadioConfig { freq, bw, sf, cr, duration_minutes })
-                                }
-                                else {
-                                    return Err("failed to parse <timeout> (should be integer minutes)");
+                                    return Ok(Self::SetTempRadioConfig {
+                                        freq,
+                                        bw,
+                                        sf,
+                                        cr,
+                                        duration_minutes,
+                                    });
+                                } else {
+                                    return Err(
+                                        "failed to parse <timeout> (should be integer minutes)",
+                                    );
                                 }
                             } else {
                                 return Err("failed to parse <cr>");
@@ -558,12 +567,12 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let setting_str = &s[COMMAND_STRING.len()..];
                 if setting_str.eq("on") {
-                    return Ok(Self::SetRxGain(true))
+                    return Ok(Self::SetRxGain(true));
                 }
                 if setting_str.eq("off") {
-                    return Ok(Self::SetRxGain(false))
+                    return Ok(Self::SetRxGain(false));
                 }
-                return Err("faild to parse value - should be either 'on' or 'off' ")
+                return Err("failed to parse value - should be either 'on' or 'off' ");
             }
         }
         {
@@ -577,9 +586,9 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let name = &s[COMMAND_STRING.len()..];
                 if name.len() > 0 {
-                    return Ok(Self::SetName(name))
+                    return Ok(Self::SetName(name));
                 } else {
-                    return Err("<name> no provided")
+                    return Err("<name> no provided");
                 }
             }
         }
@@ -628,7 +637,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let prv_key = &s[COMMAND_STRING.len()..];
                 if prv_key.len() > 0 {
-                    return Ok(Self::SetPrivateKey(prv_key))
+                    return Ok(Self::SetPrivateKey(prv_key));
                 }
             }
         }
@@ -637,7 +646,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let password = &s[COMMAND_STRING.len()..];
                 if password.len() > 0 {
-                    return Ok(Self::SetAdminPassword(password))
+                    return Ok(Self::SetAdminPassword(password));
                 }
             }
         }
@@ -652,7 +661,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let password = &s[COMMAND_STRING.len()..];
                 if password.len() > 0 {
-                    return Ok(Self::SetGuestPassword(password))
+                    return Ok(Self::SetGuestPassword(password));
                 }
             }
         }
@@ -666,7 +675,7 @@ impl<'a> CliCommands<'a> {
             const COMMAND_STRING: &str = "set owner.info ";
             if s.starts_with(COMMAND_STRING) {
                 let info = &s[COMMAND_STRING.len()..];
-                return Ok(Self::SetOwnerInfo(info))
+                return Ok(Self::SetOwnerInfo(info));
             }
         }
         {
@@ -709,12 +718,12 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let setting_str = &s[COMMAND_STRING.len()..];
                 if setting_str.eq("on") {
-                    return Ok(Self::SetPowerSavingState(true))
+                    return Ok(Self::SetPowerSavingState(true));
                 }
                 if setting_str.eq("off") {
-                    return Ok(Self::SetPowerSavingState(false))
+                    return Ok(Self::SetPowerSavingState(false));
                 }
-                return Err("faild to parse value - should be either 'on' or 'off' ")
+                return Err("failed to parse value - should be either 'on' or 'off' ");
             }
         }
         {
@@ -728,12 +737,12 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let setting_str = &s[COMMAND_STRING.len()..];
                 if setting_str.eq("on") {
-                    return Ok(Self::SetRepeatState(true))
+                    return Ok(Self::SetRepeatState(true));
                 }
                 if setting_str.eq("off") {
-                    return Ok(Self::SetRepeatState(false))
+                    return Ok(Self::SetRepeatState(false));
                 }
-                return Err("faild to parse value - should be either 'on' or 'off' ")
+                return Err("failed to parse value - should be either 'on' or 'off' ");
             }
         }
         {
@@ -748,9 +757,8 @@ impl<'a> CliCommands<'a> {
                 let values = scan!(s[COMMAND_STRING.len()..], u8);
                 if let Some(value) = &values.0 {
                     if let Some(hash_size) = MeshCoreHashSize::from_byte(value) {
-                        return Ok(Self::SetHashSize(hash_size))
-                    }
-                    else {
+                        return Ok(Self::SetHashSize(hash_size));
+                    } else {
                         return Err("<value> must be a decimal [0..2]");
                     }
                 }
@@ -771,8 +779,8 @@ impl<'a> CliCommands<'a> {
                     "minimal" => Ok(Self::SetLoopDetection(LoopDetection::Minimal)),
                     "moderate" => Ok(Self::SetLoopDetection(LoopDetection::Moderate)),
                     "strict" => Ok(Self::SetLoopDetection(LoopDetection::Strict)),
-                    _ => Err("<value> should be one of [off, minimal, moderate, strict]")
-                }
+                    _ => Err("<value> should be one of [off, minimal, moderate, strict]"),
+                };
             }
         }
         {
@@ -854,7 +862,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let values = scan!(s[COMMAND_STRING.len()..], f32);
                 if let Some(int_thresh) = values.0 {
-                    return Ok(Self::SetInterferenceThreshold(int_thresh))
+                    return Ok(Self::SetInterferenceThreshold(int_thresh));
                 } else {
                     return Err("<int_thresh> must be a decimal");
                 }
@@ -871,7 +879,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let values = scan!(s[COMMAND_STRING.len()..], u8);
                 if let Some(agc_reset_interval) = values.0 {
-                    return Ok(Self::SetAgcResetInterval(agc_reset_interval))
+                    return Ok(Self::SetAgcResetInterval(agc_reset_interval));
                 } else {
                     return Err("<interval> must be an integer");
                 }
@@ -891,7 +899,7 @@ impl<'a> CliCommands<'a> {
                     match mode {
                         0 => return Ok(Self::SetMultiAcksEnabled(false)),
                         1 => return Ok(Self::SetMultiAcksEnabled(true)),
-                        _ => return Err("unsupported multi.acks mode '{mode}'")
+                        _ => return Err("unsupported multi.acks mode '{mode}'"),
                     }
                 } else {
                     return Err("<mode> must be an integer");
@@ -909,7 +917,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let values = scan!(s[COMMAND_STRING.len()..], u8);
                 if let Some(interval) = values.0 {
-                    return Ok(Self::SetAdvertInterval(interval))
+                    return Ok(Self::SetAdvertInterval(interval));
                 } else {
                     return Err("<interval> must be an integer");
                 }
@@ -926,7 +934,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let values = scan!(s[COMMAND_STRING.len()..], u8);
                 if let Some(hops) = values.0 {
-                    return Ok(Self::SetUnscopedMaxHopCount(hops))
+                    return Ok(Self::SetUnscopedMaxHopCount(hops));
                 } else {
                     return Err("<interval> must be an integer");
                 }
@@ -943,12 +951,59 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let values = scan!(s[COMMAND_STRING.len()..], u8);
                 if let Some(hops) = values.0 {
-                    return Ok(Self::SetFloodAdvertMaxHopCount(hops))
+                    return Ok(Self::SetFloodAdvertMaxHopCount(hops));
                 } else {
                     return Err("<interval> must be an integer");
                 }
             }
         }
+        {
+            const COMMAND_STRING: &str = "setperm ";
+            if s.starts_with(COMMAND_STRING) {
+                let mut used = COMMAND_STRING.len();
+                if let Some(pubkey_end) = s[used..].find(' ') {
+                    let pubkey = &s[used..(used + pubkey_end)];
+                    used += pubkey_end + 1;
+
+                    let values = scan!(s[used..], u8);
+                    if let Some(level_value) = values.0 {
+                        if let Some(permissions) = PermissionLevel::from_byte(level_value) {
+                            return Ok(Self::SetAclPermissions { pubkey, permissions })
+                        }
+                        else {
+                            return Err("unsupported level: {level_value}")
+                        }
+                    }
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get acl";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowAcl);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get allow.read.only";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowRoomAccess);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set allow.read.only ";
+            if s.starts_with(COMMAND_STRING) {
+                let setting_str = &s[COMMAND_STRING.len()..];
+                if setting_str.eq("on") {
+                    return Ok(Self::SetRoomAccess(RoomAccess::ReadOnly));
+                }
+                if setting_str.eq("off") {
+                    return Ok(Self::SetRoomAccess(RoomAccess::ReadWrite));
+                }
+                return Err("failed to parse value - should be either 'on' or 'off' ");
+            }
+        }
+
+
 
 
 
@@ -972,8 +1027,27 @@ pub enum LoopDetection {
 pub enum PermissionLevel {
     Guest,
     ReadOnly,
+    ReadWrite,
     Admin,
 }
+impl PermissionLevel {
+    fn from_byte(value: u8) -> Option<Self> {
+        return match value {
+            0 => Some(Self::Guest),
+            1 => Some(Self::ReadOnly),
+            2 => Some(Self::ReadWrite),
+            3 => Some(Self::Admin),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum RoomAccess {
+    ReadOnly,
+    ReadWrite,
+}
+
 
 // TESTING
 //--------------------------------------------------------------------------------
@@ -982,7 +1056,7 @@ mod tests {
 
     use core::time::Duration;
 
-use super::*;
+    use super::*;
 
     #[test]
     fn cli_commands() {
@@ -1631,7 +1705,10 @@ use super::*;
             const AGC_RESET_INTERVAL: u8 = 30;
             const COMMAND_STR: &str = "set agc.reset.interval 30";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::SetAgcResetInterval(AGC_RESET_INTERVAL), command);
+                assert_eq!(
+                    CliCommands::SetAgcResetInterval(AGC_RESET_INTERVAL),
+                    command
+                );
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1711,33 +1788,63 @@ use super::*;
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
-  
-  
-  
-  
-  
-  
-  
+        {
+            const COMMAND_STR: &str = "setperm pubkey1 0";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetAclPermissions {
+                        pubkey: "pubkey1",
+                        permissions: PermissionLevel::Guest
+                    },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get acl";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowAcl, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get allow.read.only";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowRoomAccess, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set allow.read.only off";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetRoomAccess(RoomAccess::ReadWrite),
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set allow.read.only on";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetRoomAccess(RoomAccess::ReadOnly),
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
 
 
     }
