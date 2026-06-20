@@ -843,6 +843,112 @@ impl<'a> CliCommands<'a> {
                 }
             }
         }
+        {
+            const COMMAND_STRING: &str = "get int.thresh";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowInterferenceThreshold);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set int.thresh ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], f32);
+                if let Some(int_thresh) = values.0 {
+                    return Ok(Self::SetInterferenceThreshold(int_thresh))
+                } else {
+                    return Err("<int_thresh> must be a decimal");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get agc.reset.interval";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowAgcResetInterval);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set agc.reset.interval ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(agc_reset_interval) = values.0 {
+                    return Ok(Self::SetAgcResetInterval(agc_reset_interval))
+                } else {
+                    return Err("<interval> must be an integer");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get multi.acks";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowMultiAcksEnabled);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set multi.acks ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(mode) = values.0 {
+                    match mode {
+                        0 => return Ok(Self::SetMultiAcksEnabled(false)),
+                        1 => return Ok(Self::SetMultiAcksEnabled(true)),
+                        _ => return Err("unsupported multi.acks mode '{mode}'")
+                    }
+                } else {
+                    return Err("<mode> must be an integer");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get advert.interval";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowAdvertInterval);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set advert.interval ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(interval) = values.0 {
+                    return Ok(Self::SetAdvertInterval(interval))
+                } else {
+                    return Err("<interval> must be an integer");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get flood.max.unscoped";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowUnscopedMaxHopCount);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set flood.max.unscoped ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(hops) = values.0 {
+                    return Ok(Self::SetUnscopedMaxHopCount(hops))
+                } else {
+                    return Err("<interval> must be an integer");
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get flood.max.advert";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowFloodAdvertMaxHopCount);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set flood.max.advert ";
+            if s.starts_with(COMMAND_STRING) {
+                let values = scan!(s[COMMAND_STRING.len()..], u8);
+                if let Some(hops) = values.0 {
+                    return Ok(Self::SetFloodAdvertMaxHopCount(hops))
+                } else {
+                    return Err("<interval> must be an integer");
+                }
+            }
+        }
 
 
 
@@ -1496,6 +1602,118 @@ use super::*;
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
+        {
+            const COMMAND_STR: &str = "get int.thresh";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowInterferenceThreshold, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const INT_THRESH: f32 = 30.5;
+            const COMMAND_STR: &str = "set int.thresh 30.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetInterferenceThreshold(INT_THRESH), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get agc.reset.interval";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowAgcResetInterval, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const AGC_RESET_INTERVAL: u8 = 30;
+            const COMMAND_STR: &str = "set agc.reset.interval 30";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetAgcResetInterval(AGC_RESET_INTERVAL), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get multi.acks";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowMultiAcksEnabled, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set multi.acks 0";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetMultiAcksEnabled(false), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set multi.acks 1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetMultiAcksEnabled(true), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get advert.interval";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowAdvertInterval, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const ADVERT_INTERVAL: u8 = 3;
+            const COMMAND_STR: &str = "set advert.interval 3";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetAdvertInterval(ADVERT_INTERVAL), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get flood.max.unscoped";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowUnscopedMaxHopCount, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const HOPS: u8 = 3;
+            const COMMAND_STR: &str = "set flood.max.unscoped 3";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetUnscopedMaxHopCount(HOPS), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get flood.max.advert";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::ShowFloodAdvertMaxHopCount, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const HOPS: u8 = 3;
+            const COMMAND_STR: &str = "set flood.max.advert 3";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetFloodAdvertMaxHopCount(HOPS), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+  
+  
+  
   
   
   
