@@ -1002,6 +1002,29 @@ impl<'a> CliCommands<'a> {
                 return Err("failed to parse value - should be either 'on' or 'off' ");
             }
         }
+        {
+            const COMMAND_STRING: &str = "region load ";
+            if s.starts_with(COMMAND_STRING) {
+                let mut used = COMMAND_STRING.len();
+                if let Some(name_end) = s[used..].find(' ') {
+                    let name = &s[used..(used + name_end)];
+                    used += name_end + 1;
+
+                    let values = scan!(s[used..], char);
+                    if let Some(flood_flag) = values.0 {
+                        match flood_flag {
+                            'F' => return Ok(Self::SetRegion{name, allow_flood: true}),
+                            _ => return Err("flood flag unknown, expected 'F'")
+                        }
+                    }
+                }
+                else {
+                    let name = &s[used..];
+                    return Ok(Self::SetRegion{name, allow_flood: false})
+                }
+            }
+        }
+
 
 
 
@@ -1834,6 +1857,17 @@ mod tests {
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
                     CliCommands::SetRoomAccess(RoomAccess::ReadOnly),
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region load *";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetRegion{name: "*", allow_flood: false},
                     command
                 );
             } else {
