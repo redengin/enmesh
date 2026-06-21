@@ -1,5 +1,3 @@
-use core::f32::consts::E;
-
 use crate::lora::MeshCoreHashSize;
 
 /// helper macro to provide sscanf functionality
@@ -213,13 +211,13 @@ pub enum CliCommands<'a> {
 
     /// "region load <name> [flood_flag]" - name: "*" represents wildcard region
     ///                                     (optional)flood_flag: "F" to allow flooding
-    SetRegion { name: &'a str, allow_flood: bool },
+    LoadRegionSettings { name: &'a str, allow_flood: bool },
     /// "region save" - save changes to region
-    SaveRegion,
+    SaveRegionSettings,
     /// "region allowf <name>" - allow forwarding for region, name: "*" represents wildcard region
-    AllowRegion { name: &'a str },
+    AllowRegionForwarding { name: &'a str },
     /// "region denyf <name>" - deny forwarding for region, name: "*" represents wildcard region
-    DenyRegion { name: &'a str },
+    DenyRegionForwarding { name: &'a str },
     /// "region get <name>" - show information for region
     ShowRegion { name: &'a str },
     /// "region home" - show home region of this node
@@ -1013,18 +1011,57 @@ impl<'a> CliCommands<'a> {
                     let values = scan!(s[used..], char);
                     if let Some(flood_flag) = values.0 {
                         match flood_flag {
-                            'F' => return Ok(Self::SetRegion{name, allow_flood: true}),
+                            'F' => return Ok(Self::LoadRegionSettings{name, allow_flood: true}),
                             _ => return Err("flood flag unknown, expected 'F'")
                         }
                     }
                 }
                 else {
                     let name = &s[used..];
-                    return Ok(Self::SetRegion{name, allow_flood: false})
+                    return Ok(Self::LoadRegionSettings{name, allow_flood: false})
                 }
             }
         }
-
+        {
+            const COMMAND_STRING: &str = "region save";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::SaveRegionSettings);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "region allowf ";
+            if s.starts_with(COMMAND_STRING) {
+                let name = &s[COMMAND_STRING.len()..];
+                if name.len() > 0 {
+                    return Ok(Self::AllowRegionForwarding { name })
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "region denyf ";
+            if s.starts_with(COMMAND_STRING) {
+                let name = &s[COMMAND_STRING.len()..];
+                if name.len() > 0 {
+                    return Ok(Self::DenyRegionForwarding { name })
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "region get ";
+            if s.starts_with(COMMAND_STRING) {
+                let name = &s[COMMAND_STRING.len()..];
+                if name.len() > 0 {
+                    return Ok(Self::ShowRegion{ name })
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "region home";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::ShowHomeRegion);
+            }
+        }
+ 
 
 
 
@@ -1867,13 +1904,69 @@ mod tests {
             const COMMAND_STR: &str = "region load *";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
-                    CliCommands::SetRegion{name: "*", allow_flood: false},
+                    CliCommands::LoadRegionSettings{name: "*", allow_flood: false},
                     command
                 );
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
+        {
+            const COMMAND_STR: &str = "region save";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SaveRegionSettings, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const REGION: &str = "region1";
+            const COMMAND_STR: &str = "region allowf region1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::AllowRegionForwarding{name: REGION},
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const REGION: &str = "region1";
+            const COMMAND_STR: &str = "region denyf region1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::DenyRegionForwarding { name: REGION },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const REGION: &str = "region1";
+            const COMMAND_STR: &str = "region get region1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::ShowRegion{ name: REGION },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region home";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::ShowHomeRegion,
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+
 
 
 
