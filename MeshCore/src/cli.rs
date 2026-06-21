@@ -229,19 +229,19 @@ pub enum CliCommands<'a> {
     /// "region default {name|<null>}" - set the default region
     SetDefaultRegion { name: Option<&'a str> },
     /// "region put <name> [parent_name]" - create a new region
-    CreateRegion { name: &'a str, parent_name: &'a str },
+    CreateRegion { name: &'a str, parent_name: Option<&'a str> },
     /// "region def <token> [<token>...]" - define region hierarchy using a single line
     ///            tokens: <name> - create name as child of current cursor
     ///                    <name>|<jump> - where jump exists in the previous tokens
     DefineRegionHierarchy {
         region: &'a str,
-        tokens: &'a [&'a str],
+        tokens: &'a[&'a str],
     },
     /// "region remove <name>" - remove a region
     RemoveRegion { name: &'a str },
     /// "region list <filter>" - show regions, filter: "allowed", "denied"
     /// * allowed_denied - true: show the "allowed", false: show the "denied"
-    ShowRegionList { allowed_denied: bool },
+    ShowRegionList { filter: &'a str },
 
     /// "gps" - show if GPS is enabled
     ShowGps,
@@ -1057,10 +1057,92 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "region home";
-            if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowHomeRegion);
+            if s.starts_with(COMMAND_STRING) {
+                if s.len() > COMMAND_STRING.len() {
+                    let name = &s[COMMAND_STRING.len()+1..];
+                    if name.len() > 0 {
+                        return Ok(Self::SetHomeRegion { name: Some(name) })
+                    } else {
+                        return Ok(Self::SetHomeRegion { name: None })
+                    }
+                }
+                return Ok(Self::ShowHomeRegion)
             }
         }
+        {
+            const COMMAND_STRING: &str = "region default";
+            if s.starts_with(COMMAND_STRING) {
+                if s.len() > COMMAND_STRING.len() {
+                    let name = &s[COMMAND_STRING.len()+1..];
+                    if name.len() > 0 {
+                        return match name {
+                            "<null>" => Ok(Self::SetDefaultRegion { name: None }),
+                            _ => Ok(Self::SetDefaultRegion { name: Some(name) })
+                        }
+                    } else {
+                        return Ok(Self::SetDefaultRegion { name: None })
+                    }
+                }
+                return Ok(Self::ShowDefaultRegion)
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "region put ";
+            if s.starts_with(COMMAND_STRING) {
+                let mut used = COMMAND_STRING.len();
+                if let Some(name_end) = s[used..].find(' ') {
+                    let name = &s[used..(used + name_end)];
+                    used += name_end + 1;
+
+                    let parent_name = &s[used..];
+                    if parent_name.len() > 0 {
+                        return Ok(Self::CreateRegion { name, parent_name: Some(parent_name) })
+                    }
+                    else {
+                        return Ok(Self::CreateRegion { name, parent_name: None })
+                    }
+                }
+                else {
+                    let name = &s[used..];
+                    return Ok(Self::CreateRegion { name, parent_name: None })
+                }
+            }
+        }
+        // FIXME
+        // {
+        //     const COMMAND_STRING: &str = "region def ";
+        //     if s.starts_with(COMMAND_STRING) {
+        //         let mut used = COMMAND_STRING.len();
+        //         if let Some(name_end) = s[used..].find(' ') {
+        //             let name = &s[used..(used + name_end)];
+        //             used += name_end + 1;
+
+        //         }
+        //         else {
+        //             let name = &s[used..];
+        //             return Ok(Self::CreateRegion { name, parent_name: None })
+        //         }
+        //     }
+        // }
+        {
+            const COMMAND_STRING: &str = "region remove ";
+            if s.starts_with(COMMAND_STRING) {
+                let name = &s[COMMAND_STRING.len()..];
+                if name.len() > 0 {
+                    return Ok(Self::RemoveRegion { name })
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "region list ";
+            if s.starts_with(COMMAND_STRING) {
+                let filter = &s[COMMAND_STRING.len()..];
+                if filter.len() > 0 {
+                    return Ok(Self::ShowRegionList{ filter })
+                }
+            }
+        }
+ 
  
 
 
@@ -1966,6 +2048,138 @@ mod tests {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
+        {
+            const REGION: &str = "region1";
+            const COMMAND_STR: &str = "region home region1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetHomeRegion { name: Some(REGION) },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region home ";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetHomeRegion { name: None},
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region default";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::ShowDefaultRegion,
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const REGION: &str = "region1";
+            const COMMAND_STR: &str = "region default region1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetDefaultRegion { name: Some(REGION) },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region default <null>";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::SetDefaultRegion { name: None },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const REGION: &str = "region";
+            const COMMAND_STR: &str = "region put region";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::CreateRegion { name: REGION, parent_name: None },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const REGION: &str = "region";
+            const PARENT_REGION: &str = "parent_region";
+            const COMMAND_STR: &str = "region put region parent_region";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::CreateRegion { name: REGION, parent_name: Some(PARENT_REGION) },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        // FIXME
+        // {
+        //     const REGION: &str = "region";
+        //     const TOKEN1: &str = "token1";
+        //     const TOKEN2: &str = "token2";
+        //     const COMMAND_STR: &str = "region def region token1 token2";
+        //     if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+        //         assert_eq!(
+        //             CliCommands::DefineRegionHierarchy { region: REGION, tokens: &[TOKEN1, TOKEN2]},
+        //             command
+        //         );
+        //     } else {
+        //         panic!("failed to parse '{COMMAND_STR}'");
+        //     }
+        // }
+        {
+            const REGION: &str = "region";
+            const COMMAND_STR: &str = "region remove region";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::RemoveRegion { name: REGION },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region list allowed";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::ShowRegionList { filter: "allowed" },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "region list denied";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::ShowRegionList { filter: "denied" },
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+
 
 
 
