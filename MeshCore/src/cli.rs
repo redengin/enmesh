@@ -52,11 +52,11 @@ pub enum CliCommands<'a> {
     /// "clear stats" - clear all statistics
     ClearStatistics,
     /// "stats-core" - show battery level, uptime, tx queue length, and debug flags
-    ShowCoreStats,
+    GetCoreStats,
     /// "stats-radio" - show noise floor, last rssi/snr, airtime, receive errors
-    ShowRadioStats,
+    GetRadioStats,
     /// "stats-packet" - show packet counters (received, sent)
-    ShowPacketStats,
+    GetPacketStats,
 
     /// "log start" - begin logging rx
     StartRxLog,
@@ -65,19 +65,19 @@ pub enum CliCommands<'a> {
     /// "log erase" - erase the logged data
     EraseRxLog,
     /// "log" - show the logged data
-    ShowRxLog,
+    GetRxLog,
 
     /// "ver" - show version
-    ShowVersion,
+    GetVersion,
     /// "board" - show hardware name
-    ShowHardwareName,
+    GetHardwareName,
 
     /// "get radio" - show radio config (<freq>,<bw>,<sf>,<cr>)
-    ShowRadioConfig,
+    GetRadioConfig,
     /// "set radio <freq>,<bw>,<sf>,<cr>" - set the radio config
     SetRadioConfig { freq: f32, bw: f32, sf: u8, cr: u8 },
     /// "get tx" - show tx power (integer dBm)
-    ShowTxPower,
+    GetTxPower,
     /// "set tx <dbm>" - set tx power (integer dBm)
     SetTxPower(i8),
     /// "tempradio <freq>,<bw>,<sf>,<cr>,<timeout_mins>" - change radio parameters for a duration (minutes)
@@ -89,64 +89,64 @@ pub enum CliCommands<'a> {
         duration_minutes: u8,
     },
     /// "get freq"- show the radio frequency
-    ShowFreq,
+    GetFreq,
     /// "set freq <frequency>" - set the radio frequency (in MHz)
     SetFreq(f32),
     /// "get radio.rxgain" - show if rxgain is enabled
-    ShowRxGainStatus,
+    GetRxGainStatus,
     /// "set radio.rxgain <state>" - "on": enable rx gain
     ///                              "off": disable rx gain
     SetRxGain(bool),
 
     /// "get name" - show the name of this device
-    ShowName,
+    GetName,
     /// "set name <name>" - set the name of this device
     SetName(&'a str),
     /// "get lat" - show the latitude of the device
-    ShowLat,
+    GetLat,
     /// "set lat <degrees>" - set the longitude
     SetLat(f32),
     /// "get lon" - show the longitude of the device
-    ShowLon,
+    GetLon,
     /// "set lon <degrees>" - set the longitude
     SetLon(f32),
     /// "get prv.key" - show the private key
-    ShowPrivateKey,
+    GetPrivateKey,
     /// "set prv.key <private key>" - set the private key
     SetPrivateKey(&'a str),
     /// "password <new password>" - change the admin password
     SetAdminPassword(&'a str),
     /// "get guest.password" - show the guest password
-    ShowGuestPassword,
+    GetGuestPassword,
     /// "set guest.password <password>" - set the guest password
     SetGuestPassword(&'a str),
     /// "get owner.info" - show the owner information (text where '|' treated as newline)
-    ShowOwnerInfo,
+    GetOwnerInfo,
     /// "set owner.info <text>" - set the owner information
     SetOwnerInfo(&'a str),
     /// "get adc.multiplier" - show the battery ADC scaling
-    ShowBatteryGain,
+    GetBatteryGain,
     /// "set adc.multiplier <value>" - set the battery ADC scaling
     SetBatteryGain(f32),
     /// "get public.key" - show the public key
-    ShowPublicKey,
+    GetPublicKey,
     /// "get role" - show this node's role
-    ShowRole,
+    GetRole,
     /// "powersaving" - show if power saving is enabled
-    ShowPowerSavingState,
+    GetPowerSavingState,
     /// "powersaving <value>" - "on":enable power saving, "off": disable power saving
     SetPowerSavingState(bool),
 
     /// "get repeat" - show if repeating is enabled
-    ShowRepeatState,
+    GetRepeatState,
     /// "set repeat <state>" - "on": enable / "off": disable
     SetRepeatState(bool),
     /// "get path.hash.mode" - show advert path hash-size
-    ShowHashSize,
+    GetHashSize,
     /// "set path.hash.mode <value>" - 0: 1 byte hash, 1: 2 byte hash, 2: 3 byte hash
     SetHashSize(MeshCoreHashSize),
     /// "get loop.detect" - show if loop-detection enabled
-    ShowLoopDetectState,
+    GetLoopDetectState,
     /// "set loop.detect <state>" - "off": disabled,
     ///                             "minimal"  : 4 or more for 1 byte hash,
     ///                                          2 or more for 2 byte hash,
@@ -161,39 +161,39 @@ pub enum CliCommands<'a> {
     /// "set txdelay <value>" - [0.0 .. 2.0] delay factor
     SetTransmitDelay(f32),
     /// "get rxdelay" - show the receive detlay factor
-    ShowReceiveDelay,
+    GetReceiveDelay,
     /// "set rxdelay <value>" - [0.0 .. 20.0]
     SetReceiveDelay(f32),
     /// "get dutycycle" - show duty cycle
-    ShowDutyCycle,
+    GetDutyCycle,
     /// "set dutycycle <value>" - [0 .. 100]
     SetDutyCycle(u8),
     /// "get af" - show airtime factor
-    ShowAirtimeFactor,
+    GetAirtimeFactor,
     /// "set af <value>" - [0.0 .. 9.0]
     SetAirtimeFactor(f32),
     /// "get int.thresh" - show the interference threshold
-    ShowInterferenceThreshold,
+    GetInterferenceThreshold,
     /// "set int.thresh <value>"
     SetInterferenceThreshold(f32),
     /// "get agc.reset.interval" - show AGC reset interval
-    ShowAgcResetInterval,
+    GetAgcResetInterval,
     /// "set agc.reset.interval <value>" - multiple of 4 seconds (rounds down)
     SetAgcResetInterval(u8),
     /// "get multi.acks" - show if Multi-Acks enabled
-    ShowMultiAcksEnabled,
+    GetMultiAcksEnabled,
     /// "set multi.acks <state>" - 0: disable, 1: enable
     SetMultiAcksEnabled(bool),
     /// "get advert.interval" - show the advertisement interval
-    ShowAdvertInterval,
+    GetAdvertInterval,
     /// "set advert.interval <minutes>" - multiple of 2 seconds (rounds down) [60 .. 240]
     SetAdvertInterval(u8),
     /// "get flood.max.unscoped" - show max hop count for unscoped packets
-    ShowUnscopedMaxHopCount,
+    GetUnscopedMaxHopCount,
     /// "set flood.max.unscoped <value>" - [0 .. 64]
     SetUnscopedMaxHopCount(u8),
     /// "get flood.max.advert" - show max hop count for flood advert
-    ShowFloodAdvertMaxHopCount,
+    GetFloodAdvertMaxHopCount,
     /// "set flood.max.advert <value>" - [0 .. 64]
     SetFloodAdvertMaxHopCount(u8),
 
@@ -203,9 +203,9 @@ pub enum CliCommands<'a> {
         permissions: PermissionLevel,
     },
     /// "get acl" - show the ACL
-    ShowAcl,
+    GetAcl,
     /// "get allow.read.only" - show if this room is read-only
-    ShowRoomAccess,
+    GetRoomAccess,
     /// "set allow.read.only <state>" - "on": read-only, "off" - read-write
     SetRoomAccess(RoomAccess),
 
@@ -219,90 +219,88 @@ pub enum CliCommands<'a> {
     /// "region denyf <name>" - deny forwarding for region, name: "*" represents wildcard region
     DenyRegionForwarding { name: &'a str },
     /// "region get <name>" - show information for region
-    ShowRegion { name: &'a str },
+    GetRegion { name: &'a str },
     /// "region home" - show home region of this node
-    ShowHomeRegion,
+    GetHomeRegion,
     /// "region home <name>" - name: <null> to remove the region
     SetHomeRegion { name: Option<&'a str> },
     /// "region default" - show default scope region for this node
-    ShowDefaultRegion,
+    GetDefaultRegion,
     /// "region default {name|<null>}" - set the default region
     SetDefaultRegion { name: Option<&'a str> },
     /// "region put <name> [parent_name]" - create a new region
-    CreateRegion { name: &'a str, parent_name: Option<&'a str> },
+    CreateRegion {
+        name: &'a str,
+        parent_name: Option<&'a str>,
+    },
     /// "region def <token> [<token>...]" - define region hierarchy using a single line
     ///            tokens: <name> - create name as child of current cursor
     ///                    <name>|<jump> - where jump exists in the previous tokens
     DefineRegionHierarchy {
         region: &'a str,
-        tokens: &'a[&'a str],
+        tokens: &'a [&'a str],
     },
     /// "region remove <name>" - remove a region
     RemoveRegion { name: &'a str },
     /// "region list <filter>" - show regions, filter: "allowed", "denied"
-    /// * allowed_denied - true: show the "allowed", false: show the "denied"
-    ShowRegionList { filter: &'a str },
+    GetRegionList { filter: &'a str },
 
     /// "gps" - show if GPS is enabled
-    ShowGps,
+    GetGps,
     /// "gps <state>" - <state> "on": enable GPS, "off": disable GPS
-    SetGps { enabled: bool },
+    SetGpsEnabled(bool),
     /// "gps sync" - sync time with GPS
     SyncGpsTime,
     /// "gps setloc" - use GPS to set the location
     SyncGpsLocation,
     /// "gps advert" - show the GPS advert policy
-    ShowGpsAdvertPolicy,
+    GetGpsAdvertPolicy,
     /// "gps advert <policy>" - set the GPS advert policy
-    /// * <policy>
-    ///     * "none"
-    ///     * "share"
-    ///     * "prefs"
-    SetGpsAdvertPolicy(u8),
+    SetGpsAdvertPolicy(&'a str),
 
     /// "sensor list [start]" - show sensors, optionally start at [start] index
-    ShowSensors { start_index: u8 },
+    GetSensors { start_index: u8 },
     /// "sensor get <key>" - show the value of a sensor
-    ShowSensor { key: u8 },
+    GetSensor { key: &'a str },
     /// "sensor set <key> <value>" - set the value of a sensor
-    SetSensor { key: u8, value: u8 },
+    SetSensor { key: &'a str, value: f32 },
 
     /// "get bridge.type" - show the bridging mode
-    ShowBridgeType,
+    GetBridgeType,
     /// "get bridge.enabled" - show whether bridging is enabled
-    ShowBridgingEnabled,
+    GetBridgeEnabled,
     /// "set bridge.enabled <state>" - <state> "on": enabled, "off": disabled
-    SetBridingEnabled { support_bridge: bool },
+    SetBridgeEnabled(bool),
     /// "get bridge.delay" - show the bridge delay
-    ShowBridgeDelay,
+    GetBridgeDelay,
     /// "set bridge.delay <ms>" - set the bridge delay in ms
-    SetBridgeDelay { delay_ms: u16 },
+    SetBridgeDelay(u16),
     /// "get bridge.source" - show the number of pakcets on the bridge
-    ShowBridgeSource,
+    GetBridgeSource,
     /// "set bridge.source <source>" - //TODO wtf is this
-    SetBridgeSource(),
+    SetBridgeSource(&'a str),
     /// "get bridge.baud" - show the baudrate supported by the bridge
-    ShowBridgeBaud,
+    GetBridgeBaud,
     /// "set bridge.baud <rate>" - rate: [9600, 19200, 38400, 57600, 115200]
-    SetBridgeBaud { baud: u16 },
+    SetBridgeBaud(u32),
     /// "get bridge.channel" - show the channel for the bridge
-    ShowBridgeChannel,
+    GetBridgeChannel,
     /// "set bridge.channel <channel>" - channel: [1 .. 14]
-    SetBridgeChannel { channel: u8 },
+    SetBridgeChannel(u8),
     /// "get bridge.secret" - show the ESP-NOW secret
-    ShowBridgeSecret,
+    GetBridgeSecret,
     /// "set bridge.secret <secret>" - set the ESP-NOW secret
-    SetBridgeSecret { secret: &'a [u8] },
+    SetBridgeSecret(&'a str),
     /// "get bootloader.ver" - show the NRF52 bootloader version
-    ShowBootLoaderVersion,
+    GetBootLoaderVersion,
     /// "get pwrmgt.support" - show the power management support
-    ShowPowerManagementSupport,
+    GetPowerManagementSupport,
     /// "get pwrmgt.source" - show the power source
-    ShowPowerSource,
+    GetPowerSource,
     /// "get pwrmgmt.bootreason"
-    ShowBootReasons,
-    /// "get pwrmgt.bootmv" - show teh boot voltage
-    ShowBootVoltage,
+    GetBootReason,
+    /// "get pwrmgt.bootmv" - show the boot voltage
+    GetBootVoltage,
 }
 impl<'a> CliCommands<'a> {
     pub fn from_string(s: &'a str) -> Result<Self, &'a str> {
@@ -405,19 +403,19 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "stats-core";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowCoreStats);
+                return Ok(Self::GetCoreStats);
             }
         }
         {
             const COMMAND_STRING: &str = "stats-radio";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRadioStats);
+                return Ok(Self::GetRadioStats);
             }
         }
         {
             const COMMAND_STRING: &str = "stats-packet";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowPacketStats);
+                return Ok(Self::GetPacketStats);
             }
         }
         {
@@ -441,25 +439,25 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "log";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRxLog);
+                return Ok(Self::GetRxLog);
             }
         }
         {
             const COMMAND_STRING: &str = "ver";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowVersion);
+                return Ok(Self::GetVersion);
             }
         }
         {
             const COMMAND_STRING: &str = "board";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowHardwareName);
+                return Ok(Self::GetHardwareName);
             }
         }
         {
             const COMMAND_STRING: &str = "get radio";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRadioConfig);
+                return Ok(Self::GetRadioConfig);
             }
         }
         {
@@ -488,7 +486,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get tx";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowTxPower);
+                return Ok(Self::GetTxPower);
             }
         }
         {
@@ -540,7 +538,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get freq";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowFreq);
+                return Ok(Self::GetFreq);
             }
         }
         {
@@ -557,7 +555,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get radio.rxgain";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRxGainStatus);
+                return Ok(Self::GetRxGainStatus);
             }
         }
         {
@@ -576,7 +574,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get name";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowName);
+                return Ok(Self::GetName);
             }
         }
         {
@@ -593,7 +591,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get lat";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowLat);
+                return Ok(Self::GetLat);
             }
         }
         {
@@ -610,7 +608,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get lon";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowLon);
+                return Ok(Self::GetLon);
             }
         }
         {
@@ -627,7 +625,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get prv.key";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowPrivateKey);
+                return Ok(Self::GetPrivateKey);
             }
         }
         {
@@ -651,7 +649,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get guest.password";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowGuestPassword);
+                return Ok(Self::GetGuestPassword);
             }
         }
         {
@@ -666,7 +664,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get owner.info";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowOwnerInfo);
+                return Ok(Self::GetOwnerInfo);
             }
         }
         {
@@ -679,7 +677,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get adc.multiplier";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowBatteryGain);
+                return Ok(Self::GetBatteryGain);
             }
         }
         {
@@ -696,19 +694,19 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get public.key";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowPublicKey);
+                return Ok(Self::GetPublicKey);
             }
         }
         {
             const COMMAND_STRING: &str = "get role";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRole);
+                return Ok(Self::GetRole);
             }
         }
         {
             const COMMAND_STRING: &str = "powersaving";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowPowerSavingState);
+                return Ok(Self::GetPowerSavingState);
             }
         }
         {
@@ -727,7 +725,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get repeat";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRepeatState);
+                return Ok(Self::GetRepeatState);
             }
         }
         {
@@ -746,7 +744,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get path.hash.mode";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowHashSize);
+                return Ok(Self::GetHashSize);
             }
         }
         {
@@ -765,7 +763,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get loop.detect";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowLoopDetectState);
+                return Ok(Self::GetLoopDetectState);
             }
         }
         {
@@ -801,7 +799,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get rxdelay";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowReceiveDelay);
+                return Ok(Self::GetReceiveDelay);
             }
         }
         {
@@ -818,7 +816,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get dutycycle";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowDutyCycle);
+                return Ok(Self::GetDutyCycle);
             }
         }
         {
@@ -835,7 +833,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get af";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowAirtimeFactor);
+                return Ok(Self::GetAirtimeFactor);
             }
         }
         {
@@ -852,7 +850,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get int.thresh";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowInterferenceThreshold);
+                return Ok(Self::GetInterferenceThreshold);
             }
         }
         {
@@ -869,7 +867,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get agc.reset.interval";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowAgcResetInterval);
+                return Ok(Self::GetAgcResetInterval);
             }
         }
         {
@@ -886,7 +884,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get multi.acks";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowMultiAcksEnabled);
+                return Ok(Self::GetMultiAcksEnabled);
             }
         }
         {
@@ -907,7 +905,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get advert.interval";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowAdvertInterval);
+                return Ok(Self::GetAdvertInterval);
             }
         }
         {
@@ -924,7 +922,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get flood.max.unscoped";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowUnscopedMaxHopCount);
+                return Ok(Self::GetUnscopedMaxHopCount);
             }
         }
         {
@@ -941,7 +939,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get flood.max.advert";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowFloodAdvertMaxHopCount);
+                return Ok(Self::GetFloodAdvertMaxHopCount);
             }
         }
         {
@@ -966,10 +964,12 @@ impl<'a> CliCommands<'a> {
                     let values = scan!(s[used..], u8);
                     if let Some(level_value) = values.0 {
                         if let Some(permissions) = PermissionLevel::from_byte(level_value) {
-                            return Ok(Self::SetAclPermissions { pubkey, permissions })
-                        }
-                        else {
-                            return Err("unsupported level: {level_value}")
+                            return Ok(Self::SetAclPermissions {
+                                pubkey,
+                                permissions,
+                            });
+                        } else {
+                            return Err("unsupported level: {level_value}");
                         }
                     }
                 }
@@ -978,13 +978,13 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "get acl";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowAcl);
+                return Ok(Self::GetAcl);
             }
         }
         {
             const COMMAND_STRING: &str = "get allow.read.only";
             if s.eq(COMMAND_STRING) {
-                return Ok(Self::ShowRoomAccess);
+                return Ok(Self::GetRoomAccess);
             }
         }
         {
@@ -1011,14 +1011,21 @@ impl<'a> CliCommands<'a> {
                     let values = scan!(s[used..], char);
                     if let Some(flood_flag) = values.0 {
                         match flood_flag {
-                            'F' => return Ok(Self::LoadRegionSettings{name, allow_flood: true}),
-                            _ => return Err("flood flag unknown, expected 'F'")
+                            'F' => {
+                                return Ok(Self::LoadRegionSettings {
+                                    name,
+                                    allow_flood: true,
+                                });
+                            }
+                            _ => return Err("flood flag unknown, expected 'F'"),
                         }
                     }
-                }
-                else {
+                } else {
                     let name = &s[used..];
-                    return Ok(Self::LoadRegionSettings{name, allow_flood: false})
+                    return Ok(Self::LoadRegionSettings {
+                        name,
+                        allow_flood: false,
+                    });
                 }
             }
         }
@@ -1033,7 +1040,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let name = &s[COMMAND_STRING.len()..];
                 if name.len() > 0 {
-                    return Ok(Self::AllowRegionForwarding { name })
+                    return Ok(Self::AllowRegionForwarding { name });
                 }
             }
         }
@@ -1042,7 +1049,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let name = &s[COMMAND_STRING.len()..];
                 if name.len() > 0 {
-                    return Ok(Self::DenyRegionForwarding { name })
+                    return Ok(Self::DenyRegionForwarding { name });
                 }
             }
         }
@@ -1051,7 +1058,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let name = &s[COMMAND_STRING.len()..];
                 if name.len() > 0 {
-                    return Ok(Self::ShowRegion{ name })
+                    return Ok(Self::GetRegion { name });
                 }
             }
         }
@@ -1059,31 +1066,31 @@ impl<'a> CliCommands<'a> {
             const COMMAND_STRING: &str = "region home";
             if s.starts_with(COMMAND_STRING) {
                 if s.len() > COMMAND_STRING.len() {
-                    let name = &s[COMMAND_STRING.len()+1..];
+                    let name = &s[COMMAND_STRING.len() + 1..];
                     if name.len() > 0 {
-                        return Ok(Self::SetHomeRegion { name: Some(name) })
+                        return Ok(Self::SetHomeRegion { name: Some(name) });
                     } else {
-                        return Ok(Self::SetHomeRegion { name: None })
+                        return Ok(Self::SetHomeRegion { name: None });
                     }
                 }
-                return Ok(Self::ShowHomeRegion)
+                return Ok(Self::GetHomeRegion);
             }
         }
         {
             const COMMAND_STRING: &str = "region default";
             if s.starts_with(COMMAND_STRING) {
                 if s.len() > COMMAND_STRING.len() {
-                    let name = &s[COMMAND_STRING.len()+1..];
+                    let name = &s[COMMAND_STRING.len() + 1..];
                     if name.len() > 0 {
                         return match name {
                             "<null>" => Ok(Self::SetDefaultRegion { name: None }),
-                            _ => Ok(Self::SetDefaultRegion { name: Some(name) })
-                        }
+                            _ => Ok(Self::SetDefaultRegion { name: Some(name) }),
+                        };
                     } else {
-                        return Ok(Self::SetDefaultRegion { name: None })
+                        return Ok(Self::SetDefaultRegion { name: None });
                     }
                 }
-                return Ok(Self::ShowDefaultRegion)
+                return Ok(Self::GetDefaultRegion);
             }
         }
         {
@@ -1096,15 +1103,22 @@ impl<'a> CliCommands<'a> {
 
                     let parent_name = &s[used..];
                     if parent_name.len() > 0 {
-                        return Ok(Self::CreateRegion { name, parent_name: Some(parent_name) })
+                        return Ok(Self::CreateRegion {
+                            name,
+                            parent_name: Some(parent_name),
+                        });
+                    } else {
+                        return Ok(Self::CreateRegion {
+                            name,
+                            parent_name: None,
+                        });
                     }
-                    else {
-                        return Ok(Self::CreateRegion { name, parent_name: None })
-                    }
-                }
-                else {
+                } else {
                     let name = &s[used..];
-                    return Ok(Self::CreateRegion { name, parent_name: None })
+                    return Ok(Self::CreateRegion {
+                        name,
+                        parent_name: None,
+                    });
                 }
             }
         }
@@ -1129,7 +1143,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let name = &s[COMMAND_STRING.len()..];
                 if name.len() > 0 {
-                    return Ok(Self::RemoveRegion { name })
+                    return Ok(Self::RemoveRegion { name });
                 }
             }
         }
@@ -1138,20 +1152,216 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 let filter = &s[COMMAND_STRING.len()..];
                 if filter.len() > 0 {
-                    return Ok(Self::ShowRegionList{ filter })
+                    return Ok(Self::GetRegionList { filter });
                 }
             }
         }
- 
- 
+        {
+            const COMMAND_STRING: &str = "gps";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetGps);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "gps ";
+            if s.starts_with(COMMAND_STRING) {
+                let subcommand = &s[COMMAND_STRING.len()..];
+                if subcommand == "on" {
+                    return Ok(Self::SetGpsEnabled(true));
+                };
+                if subcommand == "off" {
+                    return Ok(Self::SetGpsEnabled(false));
+                };
+                if subcommand == "sync" {
+                    return Ok(Self::SyncGpsTime);
+                };
+                if subcommand == "setloc" {
+                    return Ok(Self::SyncGpsLocation);
+                };
+                if subcommand == "advert" {
+                    return Ok(Self::GetGpsAdvertPolicy);
+                };
+                if subcommand.starts_with("advert ") {
+                    const SUBCOMMAND_LEN: usize = "advert ".len();
+                    let policy = &subcommand[SUBCOMMAND_LEN..];
+                    return Ok(Self::SetGpsAdvertPolicy(policy));
+                }
 
-
-
-
-
-
-
-
+                return Err("{subcommand} not recognized");
+            };
+        }
+        {
+            const COMMAND_STRING: &str = "sensor list";
+            if s.starts_with(COMMAND_STRING) {
+                return if COMMAND_STRING.len() < s.len() {
+                    let mut used = COMMAND_STRING.len() + 1;
+                    let values = scan!(s[used..], u8);
+                    if let Some(start_index) = values.0 {
+                        Ok(Self::GetSensors { start_index })
+                    } else {
+                        Err("<start_index> should be an integer")
+                    }
+                } else {
+                    Ok(Self::GetSensors { start_index: 0 })
+                };
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "sensor get ";
+            if s.starts_with(COMMAND_STRING) {
+                let mut used = COMMAND_STRING.len();
+                let key = &s[used..];
+                return Ok(Self::GetSensor { key });
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "sensor set ";
+            if s.starts_with(COMMAND_STRING) {
+                let mut used = COMMAND_STRING.len();
+                if let Some(key_end) = s[used..].find(' ') {
+                    let key = &s[used..(used + key_end)];
+                    used += key_end + 1;
+                    let values = scan!(s[used..], f32);
+                    if let Some(value) = values.0 {
+                        return Ok(Self::SetSensor { key, value });
+                    }
+                } else {
+                    let key = &s[used..];
+                    return Ok(Self::GetSensor { key });
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.type";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeType);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.enabled";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeEnabled);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set bridge.enabled ";
+            if s.starts_with(COMMAND_STRING) {
+                let setting_str = &s[COMMAND_STRING.len()..];
+                if setting_str.eq("on") {
+                    return Ok(Self::SetBridgeEnabled(true));
+                }
+                if setting_str.eq("off") {
+                    return Ok(Self::SetBridgeEnabled(false));
+                }
+                return Err("failed to parse value - should be either 'on' or 'off' ");
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.delay";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeDelay);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set bridge.delay ";
+            if s.starts_with(COMMAND_STRING) {
+                let used = COMMAND_STRING.len();
+                let values = scan!(s[used..], u16);
+                if let Some(delay) = values.0 {
+                    return Ok(Self::SetBridgeDelay(delay));
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.source";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeSource);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set bridge.source ";
+            if s.starts_with(COMMAND_STRING) {
+                let used = COMMAND_STRING.len();
+                let source = &s[used..];
+                return Ok(Self::SetBridgeSource(source));
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.baud";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeBaud);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set bridge.baud ";
+            if s.starts_with(COMMAND_STRING) {
+                let used = COMMAND_STRING.len();
+                let values = scan!(s[used..], u32);
+                if let Some(baud) = values.0 {
+                    return Ok(Self::SetBridgeBaud(baud));
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.channel";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeChannel);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set bridge.channel ";
+            if s.starts_with(COMMAND_STRING) {
+                let used = COMMAND_STRING.len();
+                let values = scan!(s[used..], u8);
+                if let Some(channel) = values.0 {
+                    return Ok(Self::SetBridgeChannel(channel));
+                }
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bridge.secret";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBridgeSecret);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "set bridge.secret ";
+            if s.starts_with(COMMAND_STRING) {
+                let used = COMMAND_STRING.len();
+                let secret = &s[used..];
+                return Ok(Self::SetBridgeSecret(secret));
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get bootloader.ver";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBootLoaderVersion);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get pwrmgt.source";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetPowerSource);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get pwrmgt.support";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetPowerManagementSupport);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get pwrmgt.bootreason";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBootReason);
+            }
+        }
+        {
+            const COMMAND_STRING: &str = "get pwrmgt.bootmv";
+            if s.eq(COMMAND_STRING) {
+                return Ok(Self::GetBootVoltage);
+            }
+        }
 
         Err("unknown command {s}")
     }
@@ -1180,7 +1390,7 @@ impl PermissionLevel {
             2 => Some(Self::ReadWrite),
             3 => Some(Self::Admin),
             _ => None,
-        }
+        };
     }
 }
 
@@ -1189,7 +1399,6 @@ pub enum RoomAccess {
     ReadOnly,
     ReadWrite,
 }
-
 
 // TESTING
 //--------------------------------------------------------------------------------
@@ -1327,7 +1536,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "stats-core";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowCoreStats, command);
+                assert_eq!(CliCommands::GetCoreStats, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1335,7 +1544,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "stats-radio";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRadioStats, command);
+                assert_eq!(CliCommands::GetRadioStats, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1343,7 +1552,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "stats-packet";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowPacketStats, command);
+                assert_eq!(CliCommands::GetPacketStats, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1375,7 +1584,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "log";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRxLog, command);
+                assert_eq!(CliCommands::GetRxLog, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1383,7 +1592,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "ver";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowVersion, command);
+                assert_eq!(CliCommands::GetVersion, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1391,7 +1600,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "board";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowHardwareName, command);
+                assert_eq!(CliCommands::GetHardwareName, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1399,7 +1608,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get radio";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRadioConfig, command);
+                assert_eq!(CliCommands::GetRadioConfig, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1427,7 +1636,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get tx";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowTxPower, command);
+                assert_eq!(CliCommands::GetTxPower, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1466,7 +1675,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get freq";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowFreq, command);
+                assert_eq!(CliCommands::GetFreq, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1483,7 +1692,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get radio.rxgain";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRxGainStatus, command);
+                assert_eq!(CliCommands::GetRxGainStatus, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1500,7 +1709,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get name";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowName, command);
+                assert_eq!(CliCommands::GetName, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1517,7 +1726,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get lat";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowLat, command);
+                assert_eq!(CliCommands::GetLat, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1534,7 +1743,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get lon";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowLon, command);
+                assert_eq!(CliCommands::GetLon, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1551,7 +1760,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get prv.key";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowPrivateKey, command);
+                assert_eq!(CliCommands::GetPrivateKey, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1577,7 +1786,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get guest.password";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowGuestPassword, command);
+                assert_eq!(CliCommands::GetGuestPassword, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1594,7 +1803,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get owner.info";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowOwnerInfo, command);
+                assert_eq!(CliCommands::GetOwnerInfo, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1611,7 +1820,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get adc.multiplier";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowBatteryGain, command);
+                assert_eq!(CliCommands::GetBatteryGain, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1628,7 +1837,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get public.key";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowPublicKey, command);
+                assert_eq!(CliCommands::GetPublicKey, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1636,7 +1845,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get role";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRole, command);
+                assert_eq!(CliCommands::GetRole, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1644,7 +1853,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "powersaving";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowPowerSavingState, command);
+                assert_eq!(CliCommands::GetPowerSavingState, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1668,7 +1877,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get repeat";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRepeatState, command);
+                assert_eq!(CliCommands::GetRepeatState, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1692,7 +1901,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get path.hash.mode";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowHashSize, command);
+                assert_eq!(CliCommands::GetHashSize, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1709,7 +1918,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get loop.detect";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowLoopDetectState, command);
+                assert_eq!(CliCommands::GetLoopDetectState, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1770,7 +1979,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get rxdelay";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowReceiveDelay, command);
+                assert_eq!(CliCommands::GetReceiveDelay, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1787,7 +1996,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get dutycycle";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowDutyCycle, command);
+                assert_eq!(CliCommands::GetDutyCycle, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1804,7 +2013,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get af";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowAirtimeFactor, command);
+                assert_eq!(CliCommands::GetAirtimeFactor, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1821,7 +2030,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get int.thresh";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowInterferenceThreshold, command);
+                assert_eq!(CliCommands::GetInterferenceThreshold, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1838,7 +2047,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get agc.reset.interval";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowAgcResetInterval, command);
+                assert_eq!(CliCommands::GetAgcResetInterval, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1858,7 +2067,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get multi.acks";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowMultiAcksEnabled, command);
+                assert_eq!(CliCommands::GetMultiAcksEnabled, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1882,7 +2091,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get advert.interval";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowAdvertInterval, command);
+                assert_eq!(CliCommands::GetAdvertInterval, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1899,7 +2108,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get flood.max.unscoped";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowUnscopedMaxHopCount, command);
+                assert_eq!(CliCommands::GetUnscopedMaxHopCount, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1916,7 +2125,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get flood.max.advert";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowFloodAdvertMaxHopCount, command);
+                assert_eq!(CliCommands::GetFloodAdvertMaxHopCount, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1947,7 +2156,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get acl";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowAcl, command);
+                assert_eq!(CliCommands::GetAcl, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1955,7 +2164,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "get allow.read.only";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(CliCommands::ShowRoomAccess, command);
+                assert_eq!(CliCommands::GetRoomAccess, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1963,10 +2172,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "set allow.read.only off";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::SetRoomAccess(RoomAccess::ReadWrite),
-                    command
-                );
+                assert_eq!(CliCommands::SetRoomAccess(RoomAccess::ReadWrite), command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1974,10 +2180,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "set allow.read.only on";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::SetRoomAccess(RoomAccess::ReadOnly),
-                    command
-                );
+                assert_eq!(CliCommands::SetRoomAccess(RoomAccess::ReadOnly), command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -1986,7 +2189,10 @@ mod tests {
             const COMMAND_STR: &str = "region load *";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
-                    CliCommands::LoadRegionSettings{name: "*", allow_flood: false},
+                    CliCommands::LoadRegionSettings {
+                        name: "*",
+                        allow_flood: false
+                    },
                     command
                 );
             } else {
@@ -2005,10 +2211,7 @@ mod tests {
             const REGION: &str = "region1";
             const COMMAND_STR: &str = "region allowf region1";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::AllowRegionForwarding{name: REGION},
-                    command
-                );
+                assert_eq!(CliCommands::AllowRegionForwarding { name: REGION }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2017,10 +2220,7 @@ mod tests {
             const REGION: &str = "region1";
             const COMMAND_STR: &str = "region denyf region1";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::DenyRegionForwarding { name: REGION },
-                    command
-                );
+                assert_eq!(CliCommands::DenyRegionForwarding { name: REGION }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2029,10 +2229,7 @@ mod tests {
             const REGION: &str = "region1";
             const COMMAND_STR: &str = "region get region1";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::ShowRegion{ name: REGION },
-                    command
-                );
+                assert_eq!(CliCommands::GetRegion { name: REGION }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2040,10 +2237,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "region home";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::ShowHomeRegion,
-                    command
-                );
+                assert_eq!(CliCommands::GetHomeRegion, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2052,10 +2246,7 @@ mod tests {
             const REGION: &str = "region1";
             const COMMAND_STR: &str = "region home region1";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::SetHomeRegion { name: Some(REGION) },
-                    command
-                );
+                assert_eq!(CliCommands::SetHomeRegion { name: Some(REGION) }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2063,10 +2254,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "region home ";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::SetHomeRegion { name: None},
-                    command
-                );
+                assert_eq!(CliCommands::SetHomeRegion { name: None }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2074,10 +2262,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "region default";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::ShowDefaultRegion,
-                    command
-                );
+                assert_eq!(CliCommands::GetDefaultRegion, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2097,10 +2282,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "region default <null>";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::SetDefaultRegion { name: None },
-                    command
-                );
+                assert_eq!(CliCommands::SetDefaultRegion { name: None }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2110,7 +2292,10 @@ mod tests {
             const COMMAND_STR: &str = "region put region";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
-                    CliCommands::CreateRegion { name: REGION, parent_name: None },
+                    CliCommands::CreateRegion {
+                        name: REGION,
+                        parent_name: None
+                    },
                     command
                 );
             } else {
@@ -2123,7 +2308,10 @@ mod tests {
             const COMMAND_STR: &str = "region put region parent_region";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
-                    CliCommands::CreateRegion { name: REGION, parent_name: Some(PARENT_REGION) },
+                    CliCommands::CreateRegion {
+                        name: REGION,
+                        parent_name: Some(PARENT_REGION)
+                    },
                     command
                 );
             } else {
@@ -2149,10 +2337,7 @@ mod tests {
             const REGION: &str = "region";
             const COMMAND_STR: &str = "region remove region";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::RemoveRegion { name: REGION },
-                    command
-                );
+                assert_eq!(CliCommands::RemoveRegion { name: REGION }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2160,10 +2345,7 @@ mod tests {
         {
             const COMMAND_STR: &str = "region list allowed";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-                assert_eq!(
-                    CliCommands::ShowRegionList { filter: "allowed" },
-                    command
-                );
+                assert_eq!(CliCommands::GetRegionList { filter: "allowed" }, command);
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
@@ -2171,22 +2353,256 @@ mod tests {
         {
             const COMMAND_STR: &str = "region list denied";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetRegionList { filter: "denied" }, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetGps, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps on";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetGpsEnabled(true), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps off";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetGpsEnabled(false), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps sync";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SyncGpsTime, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps setloc";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SyncGpsLocation, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps advert";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetGpsAdvertPolicy, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "gps advert POLICY";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetGpsAdvertPolicy("POLICY"), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "sensor list";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetSensors { start_index: 0 }, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "sensor list 100";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetSensors { start_index: 100 }, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "sensor get SENSOR1";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetSensor { key: "SENSOR1" }, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "sensor set SENSOR1 31.5";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
-                    CliCommands::ShowRegionList { filter: "denied" },
+                    CliCommands::SetSensor {
+                        key: "SENSOR1",
+                        value: 31.5
+                    },
                     command
                 );
             } else {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
-
-
-
-
-
-
-
-
-
+        {
+            const COMMAND_STR: &str = "get bridge.type";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeType, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bridge.enabled";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeEnabled, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.enabled on";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeEnabled(true), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.enabled off";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeEnabled(false), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bridge.delay";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeDelay, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.delay 1000";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeDelay(1000), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bridge.source";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeSource, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.source logRx";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeSource("logRx"), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bridge.baud";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeBaud, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.baud 115200";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeBaud(115200), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bridge.channel";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeChannel, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.channel 14";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeChannel(14), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bridge.secret";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBridgeSecret, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "set bridge.secret SECRET";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::SetBridgeSecret("SECRET"), command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get bootloader.ver";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBootLoaderVersion, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get pwrmgt.support";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetPowerManagementSupport, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get pwrmgt.source";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetPowerSource, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get pwrmgt.bootreason";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBootReason, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
+        {
+            const COMMAND_STR: &str = "get pwrmgt.bootmv";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(CliCommands::GetBootVoltage, command);
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
     }
 }
