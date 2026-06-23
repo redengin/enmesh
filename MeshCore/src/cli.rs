@@ -1194,7 +1194,7 @@ impl<'a> CliCommands<'a> {
             const COMMAND_STRING: &str = "sensor list";
             if s.starts_with(COMMAND_STRING) {
                 return if COMMAND_STRING.len() < s.len() {
-                    let mut used = COMMAND_STRING.len() + 1;
+                    let used = COMMAND_STRING.len() + 1;
                     let values = scan!(s[used..], u8);
                     if let Some(start_index) = values.0 {
                         Ok(Self::GetSensors { start_index })
@@ -1209,7 +1209,7 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "sensor get ";
             if s.starts_with(COMMAND_STRING) {
-                let mut used = COMMAND_STRING.len();
+                let used = COMMAND_STRING.len();
                 let key = &s[used..];
                 return Ok(Self::GetSensor { key });
             }
@@ -1404,8 +1404,6 @@ pub enum RoomAccess {
 //--------------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-
-    use core::time::Duration;
 
     use super::*;
 
