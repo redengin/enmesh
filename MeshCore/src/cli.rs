@@ -236,10 +236,7 @@ pub enum CliCommands<'a> {
     /// "region def <token> [<token>...]" - define region hierarchy using a single line
     ///            tokens: <name> - create name as child of current cursor
     ///                    <name>|<jump> - where jump exists in the previous tokens
-    DefineRegionHierarchy {
-        region: &'a str,
-        tokens: &'a [&'a str],
-    },
+    DefineRegionHierarchy(&'a str),
     /// "region remove <name>" - remove a region
     RemoveRegion { name: &'a str },
     /// "region list <filter>" - show regions, filter: "allowed", "denied"
@@ -1122,22 +1119,14 @@ impl<'a> CliCommands<'a> {
                 }
             }
         }
-        // FIXME
-        // {
-        //     const COMMAND_STRING: &str = "region def ";
-        //     if s.starts_with(COMMAND_STRING) {
-        //         let mut used = COMMAND_STRING.len();
-        //         if let Some(name_end) = s[used..].find(' ') {
-        //             let name = &s[used..(used + name_end)];
-        //             used += name_end + 1;
-
-        //         }
-        //         else {
-        //             let name = &s[used..];
-        //             return Ok(Self::CreateRegion { name, parent_name: None })
-        //         }
-        //     }
-        // }
+        {
+            const COMMAND_STRING: &str = "region def ";
+            if s.starts_with(COMMAND_STRING) {
+                let used = COMMAND_STRING.len();
+                let hierarchy = &s[used..];
+                return Ok(Self::DefineRegionHierarchy(hierarchy))
+            }
+        }
         {
             const COMMAND_STRING: &str = "region remove ";
             if s.starts_with(COMMAND_STRING) {
@@ -2316,21 +2305,17 @@ mod tests {
                 panic!("failed to parse '{COMMAND_STR}'");
             }
         }
-        // FIXME
-        // {
-        //     const REGION: &str = "region";
-        //     const TOKEN1: &str = "token1";
-        //     const TOKEN2: &str = "token2";
-        //     const COMMAND_STR: &str = "region def region token1 token2";
-        //     if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
-        //         assert_eq!(
-        //             CliCommands::DefineRegionHierarchy { region: REGION, tokens: &[TOKEN1, TOKEN2]},
-        //             command
-        //         );
-        //     } else {
-        //         panic!("failed to parse '{COMMAND_STR}'");
-        //     }
-        // }
+        {
+            const COMMAND_STR: &str = "region def MAGIC_STRING";
+            if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
+                assert_eq!(
+                    CliCommands::DefineRegionHierarchy("MAGIC_STRING"),
+                    command
+                );
+            } else {
+                panic!("failed to parse '{COMMAND_STR}'");
+            }
+        }
         {
             const REGION: &str = "region";
             const COMMAND_STR: &str = "region remove region";
