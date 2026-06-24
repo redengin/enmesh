@@ -1,4 +1,5 @@
 use trouble_host::prelude::*;
+use trouble_host_embassy_sync as embassy_sync;
 use trouble_host_static_cell as static_cell;
 
 /// Meshtastic Companion BLE protocol
