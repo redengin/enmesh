@@ -17,7 +17,6 @@ pub const NORDIC_UART_RX_CHARACTERISTIC_UUID: BluetoothUuid128 =
 /// MeshCore Companion BLE protocol
 #[gatt_service(uuid = NORDIC_UART_SERVICE_UUID)]
 pub struct MeshCoreService {
-    // #[descriptor(uuid = NORDIC_UART_TX_CHARACTERISTIC_UUID, read)]
     #[characteristic(uuid = NORDIC_UART_TX_CHARACTERISTIC_UUID,
         notify, read, permissions(encrypted), value = [0u8; 2])]
     /// https://github.com/espressif/arduino-esp32/blob/master/libraries/BLE/src/BLE2902.cpp#L61

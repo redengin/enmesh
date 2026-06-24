@@ -1,0 +1,22 @@
+[package]
+name = "meshcore"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = true 
+
+[dependencies]
+trouble-host = { version = "*", features = [
+    "log",
+    "peripheral",
+    "gatt",
+    "central",                      # required for security feature // FIXME  this shouldn't be necessary
+    "security",
+    "derive",                       # provide macros
+    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
+]}
+trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
+trouble-host-static-cell = { package = "static_cell", version = "*"}
+
+[features]
+std = []

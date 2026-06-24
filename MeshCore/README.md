@@ -1,6 +1,5 @@
 MeshCore support (using Rust)
 ================================================================================
-Where MeshCore design is insecure, work on those features will not be maintained.
 
 Insecure MeshCore Designs
 --------------------------------------------------------------------------------
