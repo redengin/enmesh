@@ -1,7 +1,7 @@
 mod server;
 
 // provide the common crates via re-export
-use common::*;
+use common::{trouble_host::att::Att, *};
 
 // provide logging primitives
 use log::*;
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 const TAG: &str = "[BLE Host]";
 
 // provide the enmesh firmware interfaces
-use crate::prelude::*;
+use crate::{ble::meshcore::MeshCoreGattHandler, prelude::*};
 
 // provide the trouble host interfaces
 use trouble_host::prelude::*;
@@ -135,6 +135,7 @@ async fn advertise<'values, 'server, C: Controller>(
             // AdStructure::CompleteServiceUuids128(&[
             AdStructure::ServiceUuids128(&[
                 ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
+                ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
             ]),
         ],
         &mut scan_data[..],
@@ -171,7 +172,7 @@ async fn handle_connection<P: PacketPool>(
     drop(global_state_lock);
 
     // create gatt handlers for the new connection
-    let mut meshcore_handler = meshcore::MeshCoreGattHandler::new(global_state);
+    let mut meshcore_gatt_handler = meshcore::MeshCoreGattHandler::new(global_state);
 
     let mut needs_bond = false;
 
@@ -218,40 +219,8 @@ async fn handle_connection<P: PacketPool>(
             GattConnectionEvent::Disconnected { reason } => break reason,
 
             GattConnectionEvent::Gatt { event } => {
-                let reply = match event {
-                    GattEvent::Read(event) => {
-                        match event.handle() {
-                            // handle meshcore
-                            handle if handle == server.meshcore_service.tx.handle => {
-                                meshcore_handler.handle_gatt_read(
-                                    event,
-                                    &server.meshcore_service,
-                                    handle,
-                                )
-                            }
-                            // ignore others
-                            _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
-                        }
-                    }
-                    GattEvent::Write(event) => {
-                        match event.handle() {
-                            // handle meshcore
-                            handle if handle == server.meshcore_service.tx.handle => {
-                                meshcore_handler.handle_gatt_write(
-                                    event,
-                                    &server.meshcore_service,
-                                    handle,
-                                )
-                            }
-                            // ignore others
-                            _ => event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND),
-                        }
-                    }
-                    _ => event.accept()
-                };
-
-                // send response
-                match reply {
+                // handle event and send response
+                match handle_gatt_event(server, event, &mut meshcore_gatt_handler) {
                     Ok(reply) => reply.send().await,
                     Err(e) => warn!("{TAG} error sending response: {:?}", e),
                 }
@@ -262,6 +231,46 @@ async fn handle_connection<P: PacketPool>(
     };
 
     debug!("{TAG} disconnected: {:?}", reason);
+}
+
+fn handle_gatt_event<'server, 'stack, P: PacketPool>(
+    server: &'server server::Server,
+    event: GattEvent<'stack, 'server, P>,
+    meshcore_gatt_handler: &'server mut MeshCoreGattHandler,
+) -> Result<Reply<'stack, P>, Error> {
+    return match event {
+        GattEvent::Read(event) => {
+            let handle = event.handle();
+            // handle meshcore
+            if handle == server.meshcore_service.tx.handle
+            {
+                // meshcore_gatt_handler.handle_gatt_read(event, service, handle)
+                event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
+            }
+            // handle meshtastic
+            // TODO
+            else {
+                // ignore others
+                event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
+            }
+        }
+        GattEvent::Write(event) => {
+            let handle = event.handle();
+            // handle meshcore
+            if handle == server.meshcore_service.tx.handle
+            {
+                // meshcore_gatt_handler.handle_gatt_write(event, service, handle)
+                event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
+            }
+            // handle meshtastic
+            // TODO
+            else {
+                // ignore others
+                event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
+            }
+        }
+        _ => event.accept()
+    };
 }
 
 /// support for storing BLE bonds
@@ -293,4 +302,3 @@ impl From<StoredBleBond> for trouble_host::BondInformation {
         }
     }
 }
-

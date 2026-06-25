@@ -38,7 +38,7 @@ pub struct MeshtasticService {
     #[descriptor(uuid = descriptors::VALID_RANGE, read, value = [0, 100])]
     #[descriptor(uuid = descriptors::MEASUREMENT_DESCRIPTION, name = "batteryLevel", read, value = "Battery Level", type = &'static str)]
     #[characteristic(uuid = characteristic::BATTERY_LEVEL, read, notify, value = 0)]
-    battery_level: u8,
+    pub battery_level: u8,
 
     #[characteristic(uuid = characteristic::SOFTWARE_REVISION_STRING,
         read, permissions(encrypted))]
