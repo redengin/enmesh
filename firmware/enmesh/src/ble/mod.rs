@@ -1,7 +1,7 @@
 mod server;
 
 // provide the common crates via re-export
-use common::{trouble_host::att::Att, *};
+use common::*;
 
 // provide logging primitives
 use log::*;
@@ -96,6 +96,9 @@ pub async fn run(
                 }
                 Err(e) => {
                     error!("{TAG} failed to advertise: {:?}", e);
+                    warn!("{TAG} BLE advertising is disabled");
+                    // abort BLE advertising
+                    return;
                 }
             }
         }
@@ -119,9 +122,9 @@ async fn advertise<'values, 'server, C: Controller>(
     server: &'server server::Server<'values>,
 ) -> Result<GattConnection<'values, 'server, DefaultPacketPool>, BleHostError<C::Error>> {
     // create the advertisement
-    const BLE_ADV_DATA_SIZE_MAX: usize = 31;
-    const _BLE5_ADV_DATA_SIZE_MAX: usize = 254;
-    let mut advertisement_data = [0; BLE_ADV_DATA_SIZE_MAX];
+    const _BLE_ADV_DATA_SIZE_MAX: usize = 31;
+    const BLE5_ADV_DATA_SIZE_MAX: usize = 254;
+    let mut advertisement_data = [0; BLE5_ADV_DATA_SIZE_MAX];
     let advertisment_len = AdStructure::encode_slice(
         &[
             AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
@@ -129,7 +132,7 @@ async fn advertise<'values, 'server, C: Controller>(
         ],
         &mut advertisement_data[..],
     )?;
-    let mut scan_data = [0; BLE_ADV_DATA_SIZE_MAX];
+    let mut scan_data = [0; BLE5_ADV_DATA_SIZE_MAX];
     let scan_len = AdStructure::encode_slice(
         &[
             // AdStructure::CompleteServiceUuids128(&[
@@ -242,13 +245,18 @@ fn handle_gatt_event<'server, 'stack, P: PacketPool>(
         GattEvent::Read(event) => {
             let handle = event.handle();
             // handle meshcore
-            if handle == server.meshcore_service.tx.handle
+            if server.meshcore_service.handle_range().contains(&handle)
             {
+                // TODO
                 // meshcore_gatt_handler.handle_gatt_read(event, service, handle)
                 event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
             }
             // handle meshtastic
-            // TODO
+            else if server.meshtastic_service.handle_range().contains(&handle)
+            {
+                // TODO
+                event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
+            }
             else {
                 // ignore others
                 event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
@@ -257,18 +265,24 @@ fn handle_gatt_event<'server, 'stack, P: PacketPool>(
         GattEvent::Write(event) => {
             let handle = event.handle();
             // handle meshcore
-            if handle == server.meshcore_service.tx.handle
+            if server.meshcore_service.handle_range().contains(&handle)
             {
+                // TODO
                 // meshcore_gatt_handler.handle_gatt_write(event, service, handle)
                 event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
             }
             // handle meshtastic
-            // TODO
+            else if server.meshcore_service.handle_range().contains(&handle)
+            {
+                // TODO
+                event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
+            }
             else {
                 // ignore others
                 event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
             }
         }
+        // use the trouble reply to other events
         _ => event.accept()
     };
 }
