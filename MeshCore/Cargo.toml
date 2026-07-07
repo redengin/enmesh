@@ -15,7 +15,6 @@ trouble-host = { version = "*", features = [
     "derive",                       # provide macros
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
 ]}
-trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
 trouble-host-static-cell = { package = "static_cell", version = "*"}
 
 [features]

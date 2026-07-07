@@ -51,11 +51,13 @@ async fn main(spawner: embassy_executor::Spawner) {
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
     debug!("initializing storage...");
     let mut storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
-    let persisted_settings_manager = enmesh_firmware::persisted_settings::PersistedSettingsManager::init(
-        global_state,
-        storage.settings_partition_a.as_mut(),
-        storage.settings_partition_b.as_mut(),
-    ).await;
+    let persisted_settings_manager =
+        enmesh_firmware::persisted_settings::PersistedSettingsManager::init(
+            global_state,
+            storage.settings_partition_a.as_mut(),
+            storage.settings_partition_b.as_mut(),
+        )
+        .await;
 
     spawner.spawn(
         task_persisted_settings(
@@ -128,7 +130,7 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     if cfg!(feature = "ble-companion") {
         debug!("creating enmesh ble compantion task...");
-        spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT, peripherals.RNG, peripherals.ADC1).unwrap());
+        spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT).unwrap());
         debug!("enmesh ble companion task created");
     }
 
@@ -144,7 +146,13 @@ pub async fn task_persisted_settings(
 ) {
     debug!("creating persisted settings task...");
 
-    persisted_settings_manager.run(global_state, settings_partition_a.as_mut(), settings_partition_b.as_mut()).await;
+    persisted_settings_manager
+        .run(
+            global_state,
+            settings_partition_a.as_mut(),
+            settings_partition_b.as_mut(),
+        )
+        .await;
 
     error!("persisted settings task ended");
 }

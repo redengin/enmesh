@@ -13,7 +13,6 @@ use crate::{ble::meshcore::MeshCoreGattHandler, prelude::*};
 
 // provide the trouble host interfaces
 use trouble_host::prelude::*;
-use trouble_host_rand_core as rand_core;
 
 // provide additional sync primitives
 use embassy_futures::join::join;
@@ -22,7 +21,6 @@ pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     ble_controller: impl trouble_host::Controller,
     mac: [u8; 6],
-    random_generator: &mut (impl rand_core::RngCore + rand_core::CryptoRng),
 ) {
     debug!("{TAG} starting...");
 
@@ -30,6 +28,7 @@ pub async fn run(
     const CONNECTIONS_MAX: usize = 1;
     const L2CAP_CHANNELS_MAX: usize = 1; // FIXME
     let mut resources: trouble_host::HostResources<
+        _,
         DefaultPacketPool,
         CONNECTIONS_MAX,
         L2CAP_CHANNELS_MAX,
@@ -37,12 +36,12 @@ pub async fn run(
     let stack = trouble_host::new(ble_controller, &mut resources)
         // initialize the ble host address
         .set_random_address(Address::random(mac))
-        .set_random_generator_seed(random_generator);
-    // require the client to input the passkey displayed on the device to pair
-    stack.set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly);
-    debug!("{TAG} stack created");
+        // use display only IO capability for pairing
+        .set_io_capabilities(trouble_host::IoCapabilities::DisplayOnly)
+        .build();
+    debug!("{TAG} BLE stack created...");
 
-    // add any stored bonds (i.e. previous pairings)
+    // add any stored bonds (i.e. pairings)
     let global_state_lock = global_state.read().await;
     let stored_bonds = global_state_lock.settings.ble_settings.bonds.clone();
     drop(global_state_lock);
@@ -60,17 +59,11 @@ pub async fn run(
         }
     }
 
-    // create the BLE host
-    let Host {
-        mut peripheral,
-        runner,
-        ..
-    } = stack.build();
+    // create the BLE Host server
     const BLE_NAME_SIZE_MAX: usize = 29;
     let name = heapless::format!(BLE_NAME_SIZE_MAX; "EnMesh-{:X}{:X}{:X}{:X}{:X}{:X}",
-        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
+        mac[5], mac[4], mac[3], mac[2], mac[1], mac[0])
     .unwrap();
-
     let server = server::Server::new_with_config(GapConfig::Peripheral(PeripheralConfig {
         name: name.as_str(),
         appearance: &appearance::network_device::MESH_DEVICE,
@@ -79,14 +72,14 @@ pub async fn run(
     debug!("{TAG} host created");
 
     // start the ble host
-    let _ = join(ble_task(runner), async {
+    let _ = join(ble_task(stack.runner()), async {
         loop {
             // update the global state
             let mut global_state_lock = global_state.write().await;
             global_state_lock.ble_status = crate::state::BleStatus::Advertising;
             drop(global_state_lock);
 
-            match advertise(name.as_str(), &mut peripheral, &server).await {
+            match advertise(name.as_str(), &mut stack.peripheral(), &server).await {
                 Ok(conn) => {
                     debug!("{TAG} connecting...");
                     // support binding
@@ -129,27 +122,32 @@ async fn advertise<'values, 'server, C: Controller>(
         &[
             AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
             AdStructure::CompleteLocalName(name.as_bytes()),
+            AdStructure::CompleteServiceUuids128(&[
+                ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
+                ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
+            ]),
         ],
         &mut advertisement_data[..],
     )?;
-    let mut scan_data = [0; BLE5_ADV_DATA_SIZE_MAX];
-    let scan_len = AdStructure::encode_slice(
-        &[
-            AdStructure::ServiceUuids128(&[
-                ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
-                // ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
-            ]),
-        ],
-        &mut scan_data[..],
-    )?;
+    // let mut scan_data = [0; BLE5_ADV_DATA_SIZE_MAX];
+    // let scan_len = AdStructure::encode_slice(
+    //     // &[AdStructure::IncompleteServiceUuids128(&[
+    //     &[AdStructure::CompleteServiceUuids128(&[
+    //         ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
+    //         // ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
+    //     ])],
+    //     &mut scan_data[..],
+    // )?;
     info!("{TAG} advertising '{name}'");
+    // info!("{TAG} ad_len: {advertisment_len}  scan_len: {scan_len}");
     // advertise and await a connection
     let advertiser = peripheral
         .advertise(
             &Default::default(),
             Advertisement::ConnectableScannableUndirected {
                 adv_data: &advertisement_data[..advertisment_len],
-                scan_data: &scan_data[..scan_len],
+                // scan_data: &scan_data[..scan_len],
+                scan_data: &[],
             },
         )
         .await?;
@@ -238,25 +236,22 @@ async fn handle_connection<P: PacketPool>(
 fn handle_gatt_event<'server, 'stack, P: PacketPool>(
     server: &'server server::Server,
     event: GattEvent<'stack, 'server, P>,
-    meshcore_gatt_handler: &'server mut MeshCoreGattHandler,
+    _meshcore_gatt_handler: &'server mut MeshCoreGattHandler,
 ) -> Result<Reply<'stack, P>, Error> {
     return match event {
         GattEvent::Read(event) => {
             let handle = event.handle();
             // handle meshcore
-            if server.meshcore_service.handle_range().contains(&handle)
-            {
+            if server.meshcore_service.handle_range().contains(&handle) {
                 // TODO
                 // meshcore_gatt_handler.handle_gatt_read(event, service, handle)
                 event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
             }
             // handle meshtastic
-            else if server.meshtastic_service.handle_range().contains(&handle)
-            {
+            else if server.meshtastic_service.handle_range().contains(&handle) {
                 // TODO
                 event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
-            }
-            else {
+            } else {
                 // ignore others
                 event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
             }
@@ -264,25 +259,22 @@ fn handle_gatt_event<'server, 'stack, P: PacketPool>(
         GattEvent::Write(event) => {
             let handle = event.handle();
             // handle meshcore
-            if server.meshcore_service.handle_range().contains(&handle)
-            {
+            if server.meshcore_service.handle_range().contains(&handle) {
                 // TODO
                 // meshcore_gatt_handler.handle_gatt_write(event, service, handle)
                 event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
             }
             // handle meshtastic
-            else if server.meshcore_service.handle_range().contains(&handle)
-            {
+            else if server.meshcore_service.handle_range().contains(&handle) {
                 // TODO
                 event.reject(AttErrorCode::REQUEST_NOT_SUPPORTED)
-            }
-            else {
+            } else {
                 // ignore others
                 event.reject(AttErrorCode::ATTRIBUTE_NOT_FOUND)
             }
         }
         // use the trouble reply to other events
-        _ => event.accept()
+        _ => event.accept(),
     };
 }
 
@@ -298,7 +290,7 @@ impl From<trouble_host::BondInformation> for StoredBleBond {
     fn from(bond_information: trouble_host::BondInformation) -> Self {
         Self {
             long_term_key: bond_information.ltk.0,
-            peer_address: bond_information.identity.bd_addr.0,
+            peer_address: bond_information.identity.addr.addr.0,
         }
     }
 }
@@ -307,7 +299,10 @@ impl From<StoredBleBond> for trouble_host::BondInformation {
         Self {
             ltk: trouble_host::LongTermKey(stored_bond.long_term_key),
             identity: trouble_host::Identity {
-                bd_addr: BdAddr::new(stored_bond.peer_address),
+                addr: trouble_host::Address{
+                    kind: AddrKind::RANDOM,
+                    addr: BdAddr::new(stored_bond.peer_address)
+                },
                 irk: None,
             },
             is_bonded: true,

@@ -8,7 +8,7 @@ use common::*;
 // provide BLE primitives
 use common::trouble_host::prelude::*;
 // provide an embassy-sync that supports trouble-host
-use common::trouble_host_embassy_sync as embassy_sync;
+// use common::trouble_host_embassy_sync as embassy_sync;
 
 // provide MeshCore BLE support
 use ::meshcore::ble::MeshCoreService;

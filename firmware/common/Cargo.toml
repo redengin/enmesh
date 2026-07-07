@@ -25,7 +25,7 @@ embedded-layout = "*"
 embassy-executor = { version = "*", features = ["log"] }
 embassy-time = { version = "*", features = ["log"] }
 embassy-embedded-hal = "*"
-embassy-sync = { version = "> 0.7", features = ["log"] }  # trouble-host currently depends on 0.7.2 - but we want to use the latest version
+embassy-sync = { version = "*", features = ["log"] }
 embassy-futures = { version = "*", features = ["log"] }
 embassy-usb = { version = "*", features = ["log"] }
 #-------------------------------------------------------------------------------
@@ -56,8 +56,8 @@ trouble-host = { version = "*", features = [
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
 ]}
 # provide dependencies of trouble-host
-trouble-host-rand_core = { package ="rand_core", version = "0.6" }
-trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
+# trouble-host-rand_core = { package ="rand_core", version = "0.6" }
+# trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
 #-------------------------------------------------------------------------------
 
 

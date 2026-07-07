@@ -11,17 +11,17 @@ embedded-storage = "*"
 enmesh-firmware = { path = "../../enmesh" }
 
 # trouble-host tightly coupled to HAL support (bt_hci)
-esp32-trouble-host = { package = "trouble-host", version = "0.6.0", features = [
-    "log",
-    "peripheral",
-    "gatt",
-    "central",                      # required for security feature // FIXME  this shouldn't be necessary
-    "security",
-    "derive",                       # provide macros
-    "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
-]}
-esp32-trouble-host_rand_core = { package = "rand_core", version = "0.6" }
-esp32-trouble-host_embassy-sync = { package = "embassy-sync", version = "0.7.2" }
+# esp32-trouble-host = { package = "trouble-host", version = "0.6.0", features = [
+#     "log",
+#     "peripheral",
+#     "gatt",
+#     "central",                      # required for security feature // FIXME  this shouldn't be necessary
+#     "security",
+#     "derive",                       # provide macros
+#     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
+# ]}
+# esp32-trouble-host_rand_core = { package = "rand_core", version = "0.6" }
+# esp32-trouble-host_embassy-sync = { package = "embassy-sync", version = "0.7.2" }
 
 # ESP32 crates
 #===============================================================================
