@@ -11,6 +11,9 @@ pub use esp_storage;
 pub use esp_radio;
 pub use esp_alloc;
 pub use esp_bootloader_esp_idf;
+pub use esp32_trouble_host;
+pub use esp32_trouble_host_rand_core;
+pub use esp32_trouble_host_embassy_sync;
 
 // provide the shared crates via re-export
 use common::*;
