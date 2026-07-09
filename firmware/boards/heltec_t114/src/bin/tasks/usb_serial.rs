@@ -24,7 +24,6 @@ pub(crate) async fn task_usb_serial(
     // hold off on starting up the serial interface so that boot logging completes
     Timer::after_secs(2).await;
 
-    debug!("initializing usb serial...");
     let esp_serial = esp_hal::uart::Uart::new(
         usb_serial_io.uart,
         esp_hal::uart::Config::default().with_baudrate(115_200), // match Meshcore baudrate
@@ -33,6 +32,7 @@ pub(crate) async fn task_usb_serial(
     .with_rx(usb_serial_io.rx)
     .with_tx(usb_serial_io.tx)
     .into_async();
+    debug!("usb serial initialized");
 
     let serial = EnmeshSerial::new(esp_serial);
     enmesh_firmware::serial::run(&global_state, serial).await;
