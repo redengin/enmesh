@@ -115,39 +115,33 @@ async fn advertise<'values, 'server, C: Controller>(
     server: &'server server::Server<'values>,
 ) -> Result<GattConnection<'values, 'server, DefaultPacketPool>, BleHostError<C::Error>> {
     // create the advertisement
-    const _BLE_ADV_DATA_SIZE_MAX: usize = 31;
-    const BLE5_ADV_DATA_SIZE_MAX: usize = 254;
-    let mut advertisement_data = [0; BLE5_ADV_DATA_SIZE_MAX];
+    const BLE_ADV_DATA_SIZE_MAX: usize = 31;
+    const _BLE5_ADV_DATA_SIZE_MAX: usize = 254;
+    let mut advertisement_data = [0; BLE_ADV_DATA_SIZE_MAX];
     let advertisment_len = AdStructure::encode_slice(
         &[
             AdStructure::Flags(LE_GENERAL_DISCOVERABLE | BR_EDR_NOT_SUPPORTED),
             AdStructure::CompleteLocalName(name.as_bytes()),
-            AdStructure::CompleteServiceUuids128(&[
-                ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
-                ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
-            ]),
         ],
         &mut advertisement_data[..],
     )?;
-    // let mut scan_data = [0; BLE5_ADV_DATA_SIZE_MAX];
-    // let scan_len = AdStructure::encode_slice(
-    //     // &[AdStructure::IncompleteServiceUuids128(&[
-    //     &[AdStructure::CompleteServiceUuids128(&[
-    //         ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
-    //         // ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
-    //     ])],
-    //     &mut scan_data[..],
-    // )?;
+    let mut scan_data = [0; BLE_ADV_DATA_SIZE_MAX];
+    let scan_len = AdStructure::encode_slice(
+        &[AdStructure::IncompleteServiceUuids128(&[
+            ::meshcore::ble::NORDIC_UART_SERVICE_UUID.to_le_bytes(),
+            // FIXME currently another UUID128 won't fit
+            // ::meshtastic::ble::MESHTASTIC_UUID.to_le_bytes(),
+        ])],
+        &mut scan_data[..],
+    )?;
     info!("{TAG} advertising '{name}'");
-    // info!("{TAG} ad_len: {advertisment_len}  scan_len: {scan_len}");
-    // advertise and await a connection
+    // debug!("ad_len: {advertisment_len}  scan_len: {scan_len}");
     let advertiser = peripheral
         .advertise(
             &Default::default(),
             Advertisement::ConnectableScannableUndirected {
                 adv_data: &advertisement_data[..advertisment_len],
-                // scan_data: &scan_data[..scan_len],
-                scan_data: &[],
+                scan_data: &scan_data[..scan_len],
             },
         )
         .await?;
