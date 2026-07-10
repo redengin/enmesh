@@ -13,6 +13,7 @@ pub static STATE: static_cell::StaticCell<RwLock<NoopRawMutex, State>> =
 #[derive(Default, Clone)]
 pub struct State {
     pub firmware_version: &'static str,
+    pub hardware_name: &'static str,
 
     /// settings (persisted in non-volatile memory)
     pub settings: crate::Settings,

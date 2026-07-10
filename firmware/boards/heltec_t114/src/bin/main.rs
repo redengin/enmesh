@@ -46,6 +46,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // create globally shared state
     let state = enmesh_firmware::State {
         firmware_version: env!("CARGO_PKG_VERSION"),
+        hardware_name: "Heltec T114",
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
