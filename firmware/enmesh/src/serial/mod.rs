@@ -83,7 +83,7 @@ async fn handle_command<'a>(
     mode: &mut SessionMode,
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     command: &'a str,
-) -> Result<Option<&'a str>, &'a str> {
+) -> Result<Option<heapless::String<80>>, &'a str> {
     debug!("{TAG} handling command: '{command}'");
 
     if command == "exit" {

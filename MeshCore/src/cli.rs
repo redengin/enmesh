@@ -75,7 +75,7 @@ pub enum CliCommands<'a> {
     /// "get radio" - show radio config (<freq>,<bw>,<sf>,<cr>)
     GetRadioConfig,
     /// "set radio <freq>,<bw>,<sf>,<cr>" - set the radio config
-    SetRadioConfig { freq: f32, bw: f32, sf: u8, cr: u8 },
+    SetRadioConfig { freq: f32, bw_khz: u16, sf: u8, cr: u8 },
     /// "get tx" - show tx power (integer dBm)
     GetTxPower,
     /// "set tx <dbm>" - set tx power (integer dBm)
@@ -460,12 +460,12 @@ impl<'a> CliCommands<'a> {
         {
             const COMMAND_STRING: &str = "set radio ";
             if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32, f32, u8, u8);
+                let values = scan!(s[COMMAND_STRING.len()..], f32, u16, u8, u8);
                 if let Some(freq) = values.0 {
-                    if let Some(bw) = values.1 {
+                    if let Some(bw_khz) = values.1 {
                         if let Some(sf) = values.2 {
                             if let Some(cr) = values.3 {
-                                return Ok(Self::SetRadioConfig { freq, bw, sf, cr });
+                                return Ok(Self::SetRadioConfig { freq, bw_khz, sf, cr });
                             } else {
                                 return Err("failed to parse <cr>");
                             }
@@ -1602,15 +1602,15 @@ mod tests {
         }
         {
             const FREQ: f32 = 869.525;
-            const BW: f32 = 7.8;
+            const BW: u16 = 250;
             const SF: u8 = 5;
             const CR: u8 = 8;
-            const COMMAND_STR: &str = "set radio 869.525,7.8,5,8,100";
+            const COMMAND_STR: &str = "set radio 869.525,250,5,8,100";
             if let Ok(command) = CliCommands::from_string(COMMAND_STR) {
                 assert_eq!(
                     CliCommands::SetRadioConfig {
                         freq: FREQ,
-                        bw: BW,
+                        bw_khz: BW,
                         sf: SF,
                         cr: CR
                     },
