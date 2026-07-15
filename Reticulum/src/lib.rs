@@ -30,7 +30,8 @@ impl Default for Config {
     }
 }
 
+pub mod buffer;
 pub mod error;
 
-pub mod packet;
 mod hash;
+pub mod packet;

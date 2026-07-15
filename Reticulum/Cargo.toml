@@ -13,13 +13,12 @@ enabling both std and embedded environments.
 version = "0.1.0"
 license-file = "LICENSE.md"
 edition = "2024"
-publish = true 
+publish = true
 
 [dependencies]
 # Random Number generator
 rand_core = { version = "*", default-features = false }
 sha2 = { version = "*", default-features = false }
-
 
 
 [features]

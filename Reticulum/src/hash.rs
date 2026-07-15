@@ -33,11 +33,13 @@
 //! println!("Address: {}", random_addr.to_hex_string());
 //! ```
 
-
 use rand_core::CryptoRng;
 use sha2::{Digest, Sha256};
 
 use crate::error::RnsError;
+
+#[cfg(feature = "std")]
+use std::fmt::{self, Write};
 
 /// Size of an address hash in bytes (16 bytes).
 ///
@@ -232,32 +234,49 @@ impl AddressHash {
         *self == Self::new_empty()
     }
 
-    // /// Converts the address hash to a hexadecimal string.
-    // ///
-    // /// Returns a 32-character lowercase hex string representation
-    // /// of the 16-byte address hash.
-    // ///
-    // /// # Example
-    // ///
-    // /// ```
-    // /// use reticulum::hash::AddressHash;
-    // ///
-    // /// let addr = AddressHash::new_from_slice(b"test");
-    // /// let hex = addr.to_hex_string();
-    // /// assert_eq!(hex.len(), 32);
-    // /// ```
-    // FIXME
-    // pub fn to_hex_string(&self) -> String {
-    //     let mut hex_string = String::with_capacity(ADDRESS_HASH_SIZE * 2);
+    /// Converts the address hash to a hexadecimal string.
+    ///
+    /// Returns a 32-character lowercase hex string representation
+    /// of the 16-byte address hash.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use reticulum::hash::AddressHash;
+    ///
+    /// let addr = AddressHash::new_from_slice(b"test");
+    /// let hex = addr.to_hex_string();
+    /// assert_eq!(hex.len(), 32);
+    /// ```
+    #[cfg(feature = "std")]
+    pub fn to_hex_string(&self) -> String {
+        let mut hex_string = String::with_capacity(ADDRESS_HASH_SIZE * 2);
 
-    //     for byte in self.0 {
-    //         write!(&mut hex_string, "{:02x}", byte).unwrap();
-    //     }
+        for byte in self.0 {
+            write!(&mut hex_string, "{:02x}", byte).unwrap();
+        }
 
-    //     hex_string
-    // }
+        hex_string
+    }
 }
+#[cfg(feature = "std")]
+impl fmt::Display for AddressHash {
+    /// Formats the address hash as a Reticulum-style address string.
+    ///
+    /// The format is `/` followed by 32 hex characters (lowercase),
+    /// followed by another `/`.
+    ///
+    /// Example: `/a1b2c3d4e5f60718293a4b5c6d7e8f90/`
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "/")?;
+        for data in self.0.iter() {
+            write!(f, "{:0>2x}", data)?;
+        }
+        write!(f, "/")?;
 
+        Ok(())
+    }
+}
 
 /// Size of a SHA-256 hash in bytes (32 bytes).
 pub const HASH_SIZE: usize = 32;
@@ -423,6 +442,19 @@ impl Hash {
         &mut self.0
     }
 }
+#[cfg(feature = "std")]
+impl fmt::Display for Hash {
+    /// Formats the hash as a hexadecimal string (lowercase).
+    ///
+    /// Example: `a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90`
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for data in self.0.iter() {
+            write!(f, "{:0>2x}", data)?;
+        }
+
+        Ok(())
+    }
+}
 
 /// Creates a SHA-256 hash of the input data.
 ///
@@ -443,8 +475,8 @@ impl Hash {
 /// create_hash(b"test data", &mut hash_out);
 /// ```
 pub fn create_hash(data: &[u8], out: &mut [u8]) {
-    // FIXME
-    // out.copy_from_slice(
-    //     &Sha256::new().chain_update(data).finalize().as_slice()[..cmp::min(out.len(), HASH_SIZE)],
-    // );
+    out.copy_from_slice(
+        &Sha256::new().chain_update(data).finalize().as_slice()
+            [..core::cmp::min(out.len(), HASH_SIZE)],
+    );
 }

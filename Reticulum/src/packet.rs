@@ -55,8 +55,20 @@
 
 use sha2::Digest;
 
+use crate::buffer::StaticBuffer;
 use crate::hash::AddressHash;
 use crate::hash::Hash;
+
+#[cfg(feature = "std")]
+use std::fmt;
+
+/// Maximum size of a packet data buffer (2048 bytes).
+///
+/// This is the maximum payload size for a single Reticulum packet.
+pub const PACKET_MDU: usize = 2048;
+
+/// Type alias for a packet data buffer (StaticBuffer of PACKET_MDU bytes).
+pub type PacketDataBuffer = StaticBuffer<PACKET_MDU>;
 
 /// A Reticulum packet.
 ///
@@ -76,9 +88,8 @@ pub struct ReticulumPacket {
     pub transport: Option<AddressHash>,
     /// Packet context indicating special semantics.
     pub context: PacketContext,
-    // /// The packet data payload.
-    // FIXME shouldn't this be a vector?
-    // pub data: PacketDataBuffer,
+    /// The packet data payload.
+    pub data: PacketDataBuffer,
 }
 impl Default for ReticulumPacket {
     /// Creates a default empty packet.
@@ -86,7 +97,7 @@ impl Default for ReticulumPacket {
         Self {
             header: Default::default(),
             destination: AddressHash::new_empty(),
-            // data: Default::default(),
+            data: Default::default(),
             ifac: None,
             transport: None,
             context: crate::packet::PacketContext::None,
@@ -117,32 +128,31 @@ impl ReticulumPacket {
                 .chain_update([self.header.to_meta() & 0b00001111])
                 .chain_update(self.destination.as_slice())
                 .chain_update([self.context as u8])
-                // FIXME
-                // .chain_update(self.data.as_slice())
+                .chain_update(self.data.as_slice())
                 .finalize()
                 .into(),
         )
     }
 }
-// FIXME
-// impl fmt::Display for Packet {
-//     /// Formats the packet as a human-readable string.
-//     ///
-//     /// Example: `[01.00 0x0001... 0x[100]] /a1b2c3d4e5f6.../ 0x[50]]`
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "[{}", self.header)?;
+#[cfg(feature = "std")]
+impl fmt::Display for ReticulumPacket {
+    /// Formats the packet as a human-readable string.
+    ///
+    /// Example: `[01.00 0x0001... 0x[100]] /a1b2c3d4e5f6.../ 0x[50]]`
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}", self.header)?;
 
-//         if let Some(transport) = self.transport {
-//             write!(f, " {}", transport)?;
-//         }
+        if let Some(transport) = self.transport {
+            write!(f, " {}", transport)?;
+        }
 
-//         write!(f, " {}", self.destination)?;
+        write!(f, " {}", self.destination)?;
 
-//         write!(f, " 0x[{}]]", self.data.len())?;
+        write!(f, " 0x[{}]]", self.data.len())?;
 
-//         Ok(())
-//     }
-// }
+        Ok(())
+    }
+}
 
 /// The header of a Reticulum packet.
 ///
@@ -188,7 +198,6 @@ impl Header {
     /// [IFAC (1 bit)] [Type (1 bit)] [Prop (2 bits)] [Dest (2 bits)] [Packet (2 bits)]
     /// ```
     pub fn to_meta(&self) -> u8 {
-        
         (self.ifac_flag as u8) << 7
             | (self.header_type as u8) << 6
             | (self.propagation_type as u8) << 4
@@ -216,35 +225,24 @@ impl Header {
         }
     }
 }
-// FIXME
-// impl fmt::Display for Header {
-//     /// Formats the header as a human-readable string.
-//     ///
-//     /// Example output: `0110.0` (Type1, Broadcast, Single, Data, 0 hops)
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(
-//             f,
-//             "{:b}{:b}{:0>2b}{:0>2b}{:0>2b}.{}",
-//             self.ifac_flag as u8,
-//             self.header_type as u8,
-//             self.propagation_type as u8,
-//             self.destination_type as u8,
-//             self.packet_type as u8,
-//             self.hops,
-//         )
-//     }
-// }
-
-
-/// Maximum size of a packet data buffer (2048 bytes).
-///
-/// This is the maximum payload size for a single Reticulum packet.
-pub const PACKET_MDU: usize = 2048;
-
-/// Maximum length of the Interface Access Code (IFAC) in bytes.
-///
-/// The IFAC is used for authenticated access to destinations.
-pub const PACKET_IFAC_MAX_LENGTH: usize = 64;
+#[cfg(feature = "std")]
+impl fmt::Display for Header {
+    /// Formats the header as a human-readable string.
+    ///
+    /// Example output: `0110.0` (Type1, Broadcast, Single, Data, 0 hops)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:b}{:b}{:0>2b}{:0>2b}{:0>2b}.{}",
+            self.ifac_flag as u8,
+            self.header_type as u8,
+            self.propagation_type as u8,
+            self.destination_type as u8,
+            self.packet_type as u8,
+            self.hops,
+        )
+    }
+}
 
 /// Interface access flag indicating whether a destination requires authentication.
 ///
@@ -373,6 +371,11 @@ impl From<u8> for PacketType {
     }
 }
 
+/// Maximum length of the Interface Access Code (IFAC) in bytes.
+///
+/// The IFAC is used for authenticated access to destinations.
+pub const PACKET_IFAC_MAX_LENGTH: usize = 64;
+
 /// Interface Access Code (IFAC) for authenticated destinations.
 ///
 /// The IFAC is an optional access code that can be required by destinations
@@ -423,7 +426,6 @@ impl PacketIfac {
         &self.access_code[..self.length]
     }
 }
-
 
 /// Context field providing additional packet semantics.
 ///
@@ -502,8 +504,3 @@ impl From<u8> for PacketContext {
         }
     }
 }
-
-
-
-
-
