@@ -35,6 +35,7 @@ hmac = { version = "*", default-features = false }
 
 [features]
 # enable std support (default no-std)
-std = []
+std = [
+]
 
 fernet-aes128 = []
