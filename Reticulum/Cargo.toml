@@ -19,8 +19,22 @@ publish = true
 # Random Number generator
 rand_core = { version = "*", default-features = false }
 sha2 = { version = "*", default-features = false }
+ed25519-dalek = { version = "*", default-features = false, features = [
+  "rand_core",
+] }
+x25519-dalek = { version = "*", default-features = false, features = [
+  "static_secrets",
+] }
+aes = { version = "*", default-features = false }
+cbc = { version = "*", default-features = false, features = [
+  "block-padding",
+] }
+hkdf = { version = "*", default-features = false }
+hmac = { version = "*", default-features = false }
 
 
 [features]
 # enable std support (default no-std)
 std = []
+
+fernet-aes128 = []

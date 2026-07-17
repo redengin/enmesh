@@ -30,8 +30,13 @@ impl Default for Config {
     }
 }
 
+
+pub mod identity;
+pub mod packet;
+
+
 pub mod buffer;
 pub mod error;
 
 mod hash;
-pub mod packet;
+mod crypt;
