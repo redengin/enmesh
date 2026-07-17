@@ -35,8 +35,9 @@ impl Default for Config {
 // pub mod packet;
 // pub mod destination;
 
-// pub mod buffer;
+// utiltities
+//------------------------------------------------------------------------------
 pub mod error;
-
 pub mod hash;
 pub mod crypt;
+pub mod buffer;
