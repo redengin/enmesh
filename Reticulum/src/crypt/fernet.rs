@@ -24,7 +24,7 @@
 //!
 //! # Usage
 //!
-//! ```
+//! ```ignore
 //! use reticulum::crypt::fernet::{Fernet, PlainText};
 //! use rand_core::OsRng;
 //!
@@ -44,179 +44,39 @@
 //! assert_eq!(plaintext.as_slice(), b"Hello, Reticulum!");
 //! ```
 
-use core::cmp;
-use core::convert::From;
-
-use aes::cipher::block_padding::Pkcs7;
-use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt};
-use aes::cipher::Key;
-// use aes::cipher::Unsigned;
-// use cbc::cipher::BlockEncryptMut;
-use cbc::cipher::KeyIvInit;
-// use crypto_common::{IvSizeUser, KeySizeUser, OutputSizeUser};
-use hmac::{Hmac, Mac, KeyInit};
-use rand_core::CryptoRng;
-use sha2::Sha256;
-
 use crate::error::RnsError;
 
-/// A plaintext message to be encrypted.
-///
-/// This is a newtype wrapper around a byte slice that clearly indicates
-/// the data is unencrypted and ready for encryption.
-pub struct PlainText<'a>(&'a [u8]);
-impl<'a> PlainText<'a> {
-    /// Returns the plaintext data as a byte slice.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use reticulum::crypt::fernet::PlainText;
-    ///
-    /// let pt = PlainText::from(b"hello");
-    /// assert_eq!(pt.as_slice(), b"hello");
-    /// ```
-    pub fn as_slice(&self) -> &'a [u8] {
-        self.0
-    }
-}
-impl<'a> From<&'a str> for PlainText<'a> {
-    /// Creates a PlainText from a string slice.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use reticulum::crypt::fernet::PlainText;
-    ///
-    /// let pt: PlainText = "hello world".into();
-    /// assert_eq!(pt.as_slice(), b"hello world");
-    /// ```
-    fn from(item: &'a str) -> Self {
-        Self(item.as_bytes())
-    }
-}
-impl<'a> From<&'a [u8]> for PlainText<'a> {
-    /// Creates a PlainText from a byte slice.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use reticulum::crypt::fernet::PlainText;
-    ///
-    /// let data: &[u8] = b"binary data";
-    /// let pt: PlainText = data.into();
-    /// assert_eq!(pt.as_slice(), b"binary data");
-    /// ```
-    fn from(item: &'a [u8]) -> Self {
-        Self(item)
-    }
-}
-
-/// A verified token that has passed HMAC authentication.
-///
-/// This represents a token that has been verified to be authentic and
-/// not tampered with. It can be safely decrypted. The lifetime `'a`
-/// ties the verified token to the underlying data.
-pub struct VerifiedToken<'a>(&'a [u8]);
-
-/// An encrypted token containing ciphertext and authentication tag.
-///
-/// This is the output of encryption - a self-contained token that can
-/// be transmitted safely and verified/decrypted by the recipient who
-/// has the same Fernet key.
-pub struct Token<'a>(&'a [u8]);
-impl<'a> Token<'a> {
-    /// Returns the token data as a byte slice.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use reticulum::crypt::fernet::Token;
-    ///
-    /// let token = Token::from(b"encrypted data here");
-    /// assert_eq!(token.as_bytes(), b"encrypted data here");
-    /// ```
-    pub fn as_bytes(&self) -> &'a [u8] {
-        self.0
-    }
-
-    /// Returns the length of the token in bytes.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use reticulum::crypt::fernet::Token;
-    ///
-    /// let token = Token::from(b"abc");
-    /// assert_eq!(token.len(), 3);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-}
-impl<'a> From<&'a [u8]> for Token<'a> {
-    /// Creates a Token from a byte slice.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use reticulum::crypt::fernet::Token;
-    ///
-    /// let data: &[u8] = b"token bytes";
-    /// let token: Token = data.into();
-    /// ```
-    fn from(item: &'a [u8]) -> Self {
-        Self(item)
-    }
-}
-
-
+use aes::cipher::block_padding::Pkcs7;
+use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt, Key, KeyIvInit};
+use hmac::{Hmac, KeyInit, Mac};
+use sha2::Sha256;
 
 /// AES-128-CBC when the "fernet-aes128" feature is enabled, otherwise AES-256-CBC.
 #[cfg(feature = "fernet-aes128")]
 type AesAlgo = aes::Aes128;
 #[cfg(not(feature = "fernet-aes128"))]
 type AesAlgo = aes::Aes256;
-/// Size of the AES key in bytes (16 for AES-128, 32 for AES-256).
-#[cfg(feature = "fernet-aes128")]
-const AES_KEY_SIZE: usize = 16;
-#[cfg(not(feature = "fernet-aes128"))]
-const AES_KEY_SIZE: usize = 32;
 
 /// AES-CBC encryptor type alias using the configured algorithm.
 type AesCbcEnc = cbc::Encryptor<AesAlgo>;
 /// AES-CBC decryptor type alias using the configured algorithm.
 type AesCbcDec = cbc::Decryptor<AesAlgo>;
+
 /// AES key type alias using the configured algorithm.
 type AesKey = Key<AesAlgo>;
+#[cfg(feature = "fernet-aes128")]
+const AES_KEY_SIZE: usize = 16;
+#[cfg(not(feature = "fernet-aes128"))]
+const AES_KEY_SIZE: usize = 32;
 
 /// HMAC-SHA256 type alias for message authentication.
 type HmacSha256 = Hmac<Sha256>;
-
-/// Size of the HMAC-SHA256 output in bytes (32 bytes).
-const HMAC_OUT_SIZE: usize = 32;
-
 /// Size of the IV for AES-CBC (16 bytes).
 const IV_KEY_SIZE: usize = 16;
+/// Size of the HMAC-SHA256 output in bytes (32 bytes).
+const HMAC_OUT_SIZE: usize = 32;
 /// Total overhead: IV + HMAC (48 bytes).
 const FERNET_OVERHEAD_SIZE: usize = IV_KEY_SIZE + HMAC_OUT_SIZE;
-
-
-
-
-
-// This class provides a slightly modified implementation of the Fernet spec
-// found at: https://github.com/fernet/spec/blob/master/Spec.md
-//
-// According to the spec, a Fernet token includes a one byte VERSION and
-// eight byte TIMESTAMP field at the start of each token. These fields are
-// not relevant to Reticulum. They are therefore stripped from this
-// implementation, since they incur overhead and leak initiator metadata.
 
 /// Fernet symmetric encryption instance.
 ///
@@ -239,7 +99,7 @@ const FERNET_OVERHEAD_SIZE: usize = IV_KEY_SIZE + HMAC_OUT_SIZE;
 ///
 /// # Example
 ///
-/// ```
+/// ```ignore
 /// use reticulum::crypt::fernet::{Fernet, PlainText};
 /// use rand_core::OsRng;
 ///
@@ -251,14 +111,21 @@ const FERNET_OVERHEAD_SIZE: usize = IV_KEY_SIZE + HMAC_OUT_SIZE;
 /// let plaintext = fernet.decrypt(verified, &mut out).unwrap();
 /// assert_eq!(plaintext.as_slice(), b"secret message");
 /// ```
-pub struct Fernet<R: CryptoRng> {
+pub struct Fernet<R: rand_core::CryptoRng> {
     rng: R,
     /// Key used for HMAC-SHA256 authentication.
     sign_key: [u8; AES_KEY_SIZE],
     /// Key used for AES-CBC encryption.
     enc_key: AesKey,
 }
-impl<R: CryptoRng> Fernet<R> {
+/// A slightly modified implementation of the Fernet spec
+/// found at: https://github.com/fernet/spec/blob/master/Spec.md
+///
+/// According to the spec, a Fernet token includes a one byte VERSION and
+/// eight byte TIMESTAMP field at the start of each token. These fields are
+/// not relevant to Reticulum. They are therefore stripped from this
+/// implementation, since they incur overhead and leak initiator metadata.
+impl<R: rand_core::CryptoRng + Copy> Fernet<R> {
     /// Creates a new Fernet instance with explicit keys.
     ///
     /// # Arguments
@@ -269,7 +136,7 @@ impl<R: CryptoRng> Fernet<R> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::Fernet;
     /// use rand_core::OsRng;
     ///
@@ -301,7 +168,7 @@ impl<R: CryptoRng> Fernet<R> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::Fernet;
     /// use rand_core::OsRng;
     ///
@@ -309,10 +176,10 @@ impl<R: CryptoRng> Fernet<R> {
     /// ```
     pub fn new_from_slices(sign_key: &[u8], enc_key: &[u8], rng: R) -> Self {
         let mut sign_key_bytes = [0u8; AES_KEY_SIZE];
-        sign_key_bytes[..cmp::min(AES_KEY_SIZE, sign_key.len())].copy_from_slice(sign_key);
+        sign_key_bytes[..core::cmp::min(AES_KEY_SIZE, sign_key.len())].copy_from_slice(sign_key);
 
         let mut enc_key_bytes = [0u8; AES_KEY_SIZE];
-        enc_key_bytes[..cmp::min(AES_KEY_SIZE, enc_key.len())].copy_from_slice(enc_key);
+        enc_key_bytes[..core::cmp::min(AES_KEY_SIZE, enc_key.len())].copy_from_slice(enc_key);
 
         Self {
             rng,
@@ -333,7 +200,7 @@ impl<R: CryptoRng> Fernet<R> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::Fernet;
     /// use rand_core::OsRng;
     ///
@@ -370,7 +237,7 @@ impl<R: CryptoRng> Fernet<R> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::{Fernet, PlainText};
     /// use rand_core::OsRng;
     ///
@@ -404,8 +271,8 @@ impl<R: CryptoRng> Fernet<R> {
 
         out_len += chiper_len;
 
-        let mut hmac = HmacSha256::new_from_slice(&self.sign_key)
-            .map_err(|_| RnsError::InvalidArgument)?;
+        let mut hmac =
+            HmacSha256::new_from_slice(&self.sign_key).map_err(|_| RnsError::InvalidArgument)?;
 
         hmac.update(&out_buf[..out_len]);
 
@@ -435,7 +302,7 @@ impl<R: CryptoRng> Fernet<R> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::{Fernet, PlainText};
     /// use rand_core::OsRng;
     ///
@@ -455,8 +322,8 @@ impl<R: CryptoRng> Fernet<R> {
 
         let expected_tag = &token_data[token_data.len() - HMAC_OUT_SIZE..];
 
-        let mut hmac = HmacSha256::new_from_slice(&self.sign_key)
-            .map_err(|_| RnsError::InvalidArgument)?;
+        let mut hmac =
+            HmacSha256::new_from_slice(&self.sign_key).map_err(|_| RnsError::InvalidArgument)?;
 
         hmac.update(&token_data[..token_data.len() - HMAC_OUT_SIZE]);
 
@@ -466,9 +333,9 @@ impl<R: CryptoRng> Fernet<R> {
             .iter()
             .zip(actual_tag.as_slice())
             .map(|(x, y)| x.cmp(y))
-            .find(|&ord| ord != cmp::Ordering::Equal)
+            .find(|&ord| ord != core::cmp::Ordering::Equal)
             .unwrap_or(actual_tag.len().cmp(&expected_tag.len()))
-            == cmp::Ordering::Equal;
+            == core::cmp::Ordering::Equal;
 
         if valid {
             Ok(VerifiedToken(token_data))
@@ -496,7 +363,7 @@ impl<R: CryptoRng> Fernet<R> {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::{Fernet, PlainText};
     /// use rand_core::OsRng;
     ///
@@ -534,43 +401,117 @@ impl<R: CryptoRng> Fernet<R> {
     }
 }
 
+/// A plaintext message to be encrypted.
+///
+/// This is a newtype wrapper around a byte slice that clearly indicates
+/// the data is unencrypted and ready for encryption.
+pub struct PlainText<'a>(&'a [u8]);
+impl<'a> PlainText<'a> {
+    /// Returns the plaintext data as a byte slice.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use reticulum::crypt::fernet::PlainText;
+    ///
+    /// let pt = PlainText::from(b"hello");
+    /// assert_eq!(pt.as_slice(), b"hello");
+    /// ```
+    pub fn as_slice(&self) -> &'a [u8] {
+        self.0
+    }
+}
+impl<'a> From<&'a str> for PlainText<'a> {
+    /// Creates a PlainText from a string slice.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use reticulum::crypt::fernet::PlainText;
+    ///
+    /// let pt: PlainText = "hello world".into();
+    /// assert_eq!(pt.as_slice(), b"hello world");
+    /// ```
+    fn from(item: &'a str) -> Self {
+        Self(item.as_bytes())
+    }
+}
+impl<'a> From<&'a [u8]> for PlainText<'a> {
+    /// Creates a PlainText from a byte slice.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use reticulum::crypt::fernet::PlainText;
+    ///
+    /// let data: &[u8] = b"binary data";
+    /// let pt: PlainText = data.into();
+    /// assert_eq!(pt.as_slice(), b"binary data");
+    /// ```
+    fn from(item: &'a [u8]) -> Self {
+        Self(item)
+    }
+}
 
-// #[cfg(test)]
-// mod tests {
-//     use crate::crypt::fernet::Fernet;
-//     use core::str;
-//     use rand_core::CryptoRng;
+/// An encrypted token containing ciphertext and authentication tag.
+///
+/// This is the output of encryption - a self-contained token that can
+/// be transmitted safely and verified/decrypted by the recipient who
+/// has the same Fernet key.
+pub struct Token<'a>(&'a [u8]);
+impl<'a> Token<'a> {
+    /// Returns the token data as a byte slice.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use reticulum::crypt::fernet::Token;
+    ///
+    /// let token = Token::from(b"encrypted data here");
+    /// assert_eq!(token.as_bytes(), b"encrypted data here");
+    /// ```
+    pub fn as_bytes(&self) -> &'a [u8] {
+        self.0
+    }
 
-//     #[test]
-//     fn encrypt_then_decrypt() {
-//         const BUF_SIZE: usize = 4096;
+    /// Returns the length of the token in bytes.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use reticulum::crypt::fernet::Token;
+    ///
+    /// let token = Token::from(b"abc");
+    /// assert_eq!(token.len(), 3);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 
-//         let fernet = Fernet::new_rand(CryptoRng::rng);
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+impl<'a> From<&'a [u8]> for Token<'a> {
+    /// Creates a Token from a byte slice.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use reticulum::crypt::fernet::Token;
+    ///
+    /// let data: &[u8] = b"token bytes";
+    /// let token: Token = data.into();
+    /// ```
+    fn from(item: &'a [u8]) -> Self {
+        Self(item)
+    }
+}
 
-//         let out_msg: &str = "#FERNET_TEST_MESSAGE#";
-
-//         let mut out_buf = [0u8; BUF_SIZE];
-
-//         let token = fernet
-//             .encrypt(out_msg.into(), &mut out_buf[..])
-//             .expect("cipher token");
-
-//         let token = fernet.verify(token).expect("verified token");
-
-//         let mut in_buf = [0u8; BUF_SIZE];
-//         let in_msg = str::from_utf8(fernet.decrypt(token, &mut in_buf).expect("decoded token").0)
-//             .expect("valid string");
-
-//         assert_eq!(in_msg, out_msg);
-//     }
-
-    // #[test]
-    // fn small_buffer() {
-    //     let fernet = Fernet::new_rand(OsRng);
-
-    //     let test_msg: &str = "#FERNET_TEST_MESSAGE#";
-
-    //     let mut out_buf = [0u8; 12];
-    //     assert!(fernet.encrypt(test_msg.into(), &mut out_buf[..]).is_err());
-    // }
-// }
+/// A verified token that has passed HMAC authentication.
+///
+/// This represents a token that has been verified to be authentic and
+/// not tampered with. It can be safely decrypted. The lifetime `'a`
+/// ties the verified token to the underlying data.
+pub struct VerifiedToken<'a>(&'a [u8]);

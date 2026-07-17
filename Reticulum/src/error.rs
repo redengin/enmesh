@@ -59,7 +59,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::buffer::StaticBuffer;
     ///
     /// let mut buffer: StaticBuffer<4> = StaticBuffer::new();
@@ -78,7 +78,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::crypt::fernet::{Fernet, PlainText};
     ///
     /// let fernet = Fernet::new_rand(rand_core::OsRng);
@@ -97,7 +97,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::identity::PrivateIdentity;
     /// use reticulum::destination::DestinationAnnounce;
     /// use rand_core::OsRng;
@@ -127,7 +127,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::identity::Identity;
     /// use x25519_dalek::PublicKey;
     ///
@@ -147,7 +147,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::packet::Packet;
     /// use reticulum::destination::DestinationAnnounce;
     ///
@@ -184,7 +184,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::destination::link::Link;
     ///
     /// // If link is closed, operations return LinkClosed

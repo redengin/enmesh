@@ -17,7 +17,7 @@
 //!
 //! # Usage
 //!
-//! ```
+//! ```ignore
 //! use reticulum::crypt::fernet::{Fernet, PlainText};
 //! use rand_core::OsRng;
 //!

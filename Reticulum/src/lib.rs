@@ -31,12 +31,12 @@ impl Default for Config {
 }
 
 
-pub mod identity;
-pub mod packet;
+// pub mod identity;
+// pub mod packet;
+// pub mod destination;
 
-
-pub mod buffer;
+// pub mod buffer;
 pub mod error;
 
-mod hash;
-mod crypt;
+pub mod hash;
+pub mod crypt;

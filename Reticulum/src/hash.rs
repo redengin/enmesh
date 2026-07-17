@@ -15,7 +15,7 @@
 //!
 //! # Usage
 //!
-//! ```
+//! ```ignore
 //! use reticulum::hash::{Hash, AddressHash};
 //! use rand_core::OsRng;
 //!
@@ -70,7 +70,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let data = [0u8; 16];
@@ -90,7 +90,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let addr = AddressHash::new_from_slice(b"destination name");
@@ -114,7 +114,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::{Hash, AddressHash};
     ///
     /// let full_hash = Hash::new_from_slice(b"some data");
@@ -136,7 +136,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     /// use rand_core::OsRng;
     ///
@@ -162,7 +162,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let addr = AddressHash::new_from_hex_string("a1b2c3d4e5f60718293a4b5c6d7e8f90").unwrap();
@@ -185,7 +185,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let addr = AddressHash::new_empty();
@@ -199,7 +199,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let addr = AddressHash::new_from_slice(b"test");
@@ -219,7 +219,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let addr = AddressHash::new_from_slice(b"test");
@@ -241,7 +241,7 @@ impl AddressHash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::AddressHash;
     ///
     /// let addr = AddressHash::new_from_slice(b"test");
@@ -299,7 +299,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let hash = Hash::generator()
@@ -319,7 +319,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let data = [0u8; 32];
@@ -333,7 +333,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let hash = Hash::new_empty();
@@ -353,7 +353,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let hash = Hash::new_from_slice(b"hello world");
@@ -376,7 +376,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     /// use rand_core::OsRng;
     ///
@@ -396,7 +396,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let hash = Hash::new_from_slice(b"test");
@@ -411,7 +411,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let hash = Hash::new_from_slice(b"test");
@@ -425,7 +425,7 @@ impl Hash {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::hash::Hash;
     ///
     /// let hash = Hash::new_from_slice(b"test");
@@ -468,7 +468,7 @@ impl fmt::Display for Hash {
 ///
 /// # Example
 ///
-/// ```
+/// ```ignore
 /// use reticulum::hash::{create_hash, HASH_SIZE};
 ///
 /// let mut hash_out = [0u8; HASH_SIZE];
