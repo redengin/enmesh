@@ -31,8 +31,10 @@ impl Default for Config {
 }
 
 
-// pub mod identity;
-// pub mod packet;
+// reticulum core functionality
+//------------------------------------------------------------------------------
+pub mod identity;
+pub mod packet;
 // pub mod destination;
 
 // utiltities

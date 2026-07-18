@@ -32,8 +32,8 @@
 //!
 //! // Create a simple packet
 //! let header = Header {
-//!     ifac_flag: crate::packet::IfacFlag::Open,
-//!     header_type: crate::packet::HeaderType::Type1,
+//!     ifac_flag: reticulum::packet::IfacFlag::Open,
+//!     header_type: reticulum::packet::HeaderType::Type1,
 //!     propagation_type: PropagationType::Broadcast,
 //!     destination_type: DestinationType::Single,
 //!     packet_type: PacketType::Data,
@@ -46,9 +46,9 @@
 //! let packet = Packet {
 //!     header,
 //!     ifac: None,
-//!     destination: crate::hash::AddressHash::new_empty(),
+//!     destination: reticulum::hash::AddressHash::new_empty(),
 //!     transport: None,
-//!     context: crate::packet::PacketContext::None,
+//!     context: reticulum::packet::PacketContext::None,
 //!     data,
 //! };
 //! ```
@@ -77,7 +77,7 @@ pub type PacketDataBuffer = StaticBuffer<PACKET_MDU>;
 /// context, and data payload.
 // #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[derive(Debug)]
-pub struct ReticulumPacket {
+pub struct Packet {
     /// The packet header containing metadata.
     pub header: Header,
     /// Optional interface access code for authenticated destinations.
@@ -91,7 +91,7 @@ pub struct ReticulumPacket {
     /// The packet data payload.
     pub data: PacketDataBuffer,
 }
-impl Default for ReticulumPacket {
+impl Default for Packet {
     /// Creates a default empty packet.
     fn default() -> Self {
         Self {
@@ -104,7 +104,7 @@ impl Default for ReticulumPacket {
         }
     }
 }
-impl ReticulumPacket {
+impl Packet {
     /// Computes a hash of the packet for identification.
     ///
     /// The hash is derived from the header, destination, context, and data.
@@ -135,7 +135,7 @@ impl ReticulumPacket {
     }
 }
 #[cfg(feature = "std")]
-impl fmt::Display for ReticulumPacket {
+impl fmt::Display for Packet {
     /// Formats the packet as a human-readable string.
     ///
     /// Example: `[01.00 0x0001... 0x[100]] /a1b2c3d4e5f6.../ 0x[50]]`
@@ -194,7 +194,7 @@ impl Header {
     ///
     /// # Format
     ///
-    /// ```
+    /// ```ignore
     /// [IFAC (1 bit)] [Type (1 bit)] [Prop (2 bits)] [Dest (2 bits)] [Packet (2 bits)]
     /// ```
     pub fn to_meta(&self) -> u8 {

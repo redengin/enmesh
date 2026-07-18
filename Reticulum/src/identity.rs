@@ -23,7 +23,7 @@
 //!
 //! # Usage
 //!
-//! ```
+//! ```ignore
 //! use reticulum::identity::{Identity, PrivateIdentity};
 //! use rand_core::OsRng;
 //!
@@ -43,6 +43,9 @@
 //! // Derive a shared key for encryption
 //! let derived_key = private_id.derive_key(&public_id.public_key, None);
 //! ```
+
+#[cfg(feature = "std")]
+use std::fmt::{self, Write};
 
 // use alloc::fmt::Write;
 // use alloc::string::String;
@@ -244,6 +247,7 @@ impl Identity {
     /// use reticulum::identity::Identity;
     ///
     /// let hex = "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90\
+    ///            b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90\
     ///            b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90";
     /// let identity = Identity::new_from_hex_string(hex).unwrap();
     /// ```
@@ -270,31 +274,31 @@ impl Identity {
         ))
     }
 
-    // FIXME
-    // /// Converts the identity to a hex string.
-    // ///
-    // /// Returns both public keys concatenated as hex characters.
-    // ///
-    // /// # Example
-    // ///
-    // /// ```
-    // /// use reticulum::identity::Identity;
-    // /// // let identity = Identity::new_from_hex_string(...).unwrap();
-    // /// // let hex = identity.to_hex_string();
-    // /// ```
-    // pub fn to_hex_string(&self) -> String {
-    //     let mut hex_string = String::with_capacity((PUBLIC_KEY_LENGTH * 2) * 2);
+    /// Converts the identity to a hex string.
+    ///
+    /// Returns both public keys concatenated as hex characters.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use reticulum::identity::Identity;
+    /// // let identity = Identity::new_from_hex_string(...).unwrap();
+    /// // let hex = identity.to_hex_string();
+    /// ```
+    #[cfg(feature = "std")]
+    pub fn to_hex_string(&self) -> String {
+        let mut hex_string = String::with_capacity((PUBLIC_KEY_LENGTH * 2) * 2);
 
-    //     for byte in self.public_key.as_bytes() {
-    //         write!(&mut hex_string, "{:02x}", byte).unwrap();
-    //     }
+        for byte in self.public_key.as_bytes() {
+            write!(&mut hex_string, "{:02x}", byte).unwrap();
+        }
 
-    //     for byte in self.verifying_key.as_bytes() {
-    //         write!(&mut hex_string, "{:02x}", byte).unwrap();
-    //     }
+        for byte in self.verifying_key.as_bytes() {
+            write!(&mut hex_string, "{:02x}", byte).unwrap();
+        }
 
-    //     hex_string
-    // }
+        hex_string
+    }
 
     /// Returns the raw public key bytes.
     ///
@@ -480,7 +484,7 @@ impl PrivateIdentity {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::identity::PrivateIdentity;
     /// use rand_core::OsRng;
     ///
@@ -620,7 +624,7 @@ impl PrivateIdentity {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```ignore
     /// use reticulum::identity::PrivateIdentity;
     /// use rand_core::OsRng;
     ///

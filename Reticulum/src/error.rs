@@ -59,7 +59,7 @@ pub enum RnsError {
     ///
     /// # Example
     ///
-    /// ```ignore
+    /// ```
     /// use reticulum::buffer::StaticBuffer;
     ///
     /// let mut buffer: StaticBuffer<4> = StaticBuffer::new();
