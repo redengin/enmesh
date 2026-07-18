@@ -205,7 +205,6 @@ impl<const N: usize> StaticBuffer<N> {
     /// use reticulum::buffer::StaticBuffer;
     ///
     /// let mut buffer: StaticBuffer<64> = StaticBuffer::new();
-    /// //buffer.chain_write(b"part1").chain_write(b"part2").unwrap();
     /// buffer.chain_write(b"part1").expect("no more buffer");
     /// buffer.chain_write(b"part2").expect("no more buffer");
     /// assert_eq!(buffer.as_slice(), b"part1part2");
