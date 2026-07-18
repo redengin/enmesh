@@ -166,6 +166,8 @@ impl Destination<PrivateIdentity, Input, Single> {
     ) -> Result<Packet, RnsError> {
         let mut packet_data = PacketDataBuffer::new();
 
+        // FIXME only write the data once - rather than reset as below
+
         let random_hash = Hash::new_from_rand(rng);
         let timestamp = announce_timestamp_bytes();
         let rand_hash = [
