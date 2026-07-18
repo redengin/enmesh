@@ -35,7 +35,7 @@ impl Default for Config {
 //------------------------------------------------------------------------------
 pub mod identity;
 pub mod packet;
-// pub mod destination;
+pub mod destination;
 
 // utiltities
 //------------------------------------------------------------------------------

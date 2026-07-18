@@ -32,6 +32,8 @@ cbc = { version = "*", default-features = false, features = [
 hkdf = { version = "*", default-features = false }
 hmac = { version = "*", default-features = false }
 
+[dev-dependencies]
+serde = { version = "*", features = ["derive"] }
 
 [features]
 # enable std support (default no-std)

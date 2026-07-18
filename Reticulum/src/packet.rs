@@ -348,7 +348,7 @@ impl From<u8> for DestinationType {
 ///
 /// Different packet types serve different roles in Reticulum communication.
 // #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum PacketType {
     /// Data packet - contains application data.
     Data = 0b00,
