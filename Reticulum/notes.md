@@ -83,15 +83,16 @@ Chat with Gemini
     * Every node monitors its neighbors continuously. When Node A forwards a packet to Node B, Node A listens to the channel
         to verify that Node B actually rebroadcasts it to the next hop (passive acknowledgement).
     * Maintain a local tracking table using a Beta distribution model:
-
-```math
-\alpha = \text{Successful Forwards} + 1
-\\
-\beta = \text{Dropped / Tampered Packets} + 1
-\\
-Calculate a Trust Metric (T):
-        T = \frac{\alpha}{\alpha + \beta}
-```
+        ```math
+        \alpha = \text{Successful Forwards} + 1
+        ```
+        ```math
+        \beta = \text{Dropped / Tampered Packets} + 1
+        ```
+        ```math
+        Calculate a Trust Metric (T):
+                T = \frac{\alpha}{\alpha + \beta}
+        ```
     * If a node's trust metric falls below a set threshold (e.g., $T < 0.7$), it is dynamically blacklisted, and routing tables are recalculated to bypass it entirely.
 
 - Multipath Routing with Erasure Coding
