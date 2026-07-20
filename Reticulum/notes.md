@@ -82,19 +82,19 @@ Chat with Gemini
 - Reputation-Based Trust Routing (Beta-Reputation System)
     * Every node monitors its neighbors continuously. When Node A forwards a packet to Node B, Node A listens to the channel
         to verify that Node B actually rebroadcasts it to the next hop (passive acknowledgement).
-    * Maintain a local tracking table using a Beta distribution model:
-        ```math
-        \alpha = \text{Successful Forwards} + 1
-        ```
-        ```math
-        \beta = \text{Dropped / Tampered Packets} + 1
-        ```
-        ```math
-        Calculate a Trust Metric (T):
-                T = \frac{\alpha}{\alpha + \beta}
-        ```
+    * Maintain a local tracking table using a Beta distribution model
     * If a node's trust metric falls below a set threshold (e.g., $T < 0.7$), it is dynamically blacklisted, and routing tables are recalculated to bypass it entirely.
 
+```math
+\alpha = \text{Successful Forwards} + 1
+```
+```math
+\beta = \text{Dropped / Tampered Packets} + 1
+```
+```math
+    Trust Metric (T):
+        T = \frac{\alpha}{\alpha + \beta}
+```
 - Multipath Routing with Erasure Coding
     To neutralize selective forwarding or blackhole nodes without the
     delay of waiting for reputation updates, implement multi-path routing:
