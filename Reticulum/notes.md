@@ -74,3 +74,36 @@ This allows users to configure `Trust Boundaries` to *whitelist* zones of trust.
     target. As an example, if a penalty of 7200 seconds is defined, once the rate target is enforced, the destination
     in question will only have its announces propagated every 3 hours, until it lowers its actual announce rate to
     within the target
+
+
+Chat with Gemini
+* prompt - I need to design mesh lora to be robust to dense nodes and malicious nodes.
+
+- Reputation-Based Trust Routing (Beta-Reputation System)
+    * Every node monitors its neighbors continuously. When Node A forwards a packet to Node B, Node A listens to the channel
+        to verify that Node B actually rebroadcasts it to the next hop (passive acknowledgement).
+    * Maintain a local tracking table using a Beta distribution model:
+        $$
+        \alpha = \text{Successful Forwards} + 1
+        $$
+        $$
+        \beta = \text{Dropped / Tampered Packets} + 1
+        $$
+        Calculate a Trust Metric ($T$):
+        $$
+        T = \frac{\alpha}{\alpha + \beta}
+        $$
+        If a node's trust metric falls below a set threshold (e.g., $T < 0.7$), it is dynamically blacklisted, and routing tables are recalculated to bypass it entirely.
+
+- Multipath Routing with Erasure Coding
+    To neutralize selective forwarding or blackhole nodes without the
+    delay of waiting for reputation updates, implement multi-path routing:
+
+    Split data packets using a lightweight erasure coding scheme
+    (like Reed-Solomon or Fountain codes). For instance, break a message
+    into 4 shards where any 2 shards can rebuild the original.
+
+    Route the shards along completely independent geographic trajectories
+    toward the sink/gateway. A malicious node dropping a single shard will
+    fail to disrupt the data stream.
+

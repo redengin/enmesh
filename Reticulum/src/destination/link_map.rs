@@ -31,13 +31,13 @@
 /// ```ignore
 /// let link = transport.link(destination).await;
 /// ```
-use std::{
-    cmp::min,
-    time::{Duration, Instant},
-};
+// use std::{
+//     cmp::min,
+//     time::{Duration, Instant},
+// };
 
 use ed25519_dalek::{Signature, SigningKey, Verifier, PUBLIC_KEY_LENGTH, SIGNATURE_LENGTH};
-use rand_core::OsRng;
+// use rand_core::OsRng;
 use sha2::Digest;
 use x25519_dalek::StaticSecret;
 
@@ -49,7 +49,7 @@ use crate::{
     packet::{
         DestinationType, Header, Packet, PacketContext, PacketDataBuffer, PacketType, PACKET_MDU,
     },
-    transport::engine::{classify_link_data, LinkDataAction},
+    // transport::engine::{classify_link_data, LinkDataAction},
 };
 
 use super::DestinationDesc;
