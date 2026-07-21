@@ -8,8 +8,9 @@ publish = false
 [dependencies]
 common = { path = "../../common" }
 enmesh-firmware = { path = "../../enmesh" }
-# soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3", "esp-backtrace-panic"] }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
+# alternatively support backtrace
+# soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3", "esp-backtrace-panic"] }
 
 # FIXME local crates necessary for build (should be imported form soc_esp32)
 embassy-executor = { version = "*", features = ["log"] }
@@ -19,10 +20,21 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 
 #-------------------------------------------------------------------------------
 [features]
-# support specialization for hardware revisions
-v2 = []
-v3 = []
-v4 = []
+
+# screen options
+#-------------------------------------------------------------------------------
+# OLED screen
+screen-ssd1306 = [
+
+]
+# e-paper screen
+screen-ssd1680 = [
+
+]
+
+# gps options
+#-------------------------------------------------------------------------------
+# TODO
 
 # support ble connection for companion app (mobile phones, etc.)
 ble-companion = ["_esp-radio"]
@@ -30,8 +42,9 @@ ble-companion = ["_esp-radio"]
 # node will use local wifi network to connect to enmesh endpoints
 wifi-bridge = ["_esp-radio"]
 
-# internal feature used to configure clocks
-# esp-radio uses max clocking - at the cost of higher power usage
+# internal features
+#-------------------------------------------------------------------------------
+# (WiFi/BLE support) requires max clocking - at the cost of higher power usage
 _esp-radio = []
 
 
