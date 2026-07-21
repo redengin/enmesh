@@ -36,12 +36,13 @@ embassy-usb = { version = "*", features = ["log"] }
 lora-modulation = { version = "*", features = ["serde"] }
 lora-phy = "*"
 
-# 0.96" OLED Screen
-# ssd1306 = { version = "*", features = ["async"] }
-ssd1306 = "*"
+# screen support
 display-interface = "*"
-# display-interface-i2c = "*"
-# display-interface-spi = "*"
+# 0.96" OLED Screen
+ssd1306 = "*"       # ssd1306 = { version = "*", features = ["async"] }
+# e-ink screen
+ssd1680 = "*"
+
 #-------------------------------------------------------------------------------
 
 # provide BLE Host

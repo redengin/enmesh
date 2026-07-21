@@ -25,8 +25,6 @@ pub use embassy_usb;
 
 // Hardware drivers
 //------------------------------------------------------------------------------
-// FIXME should use switch_hal
-//..............................................................................
 mod button;
 pub use button::{Button, ButtonState};
 mod led;
@@ -36,6 +34,7 @@ pub use lora_modulation;
 pub use lora_phy;
 pub use display_interface;
 pub use ssd1306;
+pub use ssd1680;
 //------------------------------------------------------------------------------
 
 // BLE Host
