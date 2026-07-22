@@ -21,31 +21,45 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 #-------------------------------------------------------------------------------
 [features]
 
-# screen options
-#-------------------------------------------------------------------------------
-# OLED screen
-screen-ssd1306 = [
-
-]
-# e-paper screen
-screen-ssd1680 = [
-
+disable-esp32-radio = [
+# conserve power - disable WiFi and BLE support
 ]
 
-# gps options
+# board support by name
 #-------------------------------------------------------------------------------
-# TODO
+wifi_lora_32 = [
+# [WiFi LoRa 32 v3](https://heltec.org/project/wifi-lora-32-v3/)
+# [WiFi LoRa 32 v4](https://heltec.org/project/wifi-lora-32-v4/)
+    "_screen-ssd1306"
+]
 
-# support ble connection for companion app (mobile phones, etc.)
-ble-companion = ["_esp-radio"]
+wireless_stick = [
+# [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v2/)
+]
 
-# node will use local wifi network to connect to enmesh endpoints
-wifi-bridge = ["_esp-radio"]
+wireless_stick_v3 = [
+# [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v3/)
+    "_screen-ssd1306"
+]
+
+wireless_tracker = [
+# [Wireless Tracker](https://heltec.org/project/wireless-tracker/)
+    "_screen-st7735",
+    "_gps"
+]
+
+wireless_paper = [
+# [Wireless Paper](https://heltec.org/project/wireless-paper/)
+    "_screen-ssd1680",
+]
 
 # internal features
 #-------------------------------------------------------------------------------
-# (WiFi/BLE support) requires max clocking - at the cost of higher power usage
-_esp-radio = []
+_gps = []
+_has_screen = []
+_screen-ssd1306 =  [ "_has_screen" ]
+_screen-st7735  =  [ "_has_screen" ]
+_screen-ssd1680 =  [ "_has_screen" ]
 
 
 #-------------------------------------------------------------------------------

@@ -19,15 +19,12 @@ mod tasks;
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
     // initialize the SoC
-    let peripherals = if cfg!(feature = "_esp-radio") {
-        esp_hal::init(
-            esp_hal::Config::default()
-                // max clocking required for esp_radio
-                .with_cpu_clock(esp_hal::clock::CpuClock::max()),
-        )
-    } else {
-        // use default clockick to save power
+    let peripherals = if cfg!(feature = "disable-esp32-radio") {
+        // use default clock tickrate to save power
         esp_hal::init(esp_hal::Config::default())
+    } else {
+        // use max clock tickrate to support WiFI/BLE
+        esp_hal::init(esp_hal::Config::default().with_cpu_clock(esp_hal::clock::CpuClock::max()))
     };
 
     // initialize logging
@@ -98,18 +95,20 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(tasks::lora::task_lora(global_state, lora_peripherals).unwrap());
     debug!("LoRa task created");
 
-    debug!("creating screen task...");
-    // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
-    let screen_io = tasks::ux::UxIo {
-        vext_control: peripherals.GPIO36,
-        oled_reset: peripherals.GPIO21,
-        i2c: peripherals.I2C0,
-        sda: peripherals.GPIO17,
-        scl: peripherals.GPIO18,
-        button: peripherals.GPIO0,
-        led: peripherals.GPIO35,
-    };
-    spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
+    if cfg!(feature = "_has_screen") {
+        debug!("creating screen task...");
+        // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
+        let screen_io = tasks::ux::UxIo {
+            vext_control: peripherals.GPIO36,
+            oled_reset: peripherals.GPIO21,
+            i2c: peripherals.I2C0,
+            sda: peripherals.GPIO17,
+            scl: peripherals.GPIO18,
+            button: peripherals.GPIO0,
+            led: peripherals.GPIO35,
+        };
+        spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
+    }
     debug!("screen task created");
 
     debug!("creating usb serial task...");
@@ -123,16 +122,14 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
     debug!("usb serial task created");
 
-    // if cfg!(feature = "wifi-bridge") {
-    //     debug!("creating enmesh WiFi bridge task...");
-    //     spawner.spawn(tasks::wifi::task_wifi_bridge(global_state, peripherals.WIFI).unwrap());
-    //     debug!("enmesh WiFi bridge task created");
-    // }
+    if cfg!(not(feature = "disable-esp32-radio")) {
+        // debug!("creating enmesh WiFi bridge task...");
+        // spawner.spawn(tasks::wifi::task_wifi_bridge(global_state, peripherals.WIFI).unwrap());
+        // debug!("enmesh WiFi bridge task created");
 
-    if cfg!(feature = "ble-companion") {
-        debug!("creating enmesh ble compantion task...");
-        spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT).unwrap());
-        debug!("enmesh ble companion task created");
+        // debug!("creating enmesh ble compantion task...");
+        // spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT).unwrap());
+        // debug!("enmesh ble companion task created");
     }
 
     info!("enmesh firmware running...");
