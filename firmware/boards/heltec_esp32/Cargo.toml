@@ -41,12 +41,12 @@ wifi_lora_32 = [
     "_screen-ssd1306"
 ]
 
-wireless_stick = [
+wireless_stick_v2 = [
 # [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v2/)
 ]
 
 wireless_stick_v3 = [
-# [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v3/)
+# [Wireless Stick Lite](https://heltec.org/project/wireless-stick-v3/)
     "_screen-ssd1306"
 ]
 
