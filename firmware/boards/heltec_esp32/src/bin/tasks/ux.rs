@@ -51,7 +51,7 @@ pub async fn task_ux(
     //================================================================================
 
     // create the screen power controller
-    let screen_power_control = enmesh_firmware_heltec_v3::ScreenPowerControl {
+    let screen_power_control = enmesh_firmware_heltec_esp32::ScreenPowerControl {
         vext_control: esp_hal::gpio::Output::new(
             ux_io.vext_control,
             esp_hal::gpio::Level::Low, // disable power by setting HIGH

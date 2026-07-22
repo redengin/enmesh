@@ -95,7 +95,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(tasks::lora::task_lora(global_state, lora_peripherals).unwrap());
     debug!("LoRa task created");
 
-    if cfg!(feature = "_has_screen") {
+    if cfg!(feature = "_use_screen") {
         debug!("creating screen task...");
         // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
         let screen_io = tasks::ux::UxIo {

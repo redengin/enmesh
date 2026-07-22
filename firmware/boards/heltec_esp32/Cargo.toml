@@ -1,5 +1,5 @@
 [package]
-name = "enmesh-firmware-heltec-v3"
+name = "enmesh-firmware-heltec-esp32"
 version = "0.1.0"
 license = "MIT"
 edition = "2024"
@@ -9,8 +9,11 @@ publish = false
 common = { path = "../../common" }
 enmesh-firmware = { path = "../../enmesh" }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
-# alternatively support backtrace
-# soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3", "esp-backtrace-panic"] }
+
+# screen drivers
+ssd1306 = { version = "*", optional = true}
+ssd1680 = { version = "*", optional = true}
+st7735 = { version = "*", optional = true}
 
 # FIXME local crates necessary for build (should be imported form soc_esp32)
 embassy-executor = { version = "*", features = ["log"] }
@@ -23,6 +26,11 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 
 disable-esp32-radio = [
 # conserve power - disable WiFi and BLE support
+]
+
+enable-backtrace = [
+# provide a backtrace upon panic!
+    "soc-esp32/esp-backtrace-panic"
 ]
 
 # board support by name
@@ -56,14 +64,14 @@ wireless_paper = [
 # internal features
 #-------------------------------------------------------------------------------
 _gps = []
-_has_screen = []
-_screen-ssd1306 =  [ "_has_screen" ]
-_screen-st7735  =  [ "_has_screen" ]
-_screen-ssd1680 =  [ "_has_screen" ]
+
+_use_screen = []
+_screen-ssd1306 =  [ "_use_screen", "ssd1306" ]
+_screen-st7735  =  [ "_use_screen", "st7735" ]
+_screen-ssd1680 =  [ "_use_screen", "ssd1680" ]
 
 
 #-------------------------------------------------------------------------------
-
 [profile.dev]
 # Rust debug is too slow.
 # For debug builds always builds with some optimization
@@ -72,8 +80,7 @@ opt-level = "s"
 [profile.release]
 codegen-units = 1        # LLVM can perform better optimizations using a single thread
 debug = 2
-debug-assertions = false
-incremental = false
 lto = 'fat'
 opt-level = 's'
 overflow-checks = false
+incremental = false
