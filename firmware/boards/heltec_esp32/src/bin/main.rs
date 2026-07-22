@@ -71,64 +71,76 @@ async fn main(spawner: embassy_executor::Spawner) {
     soc_esp32::init_heap();
 
     // create the tasks
-    //--------------------------------------------------------------------------------
+    //================================================================================
     debug!("creating LoRa task...");
     // make sure that we know how to map the LoRa pins
-    #[cfg(not(any(feature="wifi_lora_32", feature="wireless_stick_v2", feature = "wireless_stick_v3",
-        feature="wireless_tracker", feature="wireless_paper")))]
-    compile_error!("LoRa pins unknown - board feature must be defined (use wifi_lora_32 for general support");
+    #[cfg(not(any(
+        feature = "wifi_lora_32",
+        feature = "wireless_stick_v2",
+        // feature = "wireless_stick_v3",
+        feature = "wireless_tracker",
+        feature = "wireless_paper"
+    )))]
+    compile_error!(
+        "LoRa pins unknown - board feature must be defined (use wifi_lora_32 for generic support)"
+    );
 
-    // use the Heltec standard LoRa pin mapping
-    if cfg!(feature = "wifi_lora_32")
-    || cfg!(feature = "wireless_stick_v2")
-    || cfg!(feature = "wireless_tracker")
-    || cfg!(feature = "wireless_paper")
-     {
-        let lora_peripherals = tasks::lora::LoraIo {
+    let lora_io = if cfg!(feature = "wifi_lora_32")
+        || cfg!(feature = "wireless_stick_v2")
+        || cfg!(feature = "wireless_tracker")
+        || cfg!(feature = "wireless_paper")
+    {
+        // use the Heltec standard LoRa pin mapping
+        tasks::lora::LoraIo {
             reset: esp_hal::gpio::Output::new(
                 peripherals.GPIO12,
                 esp_hal::gpio::Level::Low,
                 esp_hal::gpio::OutputConfig::default(),
             ),
-            dio: esp_hal::gpio::Input::new(peripherals.GPIO14, esp_hal::gpio::InputConfig::default()),
-            busy: esp_hal::gpio::Input::new(peripherals.GPIO13, esp_hal::gpio::InputConfig::default()),
+            dio: esp_hal::gpio::Input::new(
+                peripherals.GPIO14,
+                esp_hal::gpio::InputConfig::default(),
+            ),
+            busy: esp_hal::gpio::Input::new(
+                peripherals.GPIO13,
+                esp_hal::gpio::InputConfig::default(),
+            ),
             spi: peripherals.SPI2,
             nss: esp_hal::gpio::Output::new(
                 peripherals.GPIO8,
                 esp_hal::gpio::Level::High,
                 esp_hal::gpio::OutputConfig::default(),
             ),
-            sck: peripherals.GPIO9,
-            mosi: peripherals.GPIO10,
-            miso: peripherals.GPIO11,
-        };
-        spawner.spawn(tasks::lora::task_lora(global_state, lora_peripherals).unwrap());
-    }
-    else if cfg!(feature = "wireless_stick_v3") {
-        #[cfg(feature = "wireless_stick_v3")]
-        compile_error!("wireless_stick_v3 is not supported");
-        panic!("wireless_stick_v3 is not supported")
-        // let lora_io = tasks::lora::LoraIo {
-        //     reset: esp_hal::gpio::Output::new(
-        //         peripherals.GPIO14,
-        //         esp_hal::gpio::Level::Low,
-        //         esp_hal::gpio::OutputConfig::default(),
-        //     ),
-        //     dio: esp_hal::gpio::Input::new(peripherals.GPIO26, esp_hal::gpio::InputConfig::default()),
-        //     // FIXME doesn't appear to be wired
-        //     // busy: esp_hal::gpio::Input::new(peripherals.GPIO13, esp_hal::gpio::InputConfig::default()),
-        //     spi: peripherals.SPI2,
-        //     nss: esp_hal::gpio::Output::new(
-        //         peripherals.GPIO18,
-        //         esp_hal::gpio::Level::High,
-        //         esp_hal::gpio::OutputConfig::default(),
-        //     ),
-        //     sck: peripherals.GPIO5,
-        //     mosi: peripherals.GPIO27,
-        //     miso: peripherals.GPIO19,
-        // };
-    }
+            // sck: peripherals.GPIO9,
+            sck: esp_hal::gpio::Output::new(
+                peripherals.GPIO9,
+                esp_hal::gpio::Level::Low,
+                esp_hal::gpio::OutputConfig::default(),
+            ),
+            // mosi: peripherals.GPIO10,
+            mosi: esp_hal::gpio::Output::new(
+                peripherals.GPIO10,
+                esp_hal::gpio::Level::Low,
+                esp_hal::gpio::OutputConfig::default(),
+            ),
+            // miso: peripherals.GPIO11,
+            miso: esp_hal::gpio::Input::new(
+                peripherals.GPIO11,
+                esp_hal::gpio::InputConfig::default(),
+            ),
+        }
+    // FIXME wireless stick v3 schematic doesn't identify a LoRa Busy pin
+    // } else if cfg!(feature = "wireless_stick_v3") {
+    //    TODO map the pins
+    // }
+    } else {
+        panic!(
+            "LoRa pins unknown - board feature must be defined (use wifi_lora_32 for generic support)"
+        );
+    };
+    spawner.spawn(tasks::lora::task_lora(global_state, lora_io).unwrap());
     debug!("LoRa task created");
+
 
     if cfg!(feature = "_use_screen") {
         debug!("creating screen task...");

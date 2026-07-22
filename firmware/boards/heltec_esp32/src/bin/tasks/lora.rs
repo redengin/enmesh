@@ -23,10 +23,15 @@ pub struct LoraIo {
     pub busy: esp_hal::gpio::Input<'static>,
     pub spi: esp_hal::peripherals::SPI2<'static>,
     pub nss: esp_hal::gpio::Output<'static>,
-    pub sck: esp_hal::peripherals::GPIO9<'static>,
-    pub mosi: esp_hal::peripherals::GPIO10<'static>,
-    pub miso: esp_hal::peripherals::GPIO11<'static>,
+    // pub sck: esp_hal::peripherals::GPIO9<'static>,
+    pub sck: esp_hal::gpio::Output<'static>,
+    // pub mosi: esp_hal::peripherals::GPIO10<'static>,
+    pub mosi: esp_hal::gpio::Output<'static>,
+    // pub miso: esp_hal::peripherals::GPIO11<'static>,
+    pub miso: esp_hal::gpio::Input<'static>,
 }
+
+
 #[embassy_executor::task]
 pub async fn task_lora(
     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
