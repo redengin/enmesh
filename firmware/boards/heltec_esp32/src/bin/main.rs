@@ -72,6 +72,9 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // create the tasks
     //================================================================================
+
+    // LoRa pin mapping & task
+    //--------------------------------------------------------------------------------
     debug!("creating LoRa task...");
     // make sure that we know how to map the LoRa pins
     #[cfg(not(any(
@@ -84,7 +87,6 @@ async fn main(spawner: embassy_executor::Spawner) {
     compile_error!(
         "LoRa pins unknown - board feature must be defined (use wifi_lora_32 for generic support)"
     );
-
     #[cfg(any(
         feature = "wifi_lora_32",
         feature = "wireless_stick_v2",
@@ -106,19 +108,16 @@ async fn main(spawner: embassy_executor::Spawner) {
             esp_hal::gpio::Level::High,
             esp_hal::gpio::OutputConfig::default(),
         ),
-        // sck: peripherals.GPIO9,
         sck: esp_hal::gpio::Output::new(
             peripherals.GPIO9,
             esp_hal::gpio::Level::Low,
             esp_hal::gpio::OutputConfig::default(),
         ),
-        // mosi: peripherals.GPIO10,
         mosi: esp_hal::gpio::Output::new(
             peripherals.GPIO10,
             esp_hal::gpio::Level::Low,
             esp_hal::gpio::OutputConfig::default(),
         ),
-        // miso: peripherals.GPIO11,
         miso: esp_hal::gpio::Input::new(peripherals.GPIO11, esp_hal::gpio::InputConfig::default()),
     };
     #[cfg(any(feature = "wireless_stick_v3",))]
@@ -130,7 +129,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         ),
         dio: esp_hal::gpio::Input::new(peripherals.GPIO26, esp_hal::gpio::InputConfig::default()),
         busy: esp_hal::gpio::Input::new(
-            // FIXME
+            // FIXME no PIN identified for BUSY in schematic
             peripherals.GPIO13,
             esp_hal::gpio::InputConfig::default(),
         ),
@@ -140,26 +139,24 @@ async fn main(spawner: embassy_executor::Spawner) {
             esp_hal::gpio::Level::High,
             esp_hal::gpio::OutputConfig::default(),
         ),
-        // sck: peripherals.GPIO9,
         sck: esp_hal::gpio::Output::new(
             peripherals.GPIO5,
             esp_hal::gpio::Level::Low,
             esp_hal::gpio::OutputConfig::default(),
         ),
-        // mosi: peripherals.GPIO10,
         mosi: esp_hal::gpio::Output::new(
             peripherals.GPIO27,
             esp_hal::gpio::Level::Low,
             esp_hal::gpio::OutputConfig::default(),
         ),
-        // miso: peripherals.GPIO11,
         miso: esp_hal::gpio::Input::new(peripherals.GPIO19, esp_hal::gpio::InputConfig::default()),
     };
 
     spawner.spawn(tasks::lora::task_lora(global_state, lora_io).unwrap());
     debug!("LoRa task created");
 
-    
+    // Screen pin mapping & task
+    //--------------------------------------------------------------------------------
     if cfg!(feature = "_use_screen") {
         debug!("creating screen task...");
         // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
@@ -176,6 +173,8 @@ async fn main(spawner: embassy_executor::Spawner) {
     }
     debug!("screen task created");
 
+    // USB serial pin mapping & task
+    //--------------------------------------------------------------------------------
     debug!("creating usb serial task...");
     // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
     // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
@@ -187,6 +186,8 @@ async fn main(spawner: embassy_executor::Spawner) {
     spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
     debug!("usb serial task created");
 
+    // Wifi and BLE pin mapping & tasks
+    //--------------------------------------------------------------------------------
     if cfg!(not(feature = "disable-esp32-radio")) {
         // debug!("creating enmesh WiFi bridge task...");
         // spawner.spawn(tasks::wifi::task_wifi_bridge(global_state, peripherals.WIFI).unwrap());
