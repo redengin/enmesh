@@ -85,63 +85,81 @@ async fn main(spawner: embassy_executor::Spawner) {
         "LoRa pins unknown - board feature must be defined (use wifi_lora_32 for generic support)"
     );
 
-    let lora_io = if cfg!(feature = "wifi_lora_32")
-        || cfg!(feature = "wireless_stick_v2")
-        || cfg!(feature = "wireless_tracker")
-        || cfg!(feature = "wireless_paper")
-    {
-        // use the Heltec standard LoRa pin mapping
-        tasks::lora::LoraIo {
-            reset: esp_hal::gpio::Output::new(
-                peripherals.GPIO12,
-                esp_hal::gpio::Level::Low,
-                esp_hal::gpio::OutputConfig::default(),
-            ),
-            dio: esp_hal::gpio::Input::new(
-                peripherals.GPIO14,
-                esp_hal::gpio::InputConfig::default(),
-            ),
-            busy: esp_hal::gpio::Input::new(
-                peripherals.GPIO13,
-                esp_hal::gpio::InputConfig::default(),
-            ),
-            spi: peripherals.SPI2,
-            nss: esp_hal::gpio::Output::new(
-                peripherals.GPIO8,
-                esp_hal::gpio::Level::High,
-                esp_hal::gpio::OutputConfig::default(),
-            ),
-            // sck: peripherals.GPIO9,
-            sck: esp_hal::gpio::Output::new(
-                peripherals.GPIO9,
-                esp_hal::gpio::Level::Low,
-                esp_hal::gpio::OutputConfig::default(),
-            ),
-            // mosi: peripherals.GPIO10,
-            mosi: esp_hal::gpio::Output::new(
-                peripherals.GPIO10,
-                esp_hal::gpio::Level::Low,
-                esp_hal::gpio::OutputConfig::default(),
-            ),
-            // miso: peripherals.GPIO11,
-            miso: esp_hal::gpio::Input::new(
-                peripherals.GPIO11,
-                esp_hal::gpio::InputConfig::default(),
-            ),
-        }
-    // FIXME wireless stick v3 schematic doesn't identify a LoRa Busy pin
-    // } else if cfg!(feature = "wireless_stick_v3") {
-    //    TODO map the pins
-    // }
-    } else {
-        panic!(
-            "LoRa pins unknown - board feature must be defined (use wifi_lora_32 for generic support)"
-        );
+    #[cfg(any(
+        feature = "wifi_lora_32",
+        feature = "wireless_stick_v2",
+        feature = "wireless_tracker",
+        feature = "wireless_paper"
+    ))]
+    // use the Heltec standard LoRa pin mapping
+    let lora_io = tasks::lora::LoraIo {
+        reset: esp_hal::gpio::Output::new(
+            peripherals.GPIO12,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        dio: esp_hal::gpio::Input::new(peripherals.GPIO14, esp_hal::gpio::InputConfig::default()),
+        busy: esp_hal::gpio::Input::new(peripherals.GPIO13, esp_hal::gpio::InputConfig::default()),
+        spi: peripherals.SPI2,
+        nss: esp_hal::gpio::Output::new(
+            peripherals.GPIO8,
+            esp_hal::gpio::Level::High,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        // sck: peripherals.GPIO9,
+        sck: esp_hal::gpio::Output::new(
+            peripherals.GPIO9,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        // mosi: peripherals.GPIO10,
+        mosi: esp_hal::gpio::Output::new(
+            peripherals.GPIO10,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        // miso: peripherals.GPIO11,
+        miso: esp_hal::gpio::Input::new(peripherals.GPIO11, esp_hal::gpio::InputConfig::default()),
     };
+    #[cfg(any(feature = "wireless_stick_v3",))]
+    let lora_io = tasks::lora::LoraIo {
+        reset: esp_hal::gpio::Output::new(
+            peripherals.GPIO17,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        dio: esp_hal::gpio::Input::new(peripherals.GPIO26, esp_hal::gpio::InputConfig::default()),
+        busy: esp_hal::gpio::Input::new(
+            // FIXME
+            peripherals.GPIO13,
+            esp_hal::gpio::InputConfig::default(),
+        ),
+        spi: peripherals.SPI2,
+        nss: esp_hal::gpio::Output::new(
+            peripherals.GPIO18,
+            esp_hal::gpio::Level::High,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        // sck: peripherals.GPIO9,
+        sck: esp_hal::gpio::Output::new(
+            peripherals.GPIO5,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        // mosi: peripherals.GPIO10,
+        mosi: esp_hal::gpio::Output::new(
+            peripherals.GPIO27,
+            esp_hal::gpio::Level::Low,
+            esp_hal::gpio::OutputConfig::default(),
+        ),
+        // miso: peripherals.GPIO11,
+        miso: esp_hal::gpio::Input::new(peripherals.GPIO19, esp_hal::gpio::InputConfig::default()),
+    };
+
     spawner.spawn(tasks::lora::task_lora(global_state, lora_io).unwrap());
     debug!("LoRa task created");
 
-
+    
     if cfg!(feature = "_use_screen") {
         debug!("creating screen task...");
         // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
