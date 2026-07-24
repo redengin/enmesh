@@ -1,3 +1,7 @@
+// provide the shared crates via re-export
+use common::*;
+
+
 /// provide the necessary primitives for page creation
 pub mod prelude {
     // provide enmesh ux

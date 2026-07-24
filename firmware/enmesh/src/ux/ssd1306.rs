@@ -17,15 +17,14 @@ pub async fn run<ScreenInterface, ScreenSize>(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut screen: Ssd1306<ScreenInterface, ScreenSize, BufferedGraphicsMode<ScreenSize>>,
     mut power_control: impl crate::PowerControl,
-    mut button: impl ButtonState,
-    mut led: impl embedded_hal::digital::OutputPin,
+    mut button: impl button::ButtonState,
+    mut led: impl led::LedState,
 ) where
     ScreenInterface: display_interface::WriteOnlyDataCommand,
     ScreenSize: ssd1306::size::DisplaySize,
 {
     // FIXME turn on the LED
-    led.set_high().ok();
-    led.set_low().ok();
+    led.on().ok();
 
     // power on the screen
     power_control.power_on().await;

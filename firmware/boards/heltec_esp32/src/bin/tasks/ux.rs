@@ -28,7 +28,7 @@ pub async fn task_ux(
     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     ux_io: UxIo,
 ) {
-    debug!("initializing UX..."); 
+    debug!("initializing UX...");
     // create the screen driver
     //================================================================================
     let interface = ssd1306::I2CDisplayInterface::new(
@@ -65,17 +65,17 @@ pub async fn task_ux(
     };
 
     // create the button
-    let button = common::Button::active_low(esp_hal::gpio::Input::new(
+    let button = button::Button::active_low(esp_hal::gpio::Input::new(
         ux_io.button,
         esp_hal::gpio::InputConfig::default(),
     ));
 
     // create the led
-    let led = esp_hal::gpio::Output::new(
+    let led = led::Led::active_high(esp_hal::gpio::Output::new(
         ux_io.led,
         esp_hal::gpio::Level::Low,
         esp_hal::gpio::OutputConfig::default(),
-    );
+    ));
 
     // run UX handler
     enmesh_firmware::ux::ssd1306::run(global_state, ssd1306, screen_power_control, button, led).await;
