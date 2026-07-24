@@ -15,6 +15,7 @@ pub struct Theme<'a> {
     pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
 }
 impl<'a> Theme<'a> {
+    /// create a theme to match the display area
     pub fn new(screen_area: embedded_graphics::geometry::Size) -> Theme<'a> {
         use embedded_graphics::mono_font::{MonoTextStyle, ascii::*};
 

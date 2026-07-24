@@ -3,7 +3,22 @@ pub(crate) mod led;
 
 /// provide UX themes and pages
 pub(crate) mod themes;
-// pub(crate) mod pages;
+pub(crate) mod pages;
+
+/// Respond to user interactions
+pub enum HidEvent {
+    /// move to next selectable item
+    Next,
+    /// move to the previous selectable item
+    Previous,
+    /// invokes the selected item's handler
+    Select,
+    /// finds the touched item and invokes a 'Select' event
+    Touch { x: u32, y: u32 },
+}
+/// active HID input durations greater than this, should generate a HidEvent::Select
+pub const HID_HELD_DURATION: core::time::Duration =
+    core::time::Duration::from_millis(500);
 
 
 // FIXME

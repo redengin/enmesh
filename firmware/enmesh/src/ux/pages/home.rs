@@ -1,4 +1,4 @@
-// provide the page common crates
+// provide the page primitives
 use crate::ux::pages::prelude::*;
 
 use alloc::string::ToString;
@@ -11,7 +11,7 @@ impl Home {
     }
 }
 
-impl crate::ux::Page for Home {
+impl crate::ux::pages::Page for Home {
     /// repaint the whole display
     fn refresh(
         &mut self,
