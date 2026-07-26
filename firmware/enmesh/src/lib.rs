@@ -27,9 +27,8 @@ pub mod lora;
 /// provide serial console support
 pub mod serial;
 
-// /// provide a UX experience
-// FIXME
-// pub mod ux;
+/// provide a UX experience
+pub mod ux;
 
 /// provide BLE support
 pub mod ble;

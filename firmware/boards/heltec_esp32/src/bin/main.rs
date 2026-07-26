@@ -122,6 +122,24 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // Screen pin mapping & task
     //--------------------------------------------------------------------------------
+    if cfg!(not(feature = "disable-screen")) {
+        debug!("creating screen task...");
+        #[cfg(feature = "_screen-ssd1306")]
+        {
+            let screen_io = tasks::ux::UxIo {
+                vext_control: OutputPin!(peripherals.GPIO36),
+                oled_reset: OutputPin!(peripherals.GPIO21),
+                i2c: peripherals.I2C0,
+                sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
+                scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
+                button: InputPin!(peripherals.GPIO0),
+                led: OutputPin!(peripherals.GPIO35),
+            };
+            spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
+        }
+
+        debug!("screen task created");
+    }
     // FIXME
     // if cfg!(feature = "_use_screen") {
     //     debug!("creating screen task...");

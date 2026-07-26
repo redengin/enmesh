@@ -12,16 +12,13 @@ use enmesh_firmware::prelude::*;
 
 /// convenience struct for the screen and button interfaces
 pub struct UxIo {
-    /// screen powered when LOW
-    pub vext_control: esp_hal::peripherals::GPIO36<'static>,
-    /// hold in reset mode when LOW
-    pub oled_reset: esp_hal::peripherals::GPIO21<'static>,
+    pub vext_control: esp_hal::gpio::Output<'static>,
+    pub oled_reset: esp_hal::gpio::Output<'static>,
     pub i2c: esp_hal::peripherals::I2C0<'static>,
-    pub sda: esp_hal::peripherals::GPIO17<'static>,
-    pub scl: esp_hal::peripherals::GPIO18<'static>,
-    /// LOW when pressed, else HIGH
-    pub button: esp_hal::peripherals::GPIO0<'static>,
-    pub led: esp_hal::peripherals::GPIO35<'static>,
+    pub sda: esp_hal::gpio::Flex<'static>,
+    pub scl: esp_hal::gpio::Flex<'static>,
+    pub button: esp_hal::gpio::Input<'static>,
+    pub led: esp_hal::gpio::Output<'static>,
 }
 #[embassy_executor::task]
 pub async fn task_ux(
@@ -52,30 +49,15 @@ pub async fn task_ux(
 
     // create the screen power controller
     let screen_power_control = enmesh_firmware_heltec_esp32::ScreenPowerControl {
-        vext_control: esp_hal::gpio::Output::new(
-            ux_io.vext_control,
-            esp_hal::gpio::Level::Low, // disable power by setting HIGH
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        oled_reset: esp_hal::gpio::Output::new(
-            ux_io.oled_reset,
-            esp_hal::gpio::Level::High, // put into reset by setting LOW
-            esp_hal::gpio::OutputConfig::default(),
-        ),
+        vext_control: ux_io.vext_control,
+        oled_reset: ux_io.oled_reset,
     };
 
     // create the button
-    let button = button::Button::active_low(esp_hal::gpio::Input::new(
-        ux_io.button,
-        esp_hal::gpio::InputConfig::default(),
-    ));
+    let button = button::Button::active_low(ux_io.button);
 
     // create the led
-    let led = led::Led::active_high(esp_hal::gpio::Output::new(
-        ux_io.led,
-        esp_hal::gpio::Level::Low,
-        esp_hal::gpio::OutputConfig::default(),
-    ));
+    let led = led::Led::active_high(ux_io.led);
 
     // run UX handler
     enmesh_firmware::ux::ssd1306::run(global_state, ssd1306, screen_power_control, button, led).await;

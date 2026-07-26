@@ -4,6 +4,7 @@ pub(crate) mod led;
 /// provide UX themes and pages
 pub(crate) mod themes;
 pub(crate) mod pages;
+// pub(crate) mod ux;
 
 /// Respond to user interactions
 pub enum HidEvent {
@@ -22,7 +23,7 @@ pub const HID_HELD_DURATION: core::time::Duration =
 
 
 // FIXME
-// pub mod ssd1306;
+pub mod ssd1306;
 
 // // provide the shared crates via re-export
 // use common::*;
