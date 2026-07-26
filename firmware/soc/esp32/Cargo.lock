@@ -232,6 +232,7 @@ dependencies = [
  "lora-modulation",
  "lora-phy",
  "ssd1306",
+ "ssd1680",
  "static_cell",
  "trouble-host",
 ]
@@ -1756,7 +1757,6 @@ checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
 name = "meshcore"
 version = "0.1.0"
 dependencies = [
- "embassy-sync 0.7.2",
  "static_cell",
  "trouble-host",
 ]
@@ -1765,7 +1765,6 @@ dependencies = [
 name = "meshtastic"
 version = "0.1.0"
 dependencies = [
- "embassy-sync 0.7.2",
  "static_cell",
  "trouble-host",
 ]
@@ -2313,6 +2312,17 @@ dependencies = [
  "embedded-graphics-core",
  "embedded-hal 1.0.0",
  "maybe-async-cfg",
+]
+
+[[package]]
+name = "ssd1680"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d26dd18bc0a4a0f282cd879c13af7a32512137bde7f9bbbe65583a7d358cb60"
+dependencies = [
+ "display-interface",
+ "embedded-graphics",
+ "embedded-hal 1.0.0",
 ]
 
 [[package]]

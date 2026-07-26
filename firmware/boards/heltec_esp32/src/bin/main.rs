@@ -95,61 +95,26 @@ async fn main(spawner: embassy_executor::Spawner) {
     ))]
     // use the Heltec standard LoRa pin mapping
     let lora_io = tasks::lora::LoraIo {
-        reset: esp_hal::gpio::Output::new(
-            peripherals.GPIO12,
-            esp_hal::gpio::Level::Low,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        dio: esp_hal::gpio::Input::new(peripherals.GPIO14, esp_hal::gpio::InputConfig::default()),
-        busy: esp_hal::gpio::Input::new(peripherals.GPIO13, esp_hal::gpio::InputConfig::default()),
+        reset: OutputPin!(peripherals.GPIO12),
+        dio: InputPin!(peripherals.GPIO14),
+        busy: InputPin!(peripherals.GPIO13),
         spi: peripherals.SPI2,
-        nss: esp_hal::gpio::Output::new(
-            peripherals.GPIO8,
-            esp_hal::gpio::Level::High,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        sck: esp_hal::gpio::Output::new(
-            peripherals.GPIO9,
-            esp_hal::gpio::Level::Low,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        mosi: esp_hal::gpio::Output::new(
-            peripherals.GPIO10,
-            esp_hal::gpio::Level::Low,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        miso: esp_hal::gpio::Input::new(peripherals.GPIO11, esp_hal::gpio::InputConfig::default()),
+        nss: OutputPin!(peripherals.GPIO8),
+        sck: OutputPin!(peripherals.GPIO9),
+        mosi: OutputPin!(peripherals.GPIO10),
+        miso: InputPin!(peripherals.GPIO11),
     };
     #[cfg(any(feature = "wireless_stick_v3",))]
     let lora_io = tasks::lora::LoraIo {
-        reset: esp_hal::gpio::Output::new(
-            peripherals.GPIO17,
-            esp_hal::gpio::Level::Low,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        dio: esp_hal::gpio::Input::new(peripherals.GPIO26, esp_hal::gpio::InputConfig::default()),
-        busy: esp_hal::gpio::Input::new(
-            // FIXME no PIN identified for BUSY in schematic
-            peripherals.GPIO13,
-            esp_hal::gpio::InputConfig::default(),
-        ),
+        reset: OutputPin!(peripherals.GPIO7),
+        dio: InputPin!(peripherals.GPIO26),
+        // FIXME no PIN identified for BUSY in schematic
+        busy: InputPin!(peripherals.GPIO13),
         spi: peripherals.SPI2,
-        nss: esp_hal::gpio::Output::new(
-            peripherals.GPIO18,
-            esp_hal::gpio::Level::High,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        sck: esp_hal::gpio::Output::new(
-            peripherals.GPIO5,
-            esp_hal::gpio::Level::Low,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        mosi: esp_hal::gpio::Output::new(
-            peripherals.GPIO27,
-            esp_hal::gpio::Level::Low,
-            esp_hal::gpio::OutputConfig::default(),
-        ),
-        miso: esp_hal::gpio::Input::new(peripherals.GPIO19, esp_hal::gpio::InputConfig::default()),
+        nss: OutputPin!(peripherals.GPIO18),
+        sck: OutputPin!(peripherals.GPIO5),
+        mosi: OutputPin!(peripherals.GPIO27),
+        miso: InputPin!(peripherals.GPIO19),
     };
 
     spawner.spawn(tasks::lora::task_lora(global_state, lora_io).unwrap());
