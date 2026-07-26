@@ -86,7 +86,10 @@ async fn handle_command<'a>(
 ) -> Result<Option<heapless::String<80>>, &'a str> {
     debug!("{TAG} handling command: '{command}'");
 
-    if command == "exit" {
+    if command.is_empty() {
+        return Ok(None);
+    }
+    else if command == "exit" {
         // return to enmesh mode
         *mode = SessionMode::Enmesh;
         return Ok(None);
