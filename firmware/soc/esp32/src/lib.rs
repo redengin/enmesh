@@ -74,4 +74,7 @@ macro_rules!  OutputPin {
     ($pin:expr) => {
         esp_hal::gpio::Output::new($pin, esp_hal::gpio::Level::Low, esp_hal::gpio::OutputConfig::default())
     };
+    ($pin:expr, $level:expr) => {
+        esp_hal::gpio::Output::new($pin, $level, esp_hal::gpio::OutputConfig::default())
+    };
 }

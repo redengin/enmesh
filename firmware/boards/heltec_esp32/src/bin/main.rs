@@ -47,6 +47,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
+
     debug!("initializing storage...");
     let mut storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
     let persisted_settings_manager =
@@ -72,7 +73,6 @@ async fn main(spawner: embassy_executor::Spawner) {
 
     // create the tasks
     //================================================================================
-
     // LoRa pin mapping & task
     //--------------------------------------------------------------------------------
     debug!("creating LoRa task...");
@@ -99,7 +99,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         dio: InputPin!(peripherals.GPIO14),
         busy: InputPin!(peripherals.GPIO13),
         spi: peripherals.SPI2,
-        nss: OutputPin!(peripherals.GPIO8),
+        nss: OutputPin!(peripherals.GPIO8, esp_hal::gpio::Level::High),
         sck: OutputPin!(peripherals.GPIO9),
         mosi: OutputPin!(peripherals.GPIO10),
         miso: InputPin!(peripherals.GPIO11),
@@ -111,7 +111,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         // FIXME no PIN identified for BUSY in schematic
         busy: InputPin!(peripherals.GPIO13),
         spi: peripherals.SPI2,
-        nss: OutputPin!(peripherals.GPIO18),
+        nss: OutputPin!(peripherals.GPIO18, esp_hal::gpio::Level::High),
         sck: OutputPin!(peripherals.GPIO5),
         mosi: OutputPin!(peripherals.GPIO27),
         miso: InputPin!(peripherals.GPIO19),
@@ -139,19 +139,6 @@ async fn main(spawner: embassy_executor::Spawner) {
     // }
     // debug!("screen task created");
 
-    // USB serial pin mapping & task
-    //--------------------------------------------------------------------------------
-    debug!("creating usb serial task...");
-    // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
-    // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
-    let usb_serial_io = tasks::usb_serial::UsbSerialIo {
-        uart: peripherals.UART0,
-        rx: peripherals.GPIO44,
-        tx: peripherals.GPIO43,
-    };
-    spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
-    debug!("usb serial task created");
-
     // Wifi and BLE pin mapping & tasks
     //--------------------------------------------------------------------------------
     if cfg!(not(feature = "disable-esp32-radio")) {
@@ -163,6 +150,21 @@ async fn main(spawner: embassy_executor::Spawner) {
         // spawner.spawn(tasks::ble::task_ble_companion(global_state, peripherals.BT).unwrap());
         // debug!("enmesh ble companion task created");
     }
+
+    // USB serial pin mapping & task
+    //--------------------------------------------------------------------------------
+    // hold off on starting up the serial interface so that boot logging completes
+    Timer::after_secs(2).await;
+    debug!("creating usb serial task...");
+    // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
+    // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
+    let usb_serial_io = tasks::usb_serial::UsbSerialIo {
+        uart: peripherals.UART0,
+        rx: InputPin!(peripherals.GPIO44),
+        tx: OutputPin!(peripherals.GPIO43),
+    };
+    spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
+    debug!("usb serial task created");
 
     info!("enmesh firmware running...");
 }
