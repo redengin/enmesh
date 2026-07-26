@@ -126,7 +126,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         debug!("creating screen task...");
         #[cfg(feature = "_screen-ssd1306")]
         {
-            let screen_io = tasks::ux::UxIo {
+            let screen_io = tasks::ux::screen_ssd1306::UxIo {
                 vext_control: OutputPin!(peripherals.GPIO36),
                 oled_reset: OutputPin!(peripherals.GPIO21),
                 i2c: peripherals.I2C0,
@@ -135,7 +135,7 @@ async fn main(spawner: embassy_executor::Spawner) {
                 button: InputPin!(peripherals.GPIO0),
                 led: OutputPin!(peripherals.GPIO35),
             };
-            spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
+            spawner.spawn(tasks::ux::screen_ssd1306::task_ux(global_state, screen_io).unwrap());
         }
 
         debug!("screen task created");

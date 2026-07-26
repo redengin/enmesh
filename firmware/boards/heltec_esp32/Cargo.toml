@@ -11,9 +11,9 @@ enmesh-firmware = { path = "../../enmesh" }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
 
 # screen drivers
-ssd1306 = { version = "*", optional = true}
-ssd1680 = { version = "*", optional = true}
-st7735 = { version = "*", optional = true}
+# ssd1306 = { version = "*", optional = true}
+# ssd1680 = { version = "*", optional = true}
+# st7735 = { version = "*", optional = true}
 
 # FIXME local crates necessary for build (should be imported form soc_esp32)
 embassy-executor = { version = "*", features = ["log"] }
@@ -25,40 +25,44 @@ features = ["embassy", "esp-radio", "esp-alloc"]
 [features]
 
 disable-esp32-radio = [
-# conserve power - disable WiFi and BLE support
+    # conserve power - disable WiFi and BLE support
+]
+
+disable-screen = [
+    # conserve power - disable screen power and UX
 ]
 
 enable-backtrace = [
-# provide a backtrace upon panic!
-    "soc-esp32/esp-backtrace-panic"
+    # provide a backtrace upon panic!
+    "soc-esp32/esp-backtrace-panic",
 ]
 
 # board support by name
 #-------------------------------------------------------------------------------
 wifi_lora_32 = [
-# [WiFi LoRa 32 v3](https://heltec.org/project/wifi-lora-32-v3/)
-# [WiFi LoRa 32 v4](https://heltec.org/project/wifi-lora-32-v4/)
-    "_screen-ssd1306"
+    # [WiFi LoRa 32 v3](https://heltec.org/project/wifi-lora-32-v3/)
+    # [WiFi LoRa 32 v4](https://heltec.org/project/wifi-lora-32-v4/)
+    "_screen-ssd1306",
 ]
 
 wireless_stick_v2 = [
-# [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v2/)
+    # [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v2/)
 ]
 
 wireless_stick_v3 = [
-# [Wireless Stick Lite](https://heltec.org/project/wireless-stick-v3/)
-# FIXME wireless stick v3 schematic doesn't identify the LoRa BUSY pin
-    "_screen-ssd1306"
+    # [Wireless Stick Lite](https://heltec.org/project/wireless-stick-v3/)
+    # FIXME wireless stick v3 schematic doesn't identify the LoRa BUSY pin
+    "_screen-ssd1306",
 ]
 
 wireless_tracker = [
-# [Wireless Tracker](https://heltec.org/project/wireless-tracker/)
+    # [Wireless Tracker](https://heltec.org/project/wireless-tracker/)
     "_screen-st7735",
-    "_gps"
+    "_gps",
 ]
 
 wireless_paper = [
-# [Wireless Paper](https://heltec.org/project/wireless-paper/)
+    # [Wireless Paper](https://heltec.org/project/wireless-paper/)
     "_screen-ssd1680",
 ]
 
@@ -66,10 +70,9 @@ wireless_paper = [
 #-------------------------------------------------------------------------------
 _gps = []
 
-_use_screen = []
-_screen-ssd1306 =  [ "_use_screen", "ssd1306" ]
-_screen-st7735  =  [ "_use_screen", "st7735" ]
-_screen-ssd1680 =  [ "_use_screen", "ssd1680" ]
+_screen-ssd1306 = [] # drivers provided by `common`
+_screen-st7735 = []  # drivers provided by `common`
+_screen-ssd1680 = [] # drivers provided by `common`
 
 
 #-------------------------------------------------------------------------------
@@ -79,7 +82,7 @@ _screen-ssd1680 =  [ "_use_screen", "ssd1680" ]
 opt-level = "s"
 
 [profile.release]
-codegen-units = 1        # LLVM can perform better optimizations using a single thread
+codegen-units = 1       # LLVM can perform better optimizations using a single thread
 debug = 2
 lto = 'fat'
 opt-level = 's'
