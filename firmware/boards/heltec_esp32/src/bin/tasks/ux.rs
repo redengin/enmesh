@@ -1,15 +1,20 @@
+
+
+
+
+
 pub(crate) mod screen_ssd1306 {
     // provide the shared crates via re-export
     use common::*;
+
+    // provide logging primitives
+    use log::*;
 
     // provide access to esp32 hardware
     use soc_esp32::*;
 
     // provide scheduling primitives
     use enmesh_firmware::prelude::*;
-
-    // provide logging primitives
-    use log::*;
 
     /// convenience struct for the screen and button interfaces
     pub struct UxIo {

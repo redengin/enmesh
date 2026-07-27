@@ -1,15 +1,15 @@
 // provide the shared crates via re-export
 use common::*;
 
-// provide access to esp32 hardware
-use soc_esp32::*;
-
 // provide logging primitives
 use log::*;
 
+// provide access to esp32 hardware
+use soc_esp32::*;
+
 // provide scheduling primitives
-use embassy_sync::mutex::Mutex;
 use enmesh_firmware::prelude::*;
+use embassy_sync::mutex::Mutex;
 
 /// static LoRa radio SPI bus
 static LORA_SPI_BUS: static_cell::StaticCell<
