@@ -20,14 +20,14 @@ pub trait Page {
     /// returns true if the event was handled and should not be managed by the UX
     fn handle_event(&mut self, event: &HidEvent) -> bool;
 
-    /// update the display
-    /// * only needs to update changed items
-    fn update(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        model: &crate::State,
-        theme: &Theme,
-    );
+    // /// update the display
+    // /// * only needs to update changed items
+    // fn update(
+    //     &mut self,
+    //     display: &mut impl DrawTargetExt<Color = Rgb888>,
+    //     model: &crate::State,
+    //     theme: &Theme,
+    // );
 }
 
 /// provide home page implementation
@@ -43,7 +43,8 @@ pub mod prelude {
     pub use common::embedded_graphics::prelude::*;
     pub use common::embedded_graphics::pixelcolor::{Rgb888};
     pub use common::embedded_graphics::text::Text;
-    pub use common::embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder, text::{DecorationColor::TextColor, TextStyleBuilder}};
+    // pub use common::embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder, text::{DecorationColor::TextColor, TextStyleBuilder}};
+    pub use common::embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder};
     pub use common::embedded_graphics::{primitives::Rectangle, text::renderer::TextRenderer};
 
     // provide embedded layout primitives

@@ -11,8 +11,8 @@ pub struct Theme<'a> {
     pub background: Rgb888,
     /// regular text font
     pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
-    /// label test font
-    pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
+    // /// label font
+    // pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
 }
 impl<'a> Theme<'a> {
     /// create a theme to match the display area
@@ -30,7 +30,7 @@ impl<'a> Theme<'a> {
                 color,
                 background,
                 text_style: MonoTextStyle::new(&FONT_6X9, color),
-                label_style: MonoTextStyle::new(&FONT_6X9, color),
+                // label_style: MonoTextStyle::new(&FONT_6X9, color),
             }
         }
         else {
@@ -40,7 +40,7 @@ impl<'a> Theme<'a> {
                 background,
                 // FIXME this font isn't very large
                 text_style: MonoTextStyle::new(&FONT_9X15, color),
-                label_style: MonoTextStyle::new(&FONT_9X15_BOLD, color),
+                // label_style: MonoTextStyle::new(&FONT_9X15_BOLD, color),
             }
         };
 }
