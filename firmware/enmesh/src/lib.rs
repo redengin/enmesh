@@ -5,9 +5,7 @@ extern crate alloc;
 pub mod prelude {
     pub use common::embassy_sync::rwlock::RwLock;
     pub use common::embassy_sync::blocking_mutex::raw::NoopRawMutex;
-    pub use common::embassy_time::Timer;
-    pub use common::embassy_time::Duration;
-    pub use common::embassy_time::Instant;
+    pub use common::embassy_time::{Timer, Duration, Instant, Ticker};
 }
 
 /// globally shared state for firmware

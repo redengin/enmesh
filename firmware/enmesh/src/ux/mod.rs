@@ -14,7 +14,7 @@ use pages::Pages;
 pub struct Ux {
     /// use enum to track current page
     current_page: pages::Pages,
-    // pages
+    // page instances
     home_page: pages::Home,
     meshcore_page: pages::MeshCore,
     meshtastic_page: pages::Meshtastic,
