@@ -49,7 +49,7 @@ pub async fn run<ScreenInterface, ScreenSize>(
     }
 
     // create the UX
-    let mut ux = crate::ux::ux::Ux::new();
+    let mut ux = crate::ux::Ux::new();
     // create our ux theme
     let theme = crate::ux::themes::Theme::new(screen.size());
 
