@@ -4,7 +4,7 @@ pub(crate) mod led;
 /// provide UX themes and pages
 pub(crate) mod themes;
 pub(crate) mod pages;
-// pub(crate) mod ux;
+pub(crate) mod ux;
 
 /// Respond to user interactions
 pub enum HidEvent {

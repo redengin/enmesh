@@ -30,9 +30,11 @@ pub struct Ux {
     /// use enum to track current page
     current_page: Pages,
     // pages
-    home_page: pages::Home,
-    meshcore_page: pages::MeshCore,
-    meshtastic_page: pages::Meshtastic,
+    home_page: crate::ux::pages::Home,
+    meshcore_page: crate::ux::pages::Home,
+    meshtastic_page: crate::ux::pages::Home,
+    // meshcore_page: pages::MeshCore,
+    // meshtastic_page: pages::Meshtastic,
     // FIXME
     // hibernate_page: pages::Hibernate,
 }
@@ -41,9 +43,11 @@ impl Ux {
     pub fn new() -> Self {
         Self {
             current_page: Pages::Home,
-            home_page: pages::Home::new(),
-            meshcore_page: pages::MeshCore::new(),
-            meshtastic_page: pages::Meshtastic::new(),
+            home_page: crate::ux::pages::Home::new(),
+            meshcore_page: crate::ux::pages::Home::new(),
+            meshtastic_page: crate::ux::pages::Home::new(),
+            // meshcore_page: pages::MeshCore::new(),
+            // meshtastic_page: pages::Meshtastic::new(),
             // hibernate_page: pages::Home::new(),
         }
     }
@@ -93,7 +97,7 @@ impl Ux {
     }
 }
 
-impl Page for Ux {
+impl crate::ux::pages::Page for Ux {
     /// repaint the whole screen
     fn refresh(
         &mut self,

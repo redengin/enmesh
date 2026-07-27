@@ -43,10 +43,13 @@ pub mod prelude {
     pub use common::embedded_graphics::prelude::*;
     pub use common::embedded_graphics::pixelcolor::{Rgb888};
     pub use common::embedded_graphics::text::Text;
+    pub use common::embedded_graphics::{mono_font::{MonoTextStyle, ascii::FONT_10X20}, primitives::PrimitiveStyleBuilder, text::{DecorationColor::TextColor, TextStyleBuilder}};
+    pub use common::embedded_graphics::{primitives::Rectangle, text::renderer::TextRenderer};
 
     // provide embedded layout primitives
     pub use common::embedded_layout::prelude::*;
     pub use common::embedded_layout::layout::linear::*;
+    pub use common::embedded_layout::layout::linear::spacing::*;
 
 //     // pub use embedded_graphics::pixelcolor::{Rgb888, BinaryColor};
 //     pub use embedded_graphics::pixelcolor::{Rgb888};
@@ -65,7 +68,7 @@ pub mod prelude {
 //     pub use embedded_layout::layout::linear::spacing::*;
 //     // pub use embedded_layout::align;
 
-//     pub use common::heapless::format;
+    pub use common::heapless::format;
 }
 
 

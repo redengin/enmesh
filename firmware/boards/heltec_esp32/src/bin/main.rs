@@ -140,22 +140,6 @@ async fn main(spawner: embassy_executor::Spawner) {
 
         debug!("screen task created");
     }
-    // FIXME
-    // if cfg!(feature = "_use_screen") {
-    //     debug!("creating screen task...");
-    //     // heltec t114 pins https://heltec.org/wp-content/uploads/2023/09/pin.png
-    //     let screen_io = tasks::ux::UxIo {
-    //         vext_control: peripherals.GPIO36,
-    //         oled_reset: peripherals.GPIO21,
-    //         i2c: peripherals.I2C0,
-    //         sda: peripherals.GPIO17,
-    //         scl: peripherals.GPIO18,
-    //         button: peripherals.GPIO0,
-    //         led: peripherals.GPIO35,
-    //     };
-    //     spawner.spawn(tasks::ux::task_ux(global_state, screen_io).unwrap());
-    // }
-    // debug!("screen task created");
 
     // Wifi and BLE pin mapping & tasks
     //--------------------------------------------------------------------------------
