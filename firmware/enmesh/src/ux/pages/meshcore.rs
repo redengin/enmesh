@@ -11,7 +11,7 @@ impl MeshCore {
     }
 }
 
-impl crate::ux::Page for MeshCore {
+impl crate::ux::pages::Page for MeshCore {
     /// repaint the whole display
     fn refresh(
         &mut self,

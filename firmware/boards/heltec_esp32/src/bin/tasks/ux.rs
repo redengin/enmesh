@@ -67,7 +67,7 @@ pub(crate) mod screen_ssd1306 {
         let led = led::Led::active_high(ux_io.led);
 
         // run UX handler
-        enmesh_firmware::ux::ssd1306::run(global_state, ssd1306, screen_power_control, button, led)
+        enmesh_firmware::ux::controller::run_ssd1306(global_state, ssd1306, screen_power_control, button, led)
             .await;
 
         warn!("UX task ended");

@@ -68,15 +68,15 @@ impl crate::ux::pages::Page for Home {
         false
     }
 
-    // /// update the display
-    // /// * only needs to update changed items
-    // fn update(
-    //     &mut self,
-    //     display: &mut impl DrawTargetExt<Color = Rgb888>,
-    //     model: &crate::State,
-    //     theme: &Theme,
-    // ) {
-    //     // FIXME for now just refresh the whole screen
-    //     self.refresh(display, model, theme);
-    // }
+    /// update the display
+    /// * only needs to update changed items
+    fn update(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    ) {
+        // FIXME for now just refresh the whole screen
+        self.refresh(display, model, theme);
+    }
 }

@@ -11,7 +11,7 @@ impl Meshtastic {
     }
 }
 
-impl crate::ux::Page for Meshtastic {
+impl crate::ux::pages::Page for Meshtastic {
     /// repaint the whole display
     fn refresh(
         &mut self,

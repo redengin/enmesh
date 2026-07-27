@@ -1,52 +1,33 @@
-use crate::ux::pages::prelude::*;
+/// provide controller thread runners
+pub mod controller;
 
-#[derive(PartialEq, Eq)]
-enum Pages {
-    Home,
-    MeshCore,
-    Meshtastic,
-    // Hibernate,
-}
-impl Pages {
-    fn next(&self) -> Self {
-        match self {
-            Pages::Home => Pages::MeshCore,
-            Pages::MeshCore => Pages::Meshtastic,
-            Pages::Meshtastic => Pages::Home,
-        }
-    }
+/// provide UX themes and pages
+pub(crate) mod themes;
+pub(crate) mod pages;
 
-    fn previous(&self) -> Self {
-        match self {
-            Pages::Home => Pages::Meshtastic,
-            Pages::Meshtastic => Pages::MeshCore,
-            Pages::MeshCore => Pages::Home,
-        }
-    }
-}
+/// provide UX LED control
+pub(crate) mod led;
 
+/// provide the views
+use pages::Pages;
 
 pub struct Ux {
     /// use enum to track current page
-    current_page: Pages,
+    current_page: pages::Pages,
     // pages
-    home_page: crate::ux::pages::Home,
-    meshcore_page: crate::ux::pages::Home,
-    meshtastic_page: crate::ux::pages::Home,
-    // meshcore_page: pages::MeshCore,
-    // meshtastic_page: pages::Meshtastic,
-    // FIXME
+    home_page: pages::Home,
+    meshcore_page: pages::MeshCore,
+    meshtastic_page: pages::Meshtastic,
     // hibernate_page: pages::Hibernate,
 }
+use pages::prelude::*;
 impl Ux {
     pub fn new() -> Self {
         Self {
-            current_page: Pages::Home,
-            home_page: crate::ux::pages::Home::new(),
-            meshcore_page: crate::ux::pages::Home::new(),
-            meshtastic_page: crate::ux::pages::Home::new(),
-            // meshcore_page: pages::MeshCore::new(),
-            // meshtastic_page: pages::Meshtastic::new(),
+            current_page: pages::Pages::Home,
+            home_page: pages::Home::new(),
+            meshcore_page: pages::MeshCore::new(),
+            meshtastic_page: pages::Meshtastic::new(),
             // hibernate_page: pages::Home::new(),
         }
     }
@@ -94,6 +75,22 @@ impl Ux {
         .ok();
     }
 }
+
+
+/// Respond to user interactions
+pub enum HidEvent {
+    /// move to next selectable item
+    Next,
+    /// move to the previous selectable item
+    Previous,
+    /// invokes the selected item's handler
+    Select,
+    /// finds the touched item and invokes a 'Select' event
+    Touch { x: u32, y: u32 },
+}
+/// active HID input durations greater than this, should generate a HidEvent::Select
+pub const HID_HELD_DURATION: core::time::Duration =
+    core::time::Duration::from_millis(500);
 
 impl crate::ux::pages::Page for Ux {
     /// repaint the whole screen
@@ -185,48 +182,20 @@ impl crate::ux::pages::Page for Ux {
         true
     }
 
-    // /// update the display
-    // /// * only needs to update changed items
-    // fn update(
-    //     &mut self,
-    //     display: &mut impl DrawTargetExt<Color = Rgb888>,
-    //     model: &crate::State,
-    //     theme: &Theme,
-    // ) {
-    //     // FIXME for now just do a full refresh
-    //     self.refresh(display, model, theme);
-    // }
+    fn update(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    ) {
+        // FIXME for now just do a full refresh
+        self.refresh(display, model, theme);
+    }
 }
 
 
 
 
-/// provide UX LED control
-pub(crate) mod led;
-
-/// provide UX themes and pages
-pub(crate) mod themes;
-pub(crate) mod pages;
-pub(crate) mod ux;
-
-/// Respond to user interactions
-pub enum HidEvent {
-    /// move to next selectable item
-    Next,
-    /// move to the previous selectable item
-    Previous,
-    /// invokes the selected item's handler
-    Select,
-    /// finds the touched item and invokes a 'Select' event
-    Touch { x: u32, y: u32 },
-}
-/// active HID input durations greater than this, should generate a HidEvent::Select
-pub const HID_HELD_DURATION: core::time::Duration =
-    core::time::Duration::from_millis(500);
-
-
-// FIXME
-pub mod ssd1306;
 
 // // provide the shared crates via re-export
 // use common::*;

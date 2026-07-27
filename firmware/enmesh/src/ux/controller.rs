@@ -18,7 +18,7 @@ use common::embedded_graphics::draw_target::DrawTargetExt;
 use crate::ux;
 
 /// provide screens and interaction via button
-pub async fn run<ScreenInterface, ScreenSize>(
+pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut screen: Ssd1306<ScreenInterface, ScreenSize, BufferedGraphicsMode<ScreenSize>>,
     mut power_control: impl crate::PowerControl,
