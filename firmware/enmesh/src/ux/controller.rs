@@ -25,13 +25,14 @@ pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
     >,
     mut power_control: impl crate::PowerControl,
     mut button: impl button::ButtonState,
-    mut led: impl led::LedState,
+    led: impl led::LedState,
 ) where
     ScreenInterface: display_interface::WriteOnlyDataCommand,
     ScreenSize: ssd1306::size::DisplaySize,
 {
     // power on the screen
     power_control.power_on().await;
+    Timer::after(Duration::from_secs(1)).await;
 
     // enable screen.init()
     use ssd1306::mode::DisplayConfig;

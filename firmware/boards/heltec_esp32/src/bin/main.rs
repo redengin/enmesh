@@ -127,8 +127,8 @@ async fn main(spawner: embassy_executor::Spawner) {
         #[cfg(feature = "_screen-ssd1306")]
         {
             let screen_io = tasks::ux::screen_ssd1306::UxIo {
-                vext_control: OutputPin!(peripherals.GPIO36),
-                oled_reset: OutputPin!(peripherals.GPIO21),
+                vext_control: OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High),
+                oled_reset: OutputPin!(peripherals.GPIO21, esp_hal::gpio::Level::High),
                 i2c: peripherals.I2C0,
                 sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
                 scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
