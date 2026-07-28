@@ -1,35 +1,36 @@
 /// provide page implementations
 mod home;
-pub(crate) use home::Home;
+// pub(crate) use home::Home;
 mod meshcore;
-pub(crate) use meshcore::MeshCore;
+// pub(crate) use meshcore::MeshCore;
 mod meshtastic;
-pub(crate) use meshtastic::Meshtastic;
+// pub(crate) use meshtastic::Meshtastic;
 
-#[derive(PartialEq, Eq)]
+
+// #[derive(PartialEq, Eq)]
 pub(crate) enum Pages {
-    Home,
-    MeshCore,
-    Meshtastic,
-    // Hibernate,
+    Home(home::Home),
+//     MeshCore,
+//     Meshtastic,
+//     // Hibernate,
 }
-impl Pages {
-    pub fn next(&self) -> Self {
-        match self {
-            Pages::Home => Pages::MeshCore,
-            Pages::MeshCore => Pages::Meshtastic,
-            Pages::Meshtastic => Pages::Home,
-        }
-    }
+// impl Pages {
+//     pub fn next(&self) -> Self {
+//         match self {
+//             Pages::Home => Pages::MeshCore,
+//             Pages::MeshCore => Pages::Meshtastic,
+//             Pages::Meshtastic => Pages::Home,
+//         }
+//     }
 
-    pub fn previous(&self) -> Self {
-        match self {
-            Pages::Home => Pages::Meshtastic,
-            Pages::Meshtastic => Pages::MeshCore,
-            Pages::MeshCore => Pages::Home,
-        }
-    }
-}
+//     pub fn previous(&self) -> Self {
+//         match self {
+//             Pages::Home => Pages::Meshtastic,
+//             Pages::Meshtastic => Pages::MeshCore,
+//             Pages::MeshCore => Pages::Home,
+//         }
+//     }
+// }
 
 /// provide the necessary primitives for page implementation
 pub mod prelude {
@@ -60,27 +61,27 @@ pub mod prelude {
 }
 
 
-use prelude::*;
-pub trait Page {
-    /// repaint the whole display
-    fn refresh(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        model: &crate::State,
-        theme: &Theme,
-    );
+// use prelude::*;
+// pub(crate) trait Page {
+//     /// repaint the whole display
+//     fn refresh(
+//         &mut self,
+//         display: &mut impl DrawTargetExt<Color = Rgb888>,
+//         model: &crate::State,
+//         theme: &Theme,
+//     );
 
-    /// update the display
-    /// * only needs to update changes
-    fn update(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        model: &crate::State,
-        theme: &Theme,
-    );
+//     /// update the display
+//     /// * only needs to update display changes
+//     fn update(
+//         &mut self,
+//         display: &mut impl DrawTargetExt<Color = Rgb888>,
+//         model: &crate::State,
+//         theme: &Theme,
+//     );
 
-    /// handle HidEvent
-    /// returns true if the event was handled and should not be bubbled up
-    fn handle_event(&mut self, event: &HidEvent) -> bool;
-}
+//     /// handle HidEvent
+//     /// returns true if the event was handled and should not be bubbled up
+//     fn handle_event(&mut self, event: &HidEvent) -> bool;
+// }
 

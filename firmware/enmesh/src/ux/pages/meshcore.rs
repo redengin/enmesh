@@ -11,7 +11,7 @@ impl MeshCore {
     }
 }
 
-impl crate::ux::pages::Page for MeshCore {
+impl crate::ux::View for MeshCore {
     /// repaint the whole display
     fn refresh(
         &mut self,
@@ -66,17 +66,5 @@ impl crate::ux::pages::Page for MeshCore {
     fn handle_event(&mut self, _event: &HidEvent) -> bool {
         // no events handled
         false
-    }
-
-    /// update the display
-    /// * only needs to update changed items
-    fn update(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        model: &crate::State,
-        theme: &Theme,
-    ) {
-        // FIXME for now just refresh the whole screen
-        self.refresh(display, model, theme);
     }
 }

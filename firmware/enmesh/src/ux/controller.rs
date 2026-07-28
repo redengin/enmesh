@@ -12,7 +12,7 @@ use common::embedded_graphics::draw_target::DrawTargetExt;
 /// provide introspection of screen size
 use common::embedded_graphics::geometry::OriginDimensions;
 
-use crate::ux::{self, HidEvent};
+use crate::ux::{self, HidEvent, View};
 const FRAME_RATE_HZ: u64 = 30; // frames per second
 
 /// provide screens and interaction via button
@@ -51,7 +51,7 @@ pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
 
     // transmute the simple LED to a StatusLed
     let mut status_led = ux::led::StatusLed::new(led);
-    status_led.set_mode(ux::led::LedStatusMode::ON);
+    status_led.set_mode(ux::led::LedStatusMode::OFF);
     status_led.update();
 
     // create a button monitor
@@ -73,7 +73,6 @@ pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
         let mut rgb_screen = screen.color_converted();
 
         // update the UX
-        use crate::ux::pages::Page;
         let model = global_state.read().await.clone();
         ux.refresh(&mut rgb_screen, &model, &theme);
         screen.flush().ok(); // must call flush to commit the changes to the screen
