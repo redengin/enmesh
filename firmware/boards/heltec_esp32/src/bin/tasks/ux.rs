@@ -1,8 +1,6 @@
 
 
 
-
-
 pub(crate) mod screen_ssd1306 {
     // provide the shared crates via re-export
     use common::*;
@@ -21,8 +19,11 @@ pub(crate) mod screen_ssd1306 {
         pub vext_control: esp_hal::gpio::Output<'static>,
         pub oled_reset: esp_hal::gpio::Output<'static>,
         pub i2c: esp_hal::peripherals::I2C0<'static>,
+        // FIXME
         pub sda: esp_hal::gpio::Flex<'static>,
         pub scl: esp_hal::gpio::Flex<'static>,
+        // pub sda: esp_hal::peripherals::GPIO17<'static>,
+        // pub scl: esp_hal::peripherals::GPIO18<'static>,
         pub button: esp_hal::gpio::Input<'static>,
         pub led: esp_hal::gpio::Output<'static>,
     }
@@ -30,11 +31,18 @@ pub(crate) mod screen_ssd1306 {
     #[embassy_executor::task]
     pub async fn task_ux(
         global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
-        ux_io: UxIo,
+        mut ux_io: UxIo,
     ) {
         debug!("initializing UX...");
         // create the screen driver
         //================================================================================
+        // transmute the flex to support I2C
+        ux_io.sda.apply_output_config(&esp_hal::gpio::OutputConfig::default().with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain));
+        ux_io.sda.set_input_enable(true);
+        ux_io.sda.set_output_enable(true);
+        ux_io.scl.apply_output_config(&esp_hal::gpio::OutputConfig::default().with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain));
+        ux_io.scl.set_input_enable(true);
+        ux_io.scl.set_output_enable(true);
         let interface = ssd1306::I2CDisplayInterface::new(
             // create the i2c bus
             esp_hal::i2c::master::I2c::new(
