@@ -1,3 +1,7 @@
+/// provide status led controller
+mod status_led;
+
+
 // provide the shared crates via re-export
 use common::*;
 
@@ -50,8 +54,8 @@ pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
     let theme = crate::ux::themes::Theme::new(screen.size());
 
     // transmute the simple LED to a StatusLed
-    let mut status_led = ux::led::StatusLed::new(led);
-    status_led.set_mode(ux::led::LedStatusMode::OFF);
+    let mut status_led = status_led::StatusLed::new(led);
+    status_led.set_mode(status_led::LedStatusMode::OFF);
     status_led.update();
 
     // create a button monitor

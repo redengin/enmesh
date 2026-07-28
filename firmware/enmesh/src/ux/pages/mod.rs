@@ -1,5 +1,7 @@
+use crate::ux;
+
 /// provide page implementations
-mod home;
+pub mod home;
 // pub(crate) use home::Home;
 mod meshcore;
 // pub(crate) use meshcore::MeshCore;
@@ -7,13 +9,38 @@ mod meshtastic;
 // pub(crate) use meshtastic::Meshtastic;
 
 
-// #[derive(PartialEq, Eq)]
 pub(crate) enum Pages {
-    Home(home::Home),
-//     MeshCore,
-//     Meshtastic,
-//     // Hibernate,
+    Page0(home::Home),
+    Page1(meshcore::MeshCore),
+    Page2(meshtastic::Meshtastic),
 }
+impl ux::View for Pages {
+    fn refresh(
+        &mut self,
+        display: &mut impl common::embedded_graphics::prelude::DrawTargetExt<Color = common::embedded_graphics::pixelcolor::Rgb888>,
+        model: &crate::State,
+        theme: &prelude::Theme,
+    ) {
+        match self {
+            Self::Page0(page) => page.refresh(display, model, theme),
+            Self::Page1(page) => page.refresh(display, model, theme),
+            Self::Page2(page) => page.refresh(display, model, theme),
+        }
+    }
+
+    fn handle_event(&mut self, event: &prelude::HidEvent) -> bool {
+        todo!()
+    }
+}
+
+
+// #[derive(PartialEq, Eq)]
+// pub(crate) enum Pages {
+//     Index(home::Home),
+// //     MeshCore,
+// //     Meshtastic,
+// //     // Hibernate,
+// }
 // impl Pages {
 //     pub fn next(&self) -> Self {
 //         match self {

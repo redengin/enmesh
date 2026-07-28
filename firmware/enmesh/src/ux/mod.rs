@@ -1,11 +1,15 @@
 /// provide controller thread runners
 pub mod controller;
 
+/// provide themes for Views
+pub(crate) mod themes;
+
 pub(crate) trait View {
     /// repaint the entire view
     fn refresh(
         &mut self,
         display: &mut impl DrawTargetExt<Color = Rgb888>,
+        // FIXME should be more generic
         model: &crate::State,
         theme: &Theme,
     );
@@ -15,6 +19,7 @@ pub(crate) trait View {
     fn update(
         &mut self,
         display: &mut impl DrawTargetExt<Color = Rgb888>,
+        // FIXME should be more generic
         model: &crate::State,
         theme: &Theme,
     ) {
@@ -44,43 +49,19 @@ pub const HID_HELD_DURATION: core::time::Duration =
     core::time::Duration::from_millis(500);
 
 
-
-
-
-
-/// provide UX LED control
-pub(crate) mod led;
-
-
-
-
-
-
-/// provide UX themes and pages
-pub(crate) mod themes;
-pub(crate) mod pages;
+mod pages;
 
 /// provide the views
 // use pages::Pages;
 
 pub struct Ux {
-    // /// use enum to track current page
-    // current_page: pages::Pages,
-    // // page instances
-    // home_page: pages::Home,
-    // meshcore_page: pages::MeshCore,
-    // meshtastic_page: pages::Meshtastic,
-    // // hibernate_page: pages::Hibernate,
+    current_page: pages::Pages,
 }
 use pages::prelude::*;
 impl Ux {
     pub fn new() -> Self {
         Self {
-            // current_page: pages::Pages::Home,
-            // home_page: pages::Home::new(),
-            // meshcore_page: pages::MeshCore::new(),
-            // meshtastic_page: pages::Meshtastic::new(),
-            // // hibernate_page: pages::Home::new(),
+            current_page: pages::Pages::Page0(pages::home::Home::new()),
         }
     }
     // fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
@@ -137,21 +118,22 @@ impl View for Ux {
         model: &crate::State,
         theme: &Theme,
     ) {
-        // // get the screen size
-        // let bounding_box = screen.bounding_box();
-        // // reserve space for the tab_bar
-        // let tab_bar_height = theme.text_style.line_height();
+        // get the screen size
+        let bounding_box = screen.bounding_box();
+        // reserve space for the tab_bar
+        let tab_bar_height = theme.text_style.line_height();
 
-        // // create a cropped display for the page content (excluding the tab bar)
-        // let mut page_display = screen.cropped(&Rectangle {
-        //     top_left: Point::zero(),
-        //     size: Size::new(
-        //         bounding_box.size.width,
-        //         bounding_box.size.height - tab_bar_height,
-        //     ),
-        // });
+        // create a cropped display for the page content (excluding the tab bar)
+        let mut page_display = screen.cropped(&Rectangle {
+            top_left: Point::zero(),
+            size: Size::new(
+                bounding_box.size.width,
+                bounding_box.size.height - tab_bar_height,
+            ),
+        });
 
-        // // refresh the current page
+        // refresh the current page
+        self.current_page.refresh(&mut page_display, model, &theme);
         // match self.current_page {
         //     Pages::Home => self.home_page.refresh(&mut page_display, model, &theme),
         //     Pages::MeshCore => self.meshcore_page.refresh(&mut page_display, model, &theme),
@@ -163,38 +145,39 @@ impl View for Ux {
         //     //     .refresh(&mut page_display, model, &theme),
         // }
 
-        // // refresh the tab bar inside a cropped display
-        // let mut tab_bar_display = screen.cropped(&Rectangle {
-        //     top_left: Point::new(0, (bounding_box.size.height - tab_bar_height) as i32),
-        //     size: Size::new(bounding_box.size.width, tab_bar_height),
-        // });
+        // refresh the tab bar inside a cropped display
+        let mut tab_bar_display = screen.cropped(&Rectangle {
+            top_left: Point::new(0, (bounding_box.size.height - tab_bar_height) as i32),
+            size: Size::new(bounding_box.size.width, tab_bar_height),
+        });
+        // FIXME
         // self.tab_bar_refresh(&mut tab_bar_display, &theme);
 
-        // // if ble pairing show a dialog with the passkey
-        // match model.ble_status {
-        //     crate::state::BleStatus::Pairing { passkey } => {
-        //         let style = PrimitiveStyleBuilder::new()
-        //             .stroke_color(theme.color)
-        //             .stroke_width(1)
-        //             .fill_color(theme.background)
-        //             .build();
+        // if ble pairing show a dialog with the passkey
+        match model.ble_status {
+            crate::state::BleStatus::Pairing { passkey } => {
+                let style = PrimitiveStyleBuilder::new()
+                    .stroke_color(theme.color)
+                    .stroke_width(1)
+                    .fill_color(theme.background)
+                    .build();
 
-        //         let frame = Rectangle::new(Point::zero(), Size::new(120, 40))
-        //             .into_styled(style)
-        //             .align_to(&bounding_box, horizontal::Center, vertical::Center);
-        //         frame.draw(screen) .ok();
-        //         let passkey_style = MonoTextStyle::new(&FONT_10X20, theme.color);
-        //         LinearLayout::vertical(
-        //             Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style))
-        //                 .append(Text::new(format!(6; "{:06}", passkey).unwrap().as_str(), Point::zero(), passkey_style))
-        //         )
-        //         .with_alignment(horizontal::Center)
-        //         .arrange()
-        //         .align_to(&frame, horizontal::Center, vertical::Center)
-        //         .draw(screen).ok();
-        //     }
-        //     _ => { /* no dialog */ }
-        // }
+                let frame = Rectangle::new(Point::zero(), Size::new(120, 40))
+                    .into_styled(style)
+                    .align_to(&bounding_box, horizontal::Center, vertical::Center);
+                frame.draw(screen) .ok();
+                let passkey_style = MonoTextStyle::new(&FONT_10X20, theme.color);
+                LinearLayout::vertical(
+                    Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style))
+                        .append(Text::new(format!(6; "{:06}", passkey).unwrap().as_str(), Point::zero(), passkey_style))
+                )
+                .with_alignment(horizontal::Center)
+                .arrange()
+                .align_to(&frame, horizontal::Center, vertical::Center)
+                .draw(screen).ok();
+            }
+            _ => { /* no dialog */ }
+        }
     }
 
     /// handle HidEvent
