@@ -36,7 +36,7 @@ pub(crate) mod screen_ssd1306 {
         debug!("initializing UX...");
         // create the screen driver
         //================================================================================
-        // transmute the flex to support I2C
+        // configure sda, scl flex to support I2C
         ux_io.sda.apply_output_config(&esp_hal::gpio::OutputConfig::default().with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain));
         ux_io.sda.set_input_enable(true);
         ux_io.sda.set_output_enable(true);

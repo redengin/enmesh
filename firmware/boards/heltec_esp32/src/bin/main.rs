@@ -126,6 +126,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         debug!("creating screen task...");
         #[cfg(feature = "_screen-ssd1306")]
         {
+            #[cfg(feature = "wifi_lora_32")]
             let screen_io = tasks::ux::screen_ssd1306::UxIo {
                 vext_control: OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High),
                 oled_reset: OutputPin!(peripherals.GPIO21, esp_hal::gpio::Level::High),
@@ -135,6 +136,18 @@ async fn main(spawner: embassy_executor::Spawner) {
                 button: InputPin!(peripherals.GPIO0),
                 led: OutputPin!(peripherals.GPIO35),
             };
+            #[cfg(feature = "wireless_stick_v3")]
+            let screen_io = tasks::ux::screen_ssd1306::UxIo {
+                // FIXME no vext_control on this board
+                vext_control: OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High),
+                oled_reset: OutputPin!(peripherals.GPIO16, esp_hal::gpio::Level::High),
+                i2c: peripherals.I2C0,
+                sda: esp_hal::gpio::Flex::new(peripherals.GPIO4),
+                scl: esp_hal::gpio::Flex::new(peripherals.GPIO15),
+                button: InputPin!(peripherals.GPIO0),
+                led: OutputPin!(peripherals.GPIO25),
+            };
+
             spawner.spawn(tasks::ux::screen_ssd1306::task_ux(global_state, screen_io).unwrap());
         }
 
