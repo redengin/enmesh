@@ -104,9 +104,9 @@ impl HidButton {
             // determine the HID event type
             let button_down_duration = self.active_frames * Duration::from_hz(FRAME_RATE_HZ);
             if button_down_duration >= crate::ux::HID_HELD_DURATION {
-                return Some(HidEvent::Select);
+                Some(HidEvent::Select)
             } else {
-                return Some(HidEvent::Next);
+                Some(HidEvent::Next)
             }
         } else {
             None

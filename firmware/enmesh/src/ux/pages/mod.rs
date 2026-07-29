@@ -10,7 +10,7 @@ pub(crate) enum Pages {
     Page2(meshtastic::Meshtastic),
 }
 impl Pages {
-    pub const count:usize = 3;
+    // pub const COUNT:usize = 3;
 
     pub fn index(&self) -> usize {
         return match self {

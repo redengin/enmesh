@@ -114,7 +114,8 @@ impl View for Ux {
         theme: &Theme,
     ) {
         // UX always uses update as it has full control of the display
-        panic!("UX view users should always use View::update()")
+        warn!("UX users should always use View::update()");
+        self.update(display, model, theme);
     }
 
     fn update(

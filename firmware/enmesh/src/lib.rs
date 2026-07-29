@@ -3,6 +3,7 @@ extern crate alloc;
 
 /// provide primitives necessary to use enmesh firmware
 pub mod prelude {
+    pub use common::log::*;
     pub use common::embassy_sync::rwlock::RwLock;
     pub use common::embassy_sync::blocking_mutex::raw::NoopRawMutex;
     pub use common::embassy_time::{Timer, Duration, Instant, Ticker};
