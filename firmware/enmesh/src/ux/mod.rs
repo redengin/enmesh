@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 /// provide controller thread runners
 pub mod controller;
 
@@ -32,7 +34,6 @@ pub(crate) trait View {
     fn handle_event(&mut self, event: &HidEvent) -> bool;
 }
 
-
 /// User interaction events
 pub enum HidEvent {
     /// move to next selectable item
@@ -45,86 +46,90 @@ pub enum HidEvent {
     Touch { x: u32, y: u32 },
 }
 /// active HID input durations greater than this, should generate a HidEvent::Select
-pub const HID_HELD_DURATION: core::time::Duration =
-    core::time::Duration::from_millis(500);
+pub const HID_HELD_DURATION: Duration = Duration::from_millis(500);
 
-
+/// provide the pages
 mod pages;
-
-/// provide the views
-// use pages::Pages;
-
 pub struct Ux {
     current_page: pages::Pages,
+    needs_page_refresh: bool,
 }
 use pages::prelude::*;
 impl Ux {
     pub fn new() -> Self {
         Self {
             current_page: pages::Pages::Page0(pages::home::Home::new()),
+            needs_page_refresh: true,
         }
     }
-    // fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
-    //     let _ = display.clear(theme.background.into());
 
-    //     const SELECTED: &str = "^";
-    //     const NOT_SELECTED: &str = "-";
-    //     LinearLayout::horizontal(
-    //         Chain::new(Text::new(
-    //             if self.current_page == Pages::Home {
-    //                 SELECTED
-    //             } else {
-    //                 NOT_SELECTED
-    //             },
-    //             Point::zero(),
-    //             theme.text_style,
-    //         ))
-    //         .append(Text::new(
-    //             if self.current_page == Pages::MeshCore {
-    //                 SELECTED
-    //             } else {
-    //                 NOT_SELECTED
-    //             },
-    //             Point::zero(),
-    //             theme.text_style,
-    //         ))
-    //         .append(Text::new(
-    //             if self.current_page == Pages::Meshtastic {
-    //                 SELECTED
-    //             } else {
-    //                 NOT_SELECTED
-    //             },
-    //             Point::zero(),
-    //             theme.text_style,
-    //         )), // .append(Text::new(
-    //             //     if self.current_page == Pages::Hibernate{ SELECTED } else { NOT_SELECTED },
-    //             //     Point::zero(), theme.text_style,
-    //             // )),
-    //     )
-    //     .with_spacing(DistributeFill(display.bounding_box().size.width))
-    //     .arrange()
-    //     .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
-    //     .draw(display)
-    //     .ok();
-    // }
+    fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
+        let _ = display.clear(theme.background.into());
+
+        let selected_index = self.current_page.index();
+        const SELECTED: &str = "^";
+        const NOT_SELECTED: &str = "-";
+        LinearLayout::horizontal(
+            Chain::new(Text::new(
+                if selected_index == 0 {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if selected_index == 1 {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if selected_index == 2 {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            )),
+        )
+        .with_spacing(DistributeFill(display.bounding_box().size.width))
+        .arrange()
+        .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
+        .draw(display)
+        .ok();
+    }
 }
 
-
 impl View for Ux {
-    /// repaint the whole screen
     fn refresh(
         &mut self,
-        screen: &mut impl DrawTargetExt<Color = Rgb888>,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        model: &crate::State,
+        theme: &Theme,
+    ) {
+        // UX always uses update as it has full control of the display
+        panic!("UX view users should always use View::update()")
+    }
+
+    fn update(
+        &mut self,
+        display: &mut impl DrawTargetExt<Color = Rgb888>,
         model: &crate::State,
         theme: &Theme,
     ) {
         // get the screen size
-        let bounding_box = screen.bounding_box();
+        let bounding_box = display.bounding_box();
         // reserve space for the tab_bar
         let tab_bar_height = theme.text_style.line_height();
 
         // create a cropped display for the page content (excluding the tab bar)
-        let mut page_display = screen.cropped(&Rectangle {
+        let mut page_display = display.cropped(&Rectangle {
             top_left: Point::zero(),
             size: Size::new(
                 bounding_box.size.width,
@@ -132,49 +137,58 @@ impl View for Ux {
             ),
         });
 
-        // refresh the current page
-        self.current_page.refresh(&mut page_display, model, &theme);
-        // match self.current_page {
-        //     Pages::Home => self.home_page.refresh(&mut page_display, model, &theme),
-        //     Pages::MeshCore => self.meshcore_page.refresh(&mut page_display, model, &theme),
-        //     Pages::Meshtastic => self
-        //         .meshtastic_page
-        //         .refresh(&mut page_display, model, &theme),
-        //     // Pages::Hibernate => self
-        //     //     .hibernate_page
-        //     //     .refresh(&mut page_display, model, &theme),
-        // }
+        // paint the current page
+        match self.needs_page_refresh {
+            // do full refresh
+            true => {
+                self.current_page.refresh(&mut page_display, model, &theme);
 
-        // refresh the tab bar inside a cropped display
-        let mut tab_bar_display = screen.cropped(&Rectangle {
-            top_left: Point::new(0, (bounding_box.size.height - tab_bar_height) as i32),
-            size: Size::new(bounding_box.size.width, tab_bar_height),
-        });
-        // FIXME
-        // self.tab_bar_refresh(&mut tab_bar_display, &theme);
+                // refresh the tab bar inside a cropped display
+                let mut tab_bar_display = display.cropped(&Rectangle {
+                    top_left: Point::new(0, (bounding_box.size.height - tab_bar_height) as i32),
+                    size: Size::new(bounding_box.size.width, tab_bar_height),
+                });
+                self.tab_bar_refresh(&mut tab_bar_display, &theme);
+
+                self.needs_page_refresh = false;
+            }
+            // do simple update
+            false => self.current_page.update(&mut page_display, model, &theme),
+        }
 
         // if ble pairing show a dialog with the passkey
         match model.ble_status {
             crate::state::BleStatus::Pairing { passkey } => {
-                let style = PrimitiveStyleBuilder::new()
-                    .stroke_color(theme.color)
-                    .stroke_width(1)
-                    .fill_color(theme.background)
-                    .build();
-
+                // draw a framing rectangle
                 let frame = Rectangle::new(Point::zero(), Size::new(120, 40))
-                    .into_styled(style)
+                    .into_styled(
+                        PrimitiveStyleBuilder::new()
+                            .stroke_color(theme.color)
+                            .stroke_width(1)
+                            .fill_color(theme.background)
+                            .build(),
+                    )
                     .align_to(&bounding_box, horizontal::Center, vertical::Center);
-                frame.draw(screen) .ok();
-                let passkey_style = MonoTextStyle::new(&FONT_10X20, theme.color);
+                frame.draw(display).ok();
+
+                // draw the dialog text
                 LinearLayout::vertical(
-                    Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style))
-                        .append(Text::new(format!(6; "{:06}", passkey).unwrap().as_str(), Point::zero(), passkey_style))
+                    Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style)).append(
+                        Text::new(
+                            format!(6; "{:06}", passkey).unwrap().as_str(),
+                            Point::zero(),
+                            theme.h1_style,
+                        ),
+                    ),
                 )
                 .with_alignment(horizontal::Center)
                 .arrange()
                 .align_to(&frame, horizontal::Center, vertical::Center)
-                .draw(screen).ok();
+                .draw(display)
+                .ok();
+
+                // repaint the page below the dialog on next update
+                self.needs_page_refresh = true;
             }
             _ => { /* no dialog */ }
         }
@@ -182,30 +196,26 @@ impl View for Ux {
 
     /// handle HidEvent
     fn handle_event(&mut self, event: &HidEvent) -> bool {
-        // let handled = match self.current_page {
-        //     Pages::Home => self.home_page.handle_event(&event),
-        //     // FIXME handle all pages
-        //     _ => false,
-        // };
-        // if !handled {
-        //     match event {
-        //         HidEvent::Next => {
-        //             self.current_page = self.current_page.next();
-        //         }
-        //         HidEvent::Previous => {
-        //             self.current_page = self.current_page.previous();
-        //         }
-        //         _ => {}
-        //     }
-        // }
+        let handled = self.current_page.handle_event(event);
+
+        if !handled {
+            match event {
+                HidEvent::Next => {
+                    self.current_page = self.current_page.next();
+                    self.needs_page_refresh = true;
+                }
+                HidEvent::Previous => {
+                    self.current_page = self.current_page.previous();
+                    self.needs_page_refresh = true;
+                }
+                _ => {}
+            }
+        }
+
         // UX always handles the event
         true
     }
 }
-
-
-
-
 
 // // provide the shared crates via re-export
 // use common::*;
@@ -215,7 +225,6 @@ impl View for Ux {
 
 // /// provide embedded graphics primitives
 // use embedded_graphics::prelude::*;
-
 
 // pub async fn run<D: DrawTarget + embedded_graphics::geometry::OriginDimensions>(
 //     global_state: &'static RwLock<NoopRawMutex, crate::State>,
@@ -228,7 +237,7 @@ impl View for Ux {
 //     let status_led = led::StatusLed::new(led);
 
 //     // create the UX
-//     let mut ux = crate::ux::Ux::new(); 
+//     let mut ux = crate::ux::Ux::new();
 //     // create our ux theme
 //     let screen_size = screen.size();
 //     let theme = crate::ux::themes::DefaultTheme(screen_size);
@@ -277,4 +286,3 @@ impl View for Ux {
 //         frame_ticker.next().await;
 //     }
 // }
-

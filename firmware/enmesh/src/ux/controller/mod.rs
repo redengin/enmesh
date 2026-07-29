@@ -1,7 +1,6 @@
 /// provide status led controller
 mod status_led;
 
-
 // provide the shared crates via re-export
 use common::*;
 
@@ -16,7 +15,7 @@ use common::embedded_graphics::draw_target::DrawTargetExt;
 /// provide introspection of screen size
 use common::embedded_graphics::geometry::OriginDimensions;
 
-use crate::ux::{self, HidEvent, View};
+use crate::ux::{HidEvent, View};
 const FRAME_RATE_HZ: u64 = 30; // frames per second
 
 /// provide screens and interaction via button
@@ -59,17 +58,17 @@ pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
     status_led.update();
 
     // create a button monitor
-    let mut hid_button  = HidButton::new();
+    let mut hid_button = HidButton::new();
 
     let mut frame_ticker = Ticker::every(Duration::from_hz(FRAME_RATE_HZ));
     loop {
         // monitor the button
         if let Ok(active) = button.is_active() {
-            match hid_button.update(active){
+            match hid_button.update(active) {
                 Some(hid_event) => {
                     ux.handle_event(&hid_event);
                 }
-                None => { }
+                None => {}
             }
         }
 
@@ -78,7 +77,7 @@ pub async fn run_ssd1306<ScreenInterface, ScreenSize>(
 
         // update the UX
         let model = global_state.read().await.clone();
-        ux.refresh(&mut rgb_screen, &model, &theme);
+        ux.update(&mut rgb_screen, &model, &theme);
         screen.flush().ok(); // must call flush to commit the changes to the screen
 
         // await the next cycle
@@ -94,24 +93,23 @@ impl HidButton {
         Self { active_frames: 0 }
     }
     pub fn update(&mut self, is_active: bool) -> Option<HidEvent> {
-        if is_active {
-            self.active_frames += 1;
-            return None;
-        }
-
         const DEBOUNCE_FRAMES: u32 = 2;
-        if self.active_frames >= DEBOUNCE_FRAMES {
+        return if is_active {
+            self.active_frames += 1;
+            None
+        } else if self.active_frames >= DEBOUNCE_FRAMES {
+            // reset for next button event
+            self.active_frames = 0;
+
+            // determine the HID event type
             let button_down_duration = self.active_frames * Duration::from_hz(FRAME_RATE_HZ);
-            // convert core::time::Duration -> embassy_time::Duration
-            let hid_held_duration = embassy_time::Duration::from_millis(
-                crate::ux::HID_HELD_DURATION.as_millis() as u64,
-            );
-            if button_down_duration >= hid_held_duration {
+            if button_down_duration >= crate::ux::HID_HELD_DURATION {
                 return Some(HidEvent::Select);
             } else {
                 return Some(HidEvent::Next);
             }
-        }
-        None
+        } else {
+            None
+        };
     }
 }
