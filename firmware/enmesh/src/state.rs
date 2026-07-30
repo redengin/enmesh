@@ -35,7 +35,7 @@ impl State {
     pub fn new() -> Self {
         Self {
             // FIXME bind to actual firmware version
-            firmware_version: "v0.0.1",
+            firmware_version: "0.0.1",
             ..Default::default()
         }
     }
