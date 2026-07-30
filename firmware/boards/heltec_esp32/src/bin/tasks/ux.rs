@@ -1,6 +1,6 @@
 
 
-
+/// provide support for CMOS OLED SSD1306 screens
 pub(crate) mod screen_ssd1306 {
     // provide the shared crates via re-export
     use common::*;
@@ -19,11 +19,8 @@ pub(crate) mod screen_ssd1306 {
         pub vext_control: esp_hal::gpio::Output<'static>,
         pub oled_reset: esp_hal::gpio::Output<'static>,
         pub i2c: esp_hal::peripherals::I2C0<'static>,
-        // FIXME
         pub sda: esp_hal::gpio::Flex<'static>,
         pub scl: esp_hal::gpio::Flex<'static>,
-        // pub sda: esp_hal::peripherals::GPIO17<'static>,
-        // pub scl: esp_hal::peripherals::GPIO18<'static>,
         pub button: esp_hal::gpio::Input<'static>,
         pub led: esp_hal::gpio::Output<'static>,
     }
@@ -36,7 +33,7 @@ pub(crate) mod screen_ssd1306 {
         debug!("initializing UX...");
         // create the screen driver
         //================================================================================
-        // configure sda, scl flex to support I2C
+        // configure sda, scl Flex pins to support I2C
         ux_io.sda.apply_output_config(&esp_hal::gpio::OutputConfig::default().with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain));
         ux_io.sda.set_input_enable(true);
         ux_io.sda.set_output_enable(true);
@@ -81,3 +78,52 @@ pub(crate) mod screen_ssd1306 {
         warn!("UX task ended");
     }
 }
+
+
+pub(crate) mod screen_ssd1680 {
+    // provide the shared crates via re-export
+    use common::*;
+
+    // provide logging primitives
+    use log::*;
+
+    // provide access to esp32 hardware
+    use soc_esp32::*;
+
+    // provide scheduling primitives
+    use enmesh_firmware::prelude::*;
+
+    /// convenience struct for the screen and button interfaces
+    pub struct UxIo {
+        pub interface: esp_hal::peripherals::SPI3<'static>,
+        pub sdi: esp_hal::gpio::Flex<'static>,
+        pub cs: esp_hal::gpio::Output<'static>,
+
+        pub busy: esp_hal::gpio::Input<'static>,
+        pub dc: esp_hal::gpio::Output<'static>,
+        pub reset: esp_hal::gpio::Output<'static>,
+
+        pub button: esp_hal::gpio::Input<'static>,
+        pub led: esp_hal::gpio::Output<'static>,
+    }
+
+    // #[embassy_executor::task]
+    // pub async fn task_ux(
+    //     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    //     mut ux_io: UxIo,
+    // ) {
+    //     debug!("initializing UX...");
+
+
+    //     let ssd1680 = ssd1680::driver::Ssd1680::new(
+    //         interface, 
+    //         busy: ux_io.busy,
+    //         dc: ux_io.dc,
+    //         rst: ux_io.reset,
+    //         dly: embassy_time::Delay,   
+    //     );
+
+    //     warn!("UX task ended");
+    // }
+}
+
