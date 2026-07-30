@@ -48,7 +48,6 @@ fn main() -> Result<(), std::convert::Infallible> {
     Ok(())
 }
 
-use enmesh_firmware::ux::Page;
 fn run<Color>(
     mut window: embedded_graphics_simulator::Window,
     mut screen: embedded_graphics_simulator::SimulatorDisplay<Color>,
@@ -62,10 +61,11 @@ fn run<Color>(
     let mut ux = enmesh_firmware::ux::Ux::new();
     // create our enmesh ux theme
     let screen_size = screen.size();
-    let theme = enmesh_firmware::ux::themes::DefaultTheme(screen_size);
+    let theme = enmesh_firmware::ux::themes::Theme::new(screen_size);
     // refresh the simulated display 
     let mut rgb_screen = screen.color_converted();
-    ux.refresh(&mut rgb_screen, &state, &theme);
+    use enmesh_firmware::ux::View;
+    ux.update(&mut rgb_screen, &state, &theme);
 
     // create a simulation button
     use embedded_graphics_simulator::sdl2::Keycode;
@@ -107,7 +107,7 @@ fn run<Color>(
                             // handle button press
                             let elapsed_millis = std::time::Instant::now() - start;
                             // handle the event by the UX
-                            if elapsed_millis >= enmesh_firmware::ux::HID_HELD_DURATION {
+                            if elapsed_millis >= enmesh_firmware::ux::HID_HELD_DURATION.into() {
                                 ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
                             } else {
                                 ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);

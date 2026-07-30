@@ -4,9 +4,9 @@ use crate::prelude::*;
 pub mod controller;
 
 /// provide themes for Views
-pub(crate) mod themes;
+pub mod themes;
 
-pub(crate) trait View {
+pub trait View {
     /// repaint the entire view
     fn refresh(
         &mut self,
