@@ -1,4 +1,4 @@
-// provide the page primitives
+// provide the view primitives
 use crate::ux::pages::prelude::*;
 
 use alloc::string::ToString;
@@ -27,7 +27,7 @@ impl crate::ux::View for Home {
             Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("enmesh", Point::zero(), theme.text_style)).append(
-                        Text::new(model.firmware_version, Point::zero(), theme.text_style)
+                        Text::new(model.firmware_version, Point::zero(), theme.text_style),
                     ),
                 )
                 .with_spacing(FixedMargin(5))
@@ -35,28 +35,37 @@ impl crate::ux::View for Home {
             )
             .append(Chain::new(
                 LinearLayout::horizontal(
-                    Chain::new(Text::new("WiFi:", Point::zero(), theme.text_style))
-                    .append(Text::new(model.wifi_status.to_string().as_str(), Point::zero(), theme.text_style))
+                    Chain::new(Text::new("WiFi:", Point::zero(), theme.text_style)).append(
+                        Text::new(
+                            model.wifi_status.to_string().as_str(),
+                            Point::zero(),
+                            theme.text_style,
+                        ),
+                    ),
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
             ))
             .append(Chain::new(
                 LinearLayout::horizontal(
-                    Chain::new(Text::new("BLE:", Point::zero(), theme.text_style))
-                        .append(Text::new(model.ble_status.to_string().as_str(), Point::zero(), theme.text_style))
+                    Chain::new(Text::new("BLE:", Point::zero(), theme.text_style)).append(
+                        Text::new(
+                            model.ble_status.to_string().as_str(),
+                            Point::zero(),
+                            theme.text_style,
+                        ),
+                    ),
                 )
-                    .with_spacing(FixedMargin(5))
-                    .arrange(),
-            ))
-            // .append(Chain::new(
-            //     LinearLayout::horizontal(
-            //         Chain::new(Text::new(model.current_protocol.to_string().as_str(), Point::zero(), theme.text_style))
-            //         .append(Text::new(model.current_radio_mode.to_string().as_str(), Point::zero(), theme.text_style))
-            //     )
-            //     .with_spacing(FixedMargin(5))
-            //     .arrange(),
-            // ))
+                .with_spacing(FixedMargin(5))
+                .arrange(),
+            )), // .append(Chain::new(
+                //     LinearLayout::horizontal(
+                //         Chain::new(Text::new(model.current_protocol.to_string().as_str(), Point::zero(), theme.text_style))
+                //         .append(Text::new(model.current_radio_mode.to_string().as_str(), Point::zero(), theme.text_style))
+                //     )
+                //     .with_spacing(FixedMargin(5))
+                //     .arrange(),
+                // ))
         )
         .arrange()
         .draw(display);

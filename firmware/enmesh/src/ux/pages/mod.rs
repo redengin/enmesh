@@ -3,7 +3,6 @@ pub mod home;
 pub mod meshcore;
 pub mod meshtastic;
 
-
 pub(crate) enum Pages {
     Page0(home::Home),
     Page1(meshcore::MeshCore),
