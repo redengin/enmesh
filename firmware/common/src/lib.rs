@@ -8,6 +8,7 @@ pub use log;
 pub use static_cell;
 pub use heapless;
 pub use embedded_hal;
+pub use embedded_hal_bus;
 pub use embedded_graphics;
 pub use embedded_layout;
 // pub use embedded_storage;

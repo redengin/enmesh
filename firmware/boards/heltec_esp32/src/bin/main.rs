@@ -150,12 +150,23 @@ async fn main(spawner: embassy_executor::Spawner) {
 
             spawner.spawn(tasks::ux::screen_ssd1306::task_ux(global_state, ux_io).unwrap());
         }
-        // #[cfg(feature = "_screen-ssd1680")]
-        // {
-        //     let ux_io = tasks::ux::screen_ssd1680::UxIo {
+        #[cfg(feature = "_screen-ssd1680")]
+        {
+            let ux_io = tasks::ux::screen_ssd1680::UxIo {
+                spi: peripherals.SPI3,
+                sdi: esp_hal::gpio::Flex::new(peripherals.GPIO2),
+                clk: OutputPin!(peripherals.GPIO3),
+                cs: OutputPin!(peripherals.GPIO4),
+                dc: OutputPin!(peripherals.GPIO5),
+                reset: OutputPin!(peripherals.GPIO6),
+                busy: InputPin!(peripherals.GPIO7),
+                vext_control: OutputPin!(peripherals.GPIO45),
+                button: InputPin!(peripherals.GPIO0),
+                led: OutputPin!(peripherals.GPIO18),
+            };
 
-        //     }
-        // }
+            spawner.spawn(tasks::ux::screen_ssd1680::task_ux(global_state, ux_io).unwrap());
+        }
 
         debug!("screen task created");
     }
