@@ -1,0 +1,20 @@
+[package]
+name = "epd-drivers"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+keywords = [
+    "epd", "e-ink", "epaper",
+    "E0213A367" # heltec wireless-paper v1.2
+]
+categories = [
+    "embedded", "graphics", "no-std", "asynchronous"
+]
+
+
+[features]
+# use std environment (otherwise uses no_std)
+std = []
+
+# use defmt
+defmt = []

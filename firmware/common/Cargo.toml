@@ -42,7 +42,7 @@ display-interface = "*"
 # 0.96" OLED Screen
 ssd1306 = "*"       # ssd1306 = { version = "*", features = ["async"] }
 # e-ink screen
-ssd1680 = "*"
+# FIXME no maintained drivers found
 
 #-------------------------------------------------------------------------------
 
@@ -62,4 +62,6 @@ trouble-host = { version = "*", features = [
 # trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
 #-------------------------------------------------------------------------------
 
-
+[features]
+# FIXME not currently supported
+defmt = []
