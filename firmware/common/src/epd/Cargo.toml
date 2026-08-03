@@ -11,6 +11,8 @@ categories = [
     "embedded", "graphics", "no-std", "asynchronous"
 ]
 
+[lib]
+path = "lib.rs"
 
 [features]
 # use std environment (otherwise uses no_std)

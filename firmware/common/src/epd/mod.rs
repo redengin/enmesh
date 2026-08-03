@@ -1,2 +1,2 @@
 /// Heltec Wireless Paper display
-pub mod LCMEN2R13EFC1;
+pub mod E0213A367;
