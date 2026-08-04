@@ -9,6 +9,7 @@
 
 pub mod interface;
 pub mod driver;
+mod commands;
 
 // pub mod color;
 

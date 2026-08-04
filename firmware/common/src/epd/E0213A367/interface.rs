@@ -68,23 +68,23 @@ where
             .map_err(|_| DisplayError::BusWriteError)
     }
 
-    // /// Basic function for sending a command and the data belonging to it.
-    // pub(crate) fn cmd_with_data(&mut self, command: u8, data: &[u8]) -> Result<(), DisplayError> {
-    //     self.cmd(command)?;
-    //     self.data(data)
-    // }
+    /// Basic function for sending a command and the data belonging to it.
+    pub(crate) fn cmd_with_data(&mut self, command: u8, data: &[u8]) -> Result<(), DisplayError> {
+        self.send_command(command)?;
+        self.send_data(data)
+    }
 
-    // /// Basic function for sending the same byte of data (one u8) multiple times over spi
-    // /// Used for setting one color for the whole frame
-    // pub(crate) fn data_x_times(&mut self, val: u8, repetitions: u32) -> Result<(), DisplayError> {
-    //     // high for data
-    //     let _ = self.dc.set_high();
-    //     // Transfer data (u8) over spi
-    //     for _ in 0..repetitions {
-    //         self.spi
-    //             .write(&[val])
-    //             .map_err(|_| DisplayError::BusWriteError)?;
-    //     }
-    //     Ok(())
-    // }
+    /// Basic function for sending the same byte of data (one u8) multiple times over spi
+    /// Used for setting one color for the whole frame
+    pub(crate) fn data_x_times(&mut self, val: u8, repetitions: u32) -> Result<(), DisplayError> {
+        // high for data
+        let _ = self.dc.set_high();
+        // Transfer data (u8) over spi
+        for _ in 0..repetitions {
+            self.spi
+                .write(&[val])
+                .map_err(|_| DisplayError::BusWriteError)?;
+        }
+        Ok(())
+    }
 }
