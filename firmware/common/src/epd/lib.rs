@@ -5,5 +5,4 @@
 // #![warn(missing_copy_implementations)]
 
 
-/// Heltec Wireless Paper display
-pub mod mod;
+pub mod ssd1680;

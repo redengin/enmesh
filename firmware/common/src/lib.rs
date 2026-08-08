@@ -33,7 +33,6 @@ pub use lora_modulation;
 pub use lora_phy;
 pub use display_interface;
 pub use ssd1306;
-pub mod epd;
 //------------------------------------------------------------------------------
 
 // BLE Host

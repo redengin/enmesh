@@ -1,0 +1,11 @@
+[package]
+name = "epd-drivers-example-esp32s3"
+version = "0.1.0"
+license = "MIT"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "sync"
+test = false
+bench = false

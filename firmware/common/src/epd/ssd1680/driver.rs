@@ -17,6 +17,7 @@ pub struct Screen<SPI, BSY, RST, DC> {
     interface: DisplayInterface<SPI, BSY, RST, DC>,
     // dimensions: Size,  122x250
 }
+
 impl<SPI, BSY, DC, RST> Screen<SPI, BSY, DC, RST>
 where
     SPI: SpiDevice,
@@ -63,6 +64,17 @@ where
         Ok(())
     }
 
+    pub fn display_frame(&mut self) -> Result<(), DisplayError> {
+        self.interface.send_command(0x22)?;
+        self.interface.send_data(&[0xF7])?;
+        self.interface.send_command(0x20)?;
+        // self.interface.wait_until_idle(delay);
+
+        Ok(())
+    }
+
+    pub fn update
+
 
 	// fn set_partial_ram_area(&mut self, x: u16, y: u16, w:u16, h: u16) -> Result<(), DisplayError>
 	// {
@@ -106,10 +118,10 @@ impl<SPI, BSY, DC, RST> DrawTarget for Screen<SPI, BSY, DC, RST> {
     where
         I: IntoIterator<Item = Pixel<Self::Color>>,
     {
-        // FIXME
-        // for p in pixels.into_iter() {
-        //     self.draw_helper(WIDTH.into(), HEIGHT.into(), p)?;
-        // }
+        FIXME
+        for p in pixels.into_iter() {
+            self.draw_helper(WIDTH.into(), HEIGHT.into(), p)?;
+        }
         Ok(())
     }
 }

@@ -14,9 +14,22 @@ categories = [
 [lib]
 path = "lib.rs"
 
+
+[dependencies]
+embedded-hal = "*"
+display-interface = "*"
+# embedded-graphics-core = { version = "0.4.0", optional = true }
+maybe-async-cfg = "*"
+# embedded-hal-async = { version = "1.0.0", optional = true }
+
+
+
 [features]
 # use std environment (otherwise uses no_std)
 std = []
+
+# use async implementation
+async = []
 
 # use defmt
 defmt = []

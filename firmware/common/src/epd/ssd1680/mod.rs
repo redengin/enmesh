@@ -1,4 +1,4 @@
-//! Driver for Heltec Wirless-Paper (and epaper display (EPD) using similar chip)
+//! Driver for ssd1680 EPD display chip
 //! 
 //! # Example
 //! 
@@ -7,8 +7,14 @@
 //! 
 //! 
 
+
+/// provide hardware interface
 pub mod interface;
-pub mod driver;
+
+// mod commands;
+
+// pub mod interface;
+// pub mod driver;
 
 // pub mod color;
 
