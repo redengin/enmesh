@@ -27,7 +27,10 @@ async fn main(spawner: embassy_executor::Spawner) {
         esp_hal::init(esp_hal::Config::default().with_cpu_clock(esp_hal::clock::CpuClock::max()))
     };
 
-    // initialize logging
+    // create a heap for alloc support
+    soc_esp32::init_heap();
+
+    // initialize logging levels
     esp_println::logger::init_logger_from_env();
 
     debug!("initializing RTOS...");
@@ -43,7 +46,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // create globally shared state
     let state = enmesh_firmware::State {
         firmware_version: env!("CARGO_PKG_VERSION"),
-        hardware_name: "Heltec T114",
+        hardware_name: "Heltec",   // FIXME provide a more descriptive string
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
@@ -57,7 +60,7 @@ async fn main(spawner: embassy_executor::Spawner) {
             storage.settings_partition_b.as_mut(),
         )
         .await;
-
+    trace!("starting Persisted Settings task");
     spawner.spawn(
         task_persisted_settings(
             global_state,
@@ -68,19 +71,13 @@ async fn main(spawner: embassy_executor::Spawner) {
         .unwrap(),
     );
 
-    // create a heap for alloc support
-    soc_esp32::init_heap();
-
     // create the tasks
     //================================================================================
-    // LoRa pin mapping & task
-    //--------------------------------------------------------------------------------
     debug!("creating LoRa task...");
     // make sure that we know how to map the LoRa pins
     #[cfg(not(any(
         feature = "wifi_lora_32",
         feature = "wireless_stick_v2",
-        // feature = "wireless_stick_v3",
         feature = "wireless_tracker",
         feature = "wireless_paper"
     )))]
@@ -116,12 +113,12 @@ async fn main(spawner: embassy_executor::Spawner) {
         mosi: OutputPin!(peripherals.GPIO27),
         miso: InputPin!(peripherals.GPIO19),
     };
-
+    trace!("starting task");
     spawner.spawn(tasks::lora::task_lora(global_state, lora_io).unwrap());
     debug!("LoRa task created");
-
-    // Screen pin mapping & task
     //--------------------------------------------------------------------------------
+
+
     if cfg!(not(feature = "disable-screen")) {
         debug!("creating screen task...");
         #[cfg(feature = "_screen-ssd1306")]
@@ -167,7 +164,6 @@ async fn main(spawner: embassy_executor::Spawner) {
 
             spawner.spawn(tasks::ux::screen_ssd1680::task_ux(global_state, ux_io).unwrap());
         }
-
         debug!("screen task created");
     }
 
@@ -183,11 +179,10 @@ async fn main(spawner: embassy_executor::Spawner) {
         // debug!("enmesh ble companion task created");
     }
 
-    // USB serial pin mapping & task
     //--------------------------------------------------------------------------------
+    debug!("creating usb serial task...");
     // hold off on starting up the serial interface so that boot logging completes
     Timer::after_secs(2).await;
-    debug!("creating usb serial task...");
     // https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20220413.pdf#page=2
     // configure_usb_serial(&peripherals.GPIO36, &peripherals.GPIO37);
     let usb_serial_io = tasks::usb_serial::UsbSerialIo {
@@ -197,19 +192,19 @@ async fn main(spawner: embassy_executor::Spawner) {
     };
     spawner.spawn(tasks::usb_serial::task_usb_serial(global_state, usb_serial_io).unwrap());
     debug!("usb serial task created");
+    //--------------------------------------------------------------------------------
 
     info!("enmesh firmware running...");
 }
 
+/// Thread to periodically update the persistent storage
 #[embassy_executor::task]
-pub async fn task_persisted_settings(
+async fn task_persisted_settings(
     global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     mut persisted_settings_manager: enmesh_firmware::persisted_settings::PersistedSettingsManager,
     mut settings_partition_a: Option<enmesh_storage::Partition>,
     mut settings_partition_b: Option<enmesh_storage::Partition>,
 ) {
-    debug!("creating persisted settings task...");
-
     persisted_settings_manager
         .run(
             global_state,
@@ -218,5 +213,5 @@ pub async fn task_persisted_settings(
         )
         .await;
 
-    error!("persisted settings task ended");
+    error!("Persisted Settings task ended");
 }
