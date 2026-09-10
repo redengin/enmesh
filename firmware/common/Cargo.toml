@@ -5,23 +5,20 @@ license = "MIT"
 edition = "2024"
 publish = false
 
-
 [dependencies]
 log = "*"
 
 # embedded utils
 #-------------------------------------------------------------------------------
-static_cell = "*"
-heapless = { version = "*", features = ["ufmt"] }
 embedded-hal = "*"
 embedded-hal-bus = "*"
+static_cell = "*"
+heapless = { version = "*", features = ["ufmt"] }
 embedded-graphics = "*"
 embedded-layout = "*"
-# embedded-storage = "*"
-# critical-section = "*"
 #-------------------------------------------------------------------------------
 
-# use the embassay RTOS
+# use the embassy RTOS
 #-------------------------------------------------------------------------------
 embassy-executor = { version = "*", features = ["log"] }
 embassy-time = { version = "*", features = ["log"] }
