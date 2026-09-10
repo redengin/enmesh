@@ -1,5 +1,5 @@
 /// provide status led controller
-mod status_led;
+pub mod status_led;
 
 // provide the shared crates via re-export
 use common::*;

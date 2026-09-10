@@ -12,6 +12,7 @@ pub(crate) mod screen_ssd1306 {
     // provide scheduling primitives
     use enmesh_firmware::prelude::*;
 
+    #[allow(dead_code)]
     /// convenience struct for the screen and button interfaces
     pub struct UxIo {
         pub vext_control: esp_hal::gpio::Output<'static>,
@@ -91,6 +92,7 @@ pub(crate) mod screen_ssd1306 {
         warn!("UX task ended");
     }
 
+    #[allow(dead_code)]
     pub struct ScreenPowerControl {
         /// screen powered when LOW
         pub vext_control: esp_hal::gpio::Output<'static>,
@@ -131,15 +133,16 @@ pub(crate) mod screen_ssd1306 {
 
 pub(crate) mod screen_ssd1680 {
     // provide the shared crates via re-export
-    use common::{embassy_time::Delay, *};
+    // use common::{embassy_time::Delay, *};
 
     // provide logging primitives
-    use log::*;
+    // use log::*;
 
     // provide access to esp32 hardware
     use soc_esp32::*;
 
     // provide scheduling primitives
+    use common::*;
     use embassy_sync::mutex::Mutex;
     use enmesh_firmware::prelude::*;
 
@@ -148,6 +151,7 @@ pub(crate) mod screen_ssd1680 {
         Mutex<NoopRawMutex, esp_hal::spi::master::Spi<'static, esp_hal::Async>>,
     > = static_cell::StaticCell::new();
 
+    #[allow(dead_code)]
     /// convenience struct for the screen and button interfaces
     pub struct UxIo {
         pub spi: esp_hal::peripherals::SPI3<'static>,
@@ -164,8 +168,8 @@ pub(crate) mod screen_ssd1680 {
 
     #[embassy_executor::task]
     pub async fn task_ux(
-        global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
-        mut ux_io: UxIo,
+        _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+        ux_io: UxIo,
     ) {
         debug!("initializing UX...");
 
@@ -183,7 +187,7 @@ pub(crate) mod screen_ssd1680 {
         .with_mosi(ux_io.sdi)
         .into_async();
         let spi_bus = SSD1680_SPI_BUS.init(Mutex::new(spi));
-        let spi_device =
+        let _spi_device =
             embassy_embedded_hal::shared_bus::asynch::spi::SpiDevice::new(spi_bus, ux_io.cs);
 
         // create the screen driver
@@ -203,16 +207,16 @@ pub(crate) mod screen_ssd1680 {
         // };
 
         // create the screen power controller
-        let screen_power_control = ScreenPowerControl {
+        let _screen_power_control = ScreenPowerControl {
             vext_control: ux_io.vext_control,
             reset: ux_io.reset,
         };
 
         // create the button
-        let button = button::Button::active_low(ux_io.button);
+        let _button = button::Button::active_low(ux_io.button);
 
         // create the led
-        let led = led::Led::active_high(ux_io.led);
+        let _led = led::Led::active_high(ux_io.led);
 
         // run UX handler
         // enmesh_firmware::ux::controller::run(

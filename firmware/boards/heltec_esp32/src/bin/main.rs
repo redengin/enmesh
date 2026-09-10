@@ -150,7 +150,7 @@ async fn main(spawner: embassy_executor::Spawner) {
 
             spawner.spawn(tasks::ux::screen_ssd1306::task_ux(global_state, ux_io).unwrap());
         }
-        #[cfg(feature = "_screen-ssd1680")]
+        #[cfg(feature = "_screen-epd")]
         {
             let ux_io = tasks::ux::screen_ssd1680::UxIo {
                 spi: peripherals.SPI3,
