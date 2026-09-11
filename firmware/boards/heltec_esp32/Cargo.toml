@@ -11,9 +11,11 @@ enmesh-firmware = { path = "../../enmesh" }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
 
 # screen drivers
+ssd1306 = { version = "*", features = ["async"], optional = true }
 # ssd1306 = { version = "*", optional = true }
 # epd-rs = { version = "*", optional = true }
 # st7735 = { version = "*", optional = true}
+
 
 # FIXME local crates necessary for build (should be imported form soc_esp32)
 embassy-executor = { version = "*", features = ["log"] }
@@ -70,9 +72,9 @@ wireless_paper = [
 #-------------------------------------------------------------------------------
 _gps = []
 
-_screen-ssd1306 = [] # drivers provided by `common`
-_screen-st7735 = []  # drivers provided by `common`
-_screen-epd = []     # drivers provided by `common`
+_screen-ssd1306 = ["dep:ssd1306"]
+_screen-st7735 = []
+_screen-epd = []
 
 
 #-------------------------------------------------------------------------------

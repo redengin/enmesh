@@ -44,11 +44,8 @@ pub use lora_phy;
 // Display hardware
 //..............................................................................
 pub use display_interface;
-pub use ssd1306;
 //------------------------------------------------------------------------------
 
 // BLE Host
 //------------------------------------------------------------------------------
 pub use trouble_host;
-// pub use trouble_host_rand_core;
-// pub use trouble_host_embassy_sync;

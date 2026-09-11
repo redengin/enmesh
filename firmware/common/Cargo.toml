@@ -36,11 +36,6 @@ lora-phy = "*"
 
 # screen support
 display-interface = "*"
-# 0.96" OLED Screen
-ssd1306 = "*"       # ssd1306 = { version = "*", features = ["async"] }
-# e-ink screen
-# FIXME no maintained drivers found
-
 #-------------------------------------------------------------------------------
 
 # provide BLE Host
@@ -54,11 +49,4 @@ trouble-host = { version = "*", features = [
     "derive",                       # provide macros
     "default-packet-pool-mtu-1024", # max out BLE MTU size to maximize bandwidth
 ]}
-# provide dependencies of trouble-host
-# trouble-host-rand_core = { package ="rand_core", version = "0.6" }
-# trouble-host-embassy-sync = { package ="embassy-sync", version = "0.7.2" }
 #-------------------------------------------------------------------------------
-
-[features]
-# FIXME not currently supported
-defmt = []

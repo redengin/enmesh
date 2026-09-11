@@ -1,3 +1,4 @@
+#[cfg(feature="_screen-ssd1306")]
 /// provide support for CMOS OLED SSD1306 screens
 pub(crate) mod screen_ssd1306 {
     // provide the shared crates via re-export

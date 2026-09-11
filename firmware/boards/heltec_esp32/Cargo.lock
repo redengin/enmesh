@@ -262,7 +262,6 @@ dependencies = [
  "log",
  "lora-modulation",
  "lora-phy",
- "ssd1306",
  "static_cell",
  "trouble-host",
 ]
@@ -979,6 +978,7 @@ dependencies = [
  "enmesh-firmware",
  "esp-rtos",
  "soc-esp32",
+ "ssd1306",
 ]
 
 [[package]]
@@ -2434,6 +2434,7 @@ dependencies = [
  "display-interface-spi",
  "embedded-graphics-core",
  "embedded-hal 1.0.0",
+ "embedded-hal-async",
  "maybe-async-cfg",
 ]
 

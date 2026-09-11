@@ -1,17 +1,17 @@
 #![no_std]
 #![no_main]
 
-// provide the shared crates via re-export
+/// provide the shared crates via re-export
 use common::*;
 
-// provide access to esp32 hardware
-use soc_esp32::*; // (provides the panic handler)
-
-// provide logging primitives
+/// provide logging primitives from
 use log::*;
 
-// provide enmesh firmware primitives
+/// provide enmesh firmware primitive
 use enmesh_firmware::prelude::*;
+
+/// provide access to esp32 hardware
+use soc_esp32::*; // (provides the panic handler)
 
 /// provide task implementations
 mod tasks;
@@ -33,6 +33,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // initialize logging levels
     esp_println::logger::init_logger_from_env();
 
+    // initialize RTOS
     debug!("initializing RTOS...");
     use esp_hal::timer::timg::TimerGroup;
     let timg0 = TimerGroup::new(peripherals.TIMG0);
