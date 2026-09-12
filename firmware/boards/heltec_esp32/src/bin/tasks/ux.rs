@@ -9,13 +9,13 @@ use enmesh_firmware::prelude::*;
 
 #[cfg(feature = "_screen-ssd1306")]
 pub struct UxIo {
-    /// LOW: powered, HIGH: disabled
-    pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
     pub button: esp_hal::gpio::Input<'static>,
     pub led: esp_hal::gpio::Output<'static>,
-    // display interface
+    /// LOW: powered, HIGH: disabled
+    pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
     /// LOW: reset, HIGH: run
     pub n_reset: esp_hal::gpio::Output<'static>,
+    // display interface
     pub i2c: esp_hal::peripherals::I2C0<'static>,
     pub sda: esp_hal::gpio::Flex<'static>,
     pub scl: esp_hal::gpio::Flex<'static>,
@@ -23,13 +23,13 @@ pub struct UxIo {
 
 #[cfg(feature = "_screen-epd")]
 pub struct UxIo {
-    /// LOW: powered, HIGH: disabled
-    pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
     pub button: esp_hal::gpio::Input<'static>,
     pub led: esp_hal::gpio::Output<'static>,
-    // display interface
+    /// LOW: powered, HIGH: disabled
+    pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
     /// LOW: reset, HIGH: run
     pub n_reset: esp_hal::gpio::Output<'static>,
+    // display interface
     pub busy: esp_hal::gpio::Input<'static>,
     pub spi: esp_hal::peripherals::SPI3<'static>,
     pub sdi: esp_hal::gpio::Flex<'static>,
@@ -45,6 +45,7 @@ pub async fn task_ux(
 ) {
     // create the screen power controller
     let screen_power_controller = match ux_io.n_vext_control {
+        // leave the screen powered off and in reset
         Some(pin) => Some(ScreenPowerControl {
             n_vext_control: pin,
             n_reset: ux_io.n_reset,

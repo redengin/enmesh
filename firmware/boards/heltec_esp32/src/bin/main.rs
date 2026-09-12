@@ -87,25 +87,21 @@ async fn main(spawner: embassy_executor::Spawner) {
         feature = "_screen-ssd1306"
     ))]
     let ux_io = tasks::ux::UxIo {
-        // start with screen powered off
-        n_vext_control: Some(OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High)),
         button: InputPin!(peripherals.GPIO0),
         led: OutputPin!(peripherals.GPIO35),
+        // start with screen powered off
+        n_vext_control: Some(OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High)),
         // start screen in RESET
         n_reset: OutputPin!(peripherals.GPIO21, esp_hal::gpio::Level::High),
         i2c: peripherals.I2C0,
         sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
         scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
     };
-    #[cfg(all(
-        not(feature = "disable-ux"),
-        feature = "wireless_stick_v3",
-        feature = "_screen-ssd1306"
-    ))]
+    #[cfg(all(not(feature = "disable-ux"), feature = "wireless_stick_v3",))]
     let ux_io = tasks::ux::UxIo {
-        n_vext_control: None,
         button: InputPin!(peripherals.GPIO0),
         led: OutputPin!(peripherals.GPIO25),
+        n_vext_control: None,
         // start screen in RESET
         n_reset: OutputPin!(peripherals.GPIO16, esp_hal::gpio::Level::High),
         i2c: peripherals.I2C0,
@@ -114,12 +110,12 @@ async fn main(spawner: embassy_executor::Spawner) {
     };
     #[cfg(all(not(feature = "disable-ux"), feature = "wireless_paper"))]
     let ux_io = tasks::ux::UxIo {
-        // start with screen powered off
-        n_vext_control: Some(OutputPin!(peripherals.GPIO45, esp_hal::gpio::Level::High)),
         button: InputPin!(peripherals.GPIO0),
         led: OutputPin!(peripherals.GPIO18),
+        // start with screen powered off
+        n_vext_control: Some(OutputPin!(peripherals.GPIO45, esp_hal::gpio::Level::High)),
         // start screen in RESET
-        n_reset: OutputPin!(peripherals.GPIO6),
+        n_reset: OutputPin!(peripherals.GPIO6, esp_hal::gpio::Level::High),
         busy: InputPin!(peripherals.GPIO7),
         spi: peripherals.SPI3,
         sdi: esp_hal::gpio::Flex::new(peripherals.GPIO2),
