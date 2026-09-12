@@ -7,7 +7,7 @@ use common::*;
 /// provide logging primitives from
 use log::*;
 
-/// provide enmesh firmware primitive
+/// provide enmesh firmware primitives
 use enmesh_firmware::prelude::*;
 
 /// provide access to esp32 hardware
@@ -18,6 +18,9 @@ mod tasks;
 
 #[esp_rtos::main]
 async fn main(spawner: embassy_executor::Spawner) {
+    // create a heap for alloc support
+    soc_esp32::init_heap();
+
     // initialize the SoC
     let peripherals = if cfg!(feature = "disable-esp32-radio") {
         // use default clock tickrate to save power
@@ -27,9 +30,6 @@ async fn main(spawner: embassy_executor::Spawner) {
         esp_hal::init(esp_hal::Config::default().with_cpu_clock(esp_hal::clock::CpuClock::max()))
     };
 
-    // create a heap for alloc support
-    soc_esp32::init_heap();
-
     // initialize logging levels
     esp_println::logger::init_logger_from_env();
 
@@ -37,72 +37,24 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("initializing RTOS...");
     use esp_hal::timer::timg::TimerGroup;
     let timg0 = TimerGroup::new(peripherals.TIMG0);
-    use esp_hal::interrupt::software::SoftwareInterruptControl;
-    let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
-    esp_rtos::start(timg0.timer0, sw_int.software_interrupt0);
+    esp_rtos::start(timg0.timer0, peripherals.FROM_CPU_INTR0);
     // TODO by default idle hook simply runs WFI - but perhaps we want to do more to save power?
     // esp_rtos::start_with_idle_hook(timg0.timer0, sw_int.software_interrupt0, idle_hook);
 
+    // intialize global state
     debug!("initializing global state...");
     // create globally shared state
     let state = enmesh_firmware::State {
         firmware_version: env!("CARGO_PKG_VERSION"),
-        hardware_name: "Heltec",   // FIXME provide a more descriptive string
+        hardware_name: "Heltec", // FIXME provide a more descriptive string
         ..Default::default()
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
 
-    debug!("initializing storage...");
-    let mut storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
-    let persisted_settings_manager =
-        enmesh_firmware::persisted_settings::PersistedSettingsManager::init(
-            global_state,
-            storage.settings_partition_a.as_mut(),
-            storage.settings_partition_b.as_mut(),
-        )
-        .await;
-    trace!("starting Persisted Settings task");
-    spawner.spawn(
-        task_persisted_settings(
-            global_state,
-            persisted_settings_manager,
-            storage.settings_partition_a,
-            storage.settings_partition_b,
-        )
-        .unwrap(),
-    );
-
-    // create the tasks
-    //================================================================================
-    debug!("creating LoRa task...");
-    // make sure that we know how to map the LoRa pins
-    #[cfg(not(any(
-        feature = "wifi_lora_32",
-        feature = "wireless_stick_v2",
-        feature = "wireless_tracker",
-        feature = "wireless_paper"
-    )))]
-    compile_error!(
-        "LoRa pins unknown - board feature must be defined (use wifi_lora_32 for generic support)"
-    );
-    #[cfg(any(
-        feature = "wifi_lora_32",
-        feature = "wireless_stick_v2",
-        feature = "wireless_tracker",
-        feature = "wireless_paper"
-    ))]
-    // use the Heltec standard LoRa pin mapping
-    let lora_io = tasks::lora::LoraIo {
-        reset: OutputPin!(peripherals.GPIO12),
-        dio: InputPin!(peripherals.GPIO14),
-        busy: InputPin!(peripherals.GPIO13),
-        spi: peripherals.SPI2,
-        nss: OutputPin!(peripherals.GPIO8, esp_hal::gpio::Level::High),
-        sck: OutputPin!(peripherals.GPIO9),
-        mosi: OutputPin!(peripherals.GPIO10),
-        miso: InputPin!(peripherals.GPIO11),
-    };
-    #[cfg(any(feature = "wireless_stick_v3",))]
+    // Map the hardware interfaces to peripherals
+    //--------------------------------------------------------------------------------
+    debug!("creating LoRa peripheral interface...");
+    #[cfg(feature = "wireless_stick_v3")]
     let lora_io = tasks::lora::LoraIo {
         reset: OutputPin!(peripherals.GPIO7),
         dio: InputPin!(peripherals.GPIO26),
@@ -114,58 +66,96 @@ async fn main(spawner: embassy_executor::Spawner) {
         mosi: OutputPin!(peripherals.GPIO27),
         miso: InputPin!(peripherals.GPIO19),
     };
-    trace!("starting task");
+    #[cfg(not(feature = "wireless_stick_v3"))]
+    let lora_io = tasks::lora::LoraIo {
+        // use standard LoRa pins
+        reset: OutputPin!(peripherals.GPIO12),
+        dio: InputPin!(peripherals.GPIO14),
+        busy: InputPin!(peripherals.GPIO13),
+        spi: peripherals.SPI2,
+        nss: OutputPin!(peripherals.GPIO8, esp_hal::gpio::Level::High),
+        sck: OutputPin!(peripherals.GPIO9),
+        mosi: OutputPin!(peripherals.GPIO10),
+        miso: InputPin!(peripherals.GPIO11),
+    };
+
+    #[cfg(not(feature = "disable-ux"))]
+    debug!("creating UX peripherals interface...");
+    #[cfg(all(
+        not(feature = "disable-ux"),
+        feature = "wifi_lora_32",
+        feature = "_screen-ssd1306"
+    ))]
+    let ux_io = tasks::ux::UxIo {
+        // start with screen powered off
+        n_vext_control: Some(OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High)),
+        button: InputPin!(peripherals.GPIO0),
+        led: OutputPin!(peripherals.GPIO35),
+        // start screen in RESET
+        n_reset: OutputPin!(peripherals.GPIO21, esp_hal::gpio::Level::High),
+        i2c: peripherals.I2C0,
+        sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
+        scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
+    };
+    #[cfg(all(
+        not(feature = "disable-ux"),
+        feature = "wireless_stick_v3",
+        feature = "_screen-ssd1306"
+    ))]
+    let ux_io = tasks::ux::UxIo {
+        n_vext_control: None,
+        button: InputPin!(peripherals.GPIO0),
+        led: OutputPin!(peripherals.GPIO25),
+        // start screen in RESET
+        n_reset: OutputPin!(peripherals.GPIO16, esp_hal::gpio::Level::High),
+        i2c: peripherals.I2C0,
+        sda: esp_hal::gpio::Flex::new(peripherals.GPIO4),
+        scl: esp_hal::gpio::Flex::new(peripherals.GPIO15),
+    };
+    #[cfg(all(not(feature = "disable-ux"), feature = "wireless_paper"))]
+    let ux_io = tasks::ux::UxIo {
+        // start with screen powered off
+        n_vext_control: Some(OutputPin!(peripherals.GPIO45, esp_hal::gpio::Level::High)),
+        button: InputPin!(peripherals.GPIO0),
+        led: OutputPin!(peripherals.GPIO18),
+        // start screen in RESET
+        n_reset: OutputPin!(peripherals.GPIO6),
+        busy: InputPin!(peripherals.GPIO7),
+        spi: peripherals.SPI3,
+        sdi: esp_hal::gpio::Flex::new(peripherals.GPIO2),
+        clk: OutputPin!(peripherals.GPIO3),
+        cs: OutputPin!(peripherals.GPIO4),
+        dc: OutputPin!(peripherals.GPIO5),
+    };
+
+    // create the tasks
+    //================================================================================
+    debug!("starting Persisted Settings task...");
+    let mut storage = soc_esp32::enmesh_storage::EnmeshStorage::open(peripherals.FLASH);
+    let persisted_settings_manager =
+        enmesh_firmware::persisted_settings::PersistedSettingsManager::init(
+            global_state,
+            storage.settings_partition_a.as_mut(),
+            storage.settings_partition_b.as_mut(),
+        )
+        .await;
+    spawner.spawn(
+        task_persisted_settings(
+            global_state,
+            persisted_settings_manager,
+            storage.settings_partition_a,
+            storage.settings_partition_b,
+        )
+        .unwrap(),
+    );
+
+    debug!("starting LoRa task...");
     spawner.spawn(tasks::lora::task_lora(global_state, lora_io).unwrap());
-    debug!("LoRa task created");
-    //--------------------------------------------------------------------------------
 
-
-    if cfg!(not(feature = "disable-screen")) {
-        debug!("creating screen task...");
-        #[cfg(feature = "_screen-ssd1306")]
-        {
-            #[cfg(feature = "wifi_lora_32")]
-            let ux_io = tasks::ux::screen_ssd1306::UxIo {
-                vext_control: OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High),
-                oled_reset: OutputPin!(peripherals.GPIO21, esp_hal::gpio::Level::High),
-                i2c: peripherals.I2C0,
-                sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
-                scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
-                button: InputPin!(peripherals.GPIO0),
-                led: OutputPin!(peripherals.GPIO35),
-            };
-            #[cfg(feature = "wireless_stick_v3")]
-            let ux_io = tasks::ux::screen_ssd1306::UxIo {
-                // FIXME no vext_control on this board
-                vext_control: OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High),
-                oled_reset: OutputPin!(peripherals.GPIO16, esp_hal::gpio::Level::High),
-                i2c: peripherals.I2C0,
-                sda: esp_hal::gpio::Flex::new(peripherals.GPIO4),
-                scl: esp_hal::gpio::Flex::new(peripherals.GPIO15),
-                button: InputPin!(peripherals.GPIO0),
-                led: OutputPin!(peripherals.GPIO25),
-            };
-
-            spawner.spawn(tasks::ux::screen_ssd1306::task_ux(global_state, ux_io).unwrap());
-        }
-        #[cfg(feature = "_screen-epd")]
-        {
-            let ux_io = tasks::ux::screen_ssd1680::UxIo {
-                spi: peripherals.SPI3,
-                sdi: esp_hal::gpio::Flex::new(peripherals.GPIO2),
-                clk: OutputPin!(peripherals.GPIO3),
-                cs: OutputPin!(peripherals.GPIO4),
-                dc: OutputPin!(peripherals.GPIO5),
-                reset: OutputPin!(peripherals.GPIO6),
-                busy: InputPin!(peripherals.GPIO7),
-                vext_control: OutputPin!(peripherals.GPIO45),
-                button: InputPin!(peripherals.GPIO0),
-                led: OutputPin!(peripherals.GPIO18),
-            };
-
-            spawner.spawn(tasks::ux::screen_ssd1680::task_ux(global_state, ux_io).unwrap());
-        }
-        debug!("screen task created");
+    #[cfg(not(feature = "disable-ux"))]
+    {
+        debug!("starting UX task...");
+        spawner.spawn(tasks::ux::task_ux(global_state, ux_io).unwrap());
     }
 
     // Wifi and BLE pin mapping & tasks

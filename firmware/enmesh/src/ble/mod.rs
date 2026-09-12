@@ -28,7 +28,6 @@ pub async fn run(
     const CONNECTIONS_MAX: usize = 1;
     const L2CAP_CHANNELS_MAX: usize = 1; // FIXME
     let mut resources: trouble_host::HostResources<
-        _,
         DefaultPacketPool,
         CONNECTIONS_MAX,
         L2CAP_CHANNELS_MAX,
