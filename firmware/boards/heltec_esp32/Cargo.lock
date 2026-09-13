@@ -1011,6 +1011,7 @@ name = "enmesh-firmware-heltec-esp32"
 version = "0.1.0"
 dependencies = [
  "common",
+ "display-interface-spi",
  "embassy-executor",
  "enmesh-firmware",
  "epd-rs",
@@ -1050,6 +1051,7 @@ dependencies = [
  "display-interface-spi",
  "embedded-graphics",
  "embedded-hal 1.0.0",
+ "embedded-hal-async",
  "fixedbitset",
  "log",
  "maybe-async-cfg",

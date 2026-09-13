@@ -116,7 +116,7 @@ async fn main(spawner: embassy_executor::Spawner) {
         n_vext_control: Some(OutputPin!(peripherals.GPIO45, esp_hal::gpio::Level::High)),
         // start screen in RESET
         n_reset: OutputPin!(peripherals.GPIO6, esp_hal::gpio::Level::High),
-        busy: InputPin!(peripherals.GPIO7),
+        n_busy: InputPin!(peripherals.GPIO7),
         spi: peripherals.SPI3,
         sdi: esp_hal::gpio::Flex::new(peripherals.GPIO2),
         clk: OutputPin!(peripherals.GPIO3),

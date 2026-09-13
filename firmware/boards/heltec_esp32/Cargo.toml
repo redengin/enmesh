@@ -11,18 +11,16 @@ enmesh-firmware = { path = "../../enmesh" }
 soc-esp32 = { path = "../../soc/esp32", features = ["esp32s3"] }
 
 # screen drivers
-# ssd1306 = { version = "*", features = ["async", "graphics"], optional = true }
+# ssd1306 = { optional = true, version = "*", features = ["async", "graphics"] }
 # FIXME - current revisions don't support async (https://github.com/rust-embedded-community/ssd1306/issues/219)
-ssd1306 = { git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", optional = true, features = [
+ssd1306 = { optional = true, git = "https://github.com/rust-embedded-community/ssd1306.git", rev = "f3a2f7aca421fbf3ddda45ecef0dfd1f0f12330e", features = [
     "async",
     "graphics",
 ]}
-# epd-rs = { version = "*", optional = true }
-epd-rs = { optional = true, git = "https://github.com/redengin/epd-rs.git", features = [
-    "log",
-] }
+# epd-rs = { optional = true, version = "*", features = ["log", "async"] }
+epd-rs = { optional = true, git = "https://github.com/redengin/epd-rs.git", features = ["log", "async"] }
 # st7735 = { version = "*", optional = true}
-
+display-interface-spi = "*"
 
 # FIXME local crates necessary for build (should be imported form soc_esp32)
 embassy-executor = { version = "*", features = ["log"] }

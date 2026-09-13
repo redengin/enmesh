@@ -1,3 +1,21 @@
+/// provide the shared crates via re-export
+use common::*;
+
+/// Buffered DrawTarget require a flush() to refresh the screen
+pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget
+{
+    #[allow(async_fn_in_trait)]
+    /// sends data to the screen and triggers a screen refresh
+    async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
+}
+
+
+
+
+
+
+
+
 use crate::prelude::*;
 
 /// provide controller thread runners

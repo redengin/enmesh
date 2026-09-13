@@ -1,4 +1,5 @@
 {
+    "rust-analyzer.cargo.allFeatures": true,
     "files.readonlyInclude": {
         "**/.cargo/registry/src/**/*.rs": true,
         "**/.cargo/git/checkouts/**/*.rs": true,
