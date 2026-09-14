@@ -263,6 +263,7 @@ dependencies = [
  "embassy-usb",
  "embedded-graphics",
  "embedded-hal 1.0.0",
+ "embedded-hal-async",
  "embedded-hal-bus",
  "embedded-layout",
  "heapless 0.9.3",
@@ -921,6 +922,7 @@ checksum = "513e0b3a8fb7d3013a8ae17a834283f170deaf7d0eeab0a7c1a36ad4dd356d22"
 dependencies = [
  "critical-section",
  "embedded-hal 1.0.0",
+ "embedded-hal-async",
 ]
 
 [[package]]

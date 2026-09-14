@@ -11,7 +11,8 @@ log = "*"
 # embedded utils
 #-------------------------------------------------------------------------------
 embedded-hal = "*"
-embedded-hal-bus = "*"
+embedded-hal-async = "*"
+embedded-hal-bus = { version = "*", features = ["async"] }
 static_cell = "*"
 heapless = { version = "*", features = ["ufmt"] }
 embedded-graphics = "*"

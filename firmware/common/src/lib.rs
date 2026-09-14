@@ -10,6 +10,7 @@ pub use log;
 pub use static_cell;
 pub use heapless;
 pub use embedded_hal;
+pub use embedded_hal_async;
 pub use embedded_hal_bus;
 //------------------------------------------------------------------------------
 
