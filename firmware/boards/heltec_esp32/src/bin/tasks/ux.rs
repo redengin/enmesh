@@ -42,7 +42,7 @@ pub struct UxIo {
 
 #[embassy_executor::task]
 pub async fn task_ux(
-    _global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
+    global_state: &'static RwLock<NoopRawMutex, enmesh_firmware::State>,
     ux_io: UxIo,
 ) {
     // create the button
@@ -51,44 +51,44 @@ pub async fn task_ux(
     // create the led
     let led = led::Led::active_high(ux_io.led);
 
-    // create the power control
-    let display_power = match ux_io.n_vext_control {
-        Some(pin) => Some(led::Led::active_low(pin)),
-        None => None,
-    };
+    // // create the power control
+    // let display_power = match ux_io.n_vext_control {
+    //     Some(pin) => Some(led::Led::active_low(pin)),
+    //     None => None,
+    // };
 
     // create the screen driver
     //================================================================================
     #[cfg(feature = "_screen-ssd1306")]
-    let display = display::Display::new(ux_io.i2c, ux_io.scl, ux_io.sda);
+    let display = display::Display::new(
+        ux_io.n_vext_control, ux_io.n_reset,
+        ux_io.i2c, ux_io.scl, ux_io.sda);
     #[cfg(feature = "_screen-epd")]
     let display = display::Display::new(
-        ux_io.n_busy, ux_io.n_reset,
+        ux_io.n_vext_control, ux_io.n_reset, ux_io.n_busy,
         ux_io.spi, ux_io.sdi, ux_io.clk, ux_io.cs, ux_io.dc,).await.unwrap();
 
     // run UX handler
-    // FIXME
-    // enmesh_firmware::ux::controller::run_ssd1306(
-    //     global_state,
-    //     ssd1306,
-    //     screen_power_control,
-    //     button,
-    //     led,
-    // )
-    // .await;
+    enmesh_firmware::ux::run(global_state, display, button, led).await;
 
     error!("UX task ended");
 }
 
 #[cfg(feature = "_screen-ssd1306")]
 mod display {
+    /// provide enmesh firmware primitives
+    use enmesh_firmware::prelude::*;
+
     /// provide access to esp32 hardware
     use soc_esp32::*;
 
     /// provide access to the display driver
-    use ssd1306::{Ssd1306Async, mode::BufferedGraphicsModeAsync, prelude::*};
+    use ssd1306::prelude::*;
+    use ssd1306::{Ssd1306Async, mode::BufferedGraphicsModeAsync};
 
     pub struct Display {
+        n_vext_control: Option<esp_hal::gpio::Output<'static>>,
+        n_reset: esp_hal::gpio::Output<'static>,
         /// FIXME type is overspecified
         display: Ssd1306Async<
             I2CInterface<soc_esp32::esp_hal::i2c::master::I2c<'static, esp_hal::Async>>,
@@ -98,6 +98,8 @@ mod display {
     }
     impl Display {
         pub fn new(
+            n_vext_control: Option<esp_hal::gpio::Output<'static>>,
+            n_reset: esp_hal::gpio::Output<'static>,
             i2c: esp_hal::peripherals::I2C0<'static>,
             mut sda: esp_hal::gpio::Flex<'static>,
             mut scl: esp_hal::gpio::Flex<'static>,
@@ -135,12 +137,42 @@ mod display {
             )
             .into_buffered_graphics_mode();
 
-            Self { display }
+            Self {
+                n_vext_control,
+                n_reset,
+                display,
+            }
         }
     }
 
     /// provide the shared crates via re-export
-    use common::{display_interface, embedded_graphics};
+    use common::{display_interface, embedded_graphics, embedded_hal::delay::DelayNs};
+
+    impl enmesh_firmware::PowerControl for Display {
+        fn power_off(&mut self) {
+            // disable power
+            if let Some(pin) = &mut self.n_vext_control {
+                pin.set_high();
+            }
+        }
+
+        #[allow(async_fn_in_trait)] // usage should never use Send()
+        /// must reinitialize the hardware as necessary
+        async fn power_on(&mut self) {
+            // enable power
+            if let Some(pin) = &mut self.n_vext_control {
+                pin.set_low();
+            }
+
+            // place chip into RESET
+            self.n_reset.set_low();
+            Delay.delay_ms(1);
+
+            // take chip out of RESET
+            self.n_reset.set_high();
+            Delay.delay_ms(10);
+        }
+    }
 
     /// expose internal embedded_graphics support
     impl embedded_graphics::draw_target::DrawTarget for Display {
@@ -203,6 +235,7 @@ mod display {
     use soc_esp32::*;
 
     pub struct Display {
+        n_vext_control: Option<esp_hal::gpio::Output<'static>>,
         /// FIXME type is overspecified
         display: epd_rs::EpdDrawTarget<
                     epd_rs::drivers::E0213A367<
@@ -214,8 +247,9 @@ mod display {
     }
     impl Display {
         pub async fn new(
-            n_busy: esp_hal::gpio::Input<'static>,
+            n_vext_control: Option<esp_hal::gpio::Output<'static>>,
             n_reset: esp_hal::gpio::Output<'static>,
+            n_busy: esp_hal::gpio::Input<'static>,
             spi: esp_hal::peripherals::SPI3<'static>,
             sdi: esp_hal::gpio::Flex<'static>,
             clk: esp_hal::gpio::Output<'static>,
@@ -249,10 +283,33 @@ mod display {
             let display = epd_rs::EpdDrawTarget::new(driver, epd_rs::DisplayRotation::Rotate270);
 
             Ok(Self {
+                n_vext_control,
                 display
             })
         }
     }
+
+    impl enmesh_firmware::PowerControl for Display {
+        fn power_off(&mut self) {
+            // disable power
+            if let Some(pin) = &mut self.n_vext_control {
+                pin.set_high();
+            }
+        }
+
+        #[allow(async_fn_in_trait)] // usage should never use Send()
+        /// must reinitialize the hardware as necessary
+        async fn power_on(&mut self) {
+            // enable power
+            if let Some(pin) = &mut self.n_vext_control {
+                pin.set_low();
+            }
+
+            // FIXME toggle the RESET
+            // self.display.init();
+        }
+    }
+
     impl embedded_graphics::draw_target::DrawTarget for Display {
         type Color = embedded_graphics::pixelcolor::BinaryColor;
         type Error = display_interface::DisplayError;

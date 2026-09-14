@@ -2,15 +2,24 @@
 use common::*;
 
 /// Buffered DrawTarget require a flush() to refresh the screen
-pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget
+pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget + crate::PowerControl
+// pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget
 {
     #[allow(async_fn_in_trait)]
     /// sends data to the screen and triggers a screen refresh
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
-
-
+/// UX thread
+pub async fn run<DISPLAY>(
+    _global_state: &'static RwLock<NoopRawMutex, crate::State>,
+    _display: DISPLAY,
+    _button: impl button::ButtonState,
+    _led: impl led::LedState,
+)
+{
+    // TODO
+}
 
 
 
