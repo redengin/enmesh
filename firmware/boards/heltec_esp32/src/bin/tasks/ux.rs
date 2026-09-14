@@ -90,7 +90,7 @@ mod display {
 
     pub struct Display {
         /// FIXME type is overspecified
-        driver: Ssd1306Async<
+        display: Ssd1306Async<
             I2CInterface<soc_esp32::esp_hal::i2c::master::I2c<'static, esp_hal::Async>>,
             DisplaySize128x64,
             BufferedGraphicsModeAsync<DisplaySize128x64>,
@@ -128,14 +128,14 @@ mod display {
             .into_async();
 
             // create the driver instance
-            let driver = ssd1306::Ssd1306Async::new(
+            let display = ssd1306::Ssd1306Async::new(
                 ssd1306::I2CDisplayInterface::new(i2c_bus),
                 ssd1306::size::DisplaySize128x64,
                 ssd1306::rotation::DisplayRotation::Rotate0,
             )
             .into_buffered_graphics_mode();
 
-            Self { driver }
+            Self { display }
         }
     }
 
@@ -151,7 +151,7 @@ mod display {
         where
             I: IntoIterator<Item = embedded_graphics::prelude::Pixel<Self::Color>>,
         {
-            self.driver.draw_iter(pixels)
+            self.display.draw_iter(pixels)
         }
 
         fn fill_contiguous<I>(
@@ -162,7 +162,7 @@ mod display {
         where
             I: IntoIterator<Item = Self::Color>,
         {
-            self.driver.fill_contiguous(area, colors)
+            self.display.fill_contiguous(area, colors)
         }
 
         fn fill_solid(
@@ -170,23 +170,23 @@ mod display {
             area: &embedded_graphics::primitives::Rectangle,
             color: Self::Color,
         ) -> Result<(), Self::Error> {
-            self.driver.fill_solid(area, color)
+            self.display.fill_solid(area, color)
         }
 
         fn clear(&mut self, color: Self::Color) -> Result<(), Self::Error> {
-            self.driver.clear(color)
+            self.display.clear(color)
         }
     }
     /// expose internal embedded_graphics support
     impl embedded_graphics::geometry::Dimensions for Display {
         fn bounding_box(&self) -> embedded_graphics::primitives::Rectangle {
-            self.driver.bounding_box()
+            self.display.bounding_box()
         }
     }
     /// expose internal driver support
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
-            self.driver.flush().await
+            self.display.flush().await
         }
     }
 }
