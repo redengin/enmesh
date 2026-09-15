@@ -61,12 +61,25 @@ pub async fn task_ux(
     //================================================================================
     #[cfg(feature = "_screen-ssd1306")]
     let display = display::Display::new(
-        ux_io.n_vext_control, ux_io.n_reset,
-        ux_io.i2c, ux_io.scl, ux_io.sda);
+        ux_io.n_vext_control,
+        ux_io.n_reset,
+        ux_io.i2c,
+        ux_io.scl,
+        ux_io.sda,
+    );
     #[cfg(feature = "_screen-epd")]
     let display = display::Display::new(
-        ux_io.n_vext_control, ux_io.n_reset, ux_io.n_busy,
-        ux_io.spi, ux_io.sdi, ux_io.clk, ux_io.cs, ux_io.dc,).await.unwrap();
+        ux_io.n_vext_control,
+        ux_io.n_reset,
+        ux_io.n_busy,
+        ux_io.spi,
+        ux_io.sdi,
+        ux_io.clk,
+        ux_io.cs,
+        ux_io.dc,
+    )
+    .await
+    .unwrap();
 
     // run UX handler
     enmesh_firmware::ux::run(global_state, display, button, led).await;
@@ -76,6 +89,13 @@ pub async fn task_ux(
 
 #[cfg(feature = "_screen-ssd1306")]
 mod display {
+    /// provide the shared crates via re-export
+    use common::*;
+
+    /// provide logging prmititives
+    use log::*;
+    const TAG: &str = "[SSD1306]";
+
     /// provide enmesh firmware primitives
     use enmesh_firmware::prelude::*;
 
@@ -171,6 +191,10 @@ mod display {
             // take chip out of RESET
             self.n_reset.set_high();
             Delay.delay_ms(10);
+
+            // intialize the display driver
+            let _ = self.display.init().await
+                .map_err(|e| error!("{TAG} failed to initialize display: {:?}", e));
         }
     }
 
@@ -237,13 +261,21 @@ mod display {
     pub struct Display {
         n_vext_control: Option<esp_hal::gpio::Output<'static>>,
         /// FIXME type is overspecified
-        display: epd_rs::EpdDrawTarget<
-                    epd_rs::drivers::E0213A367<
-                        epd_rs::EpdInterface<
-                            embedded_hal_bus::spi::ExclusiveDevice<soc_esp32::esp_hal::spi::master::Spi<'static, esp_hal::Async>,
-                            esp_hal::gpio::Output<'static>, embedded_hal_bus::spi::NoDelay>,
-                            esp_hal::gpio::Output<'static>, esp_hal::gpio::Input<'static>, esp_hal::gpio::Output<'static>, common::embassy_time::Delay>>
+        display: epd_rs::EpdDisplay<
+            epd_rs::drivers::E0213A367<
+                epd_rs::EpdInterface<
+                    embedded_hal_bus::spi::ExclusiveDevice<
+                        soc_esp32::esp_hal::spi::master::Spi<'static, esp_hal::Async>,
+                        esp_hal::gpio::Output<'static>,
+                        embedded_hal_bus::spi::NoDelay,
+                    >,
+                    esp_hal::gpio::Output<'static>,
+                    esp_hal::gpio::Input<'static>,
+                    esp_hal::gpio::Output<'static>,
+                    common::embassy_time::Delay,
                 >,
+            >,
+        >,
     }
     impl Display {
         pub async fn new(
@@ -280,16 +312,17 @@ mod display {
             // create the display driver
             let driver = epd_rs::drivers::E0213A367::new(display_interface).await?;
 
-            let display = epd_rs::EpdDrawTarget::new(driver, epd_rs::DisplayRotation::Rotate270);
+            let display = epd_rs::EpdDisplay::new(driver, epd_rs::DisplayRotation::Rotate270);
 
             Ok(Self {
                 n_vext_control,
-                display
+                display,
             })
         }
     }
 
-    impl enmesh_firmware::PowerControl for Display {
+    impl enmesh_firmware::PowerControl for Display
+    {
         fn power_off(&mut self) {
             // disable power
             if let Some(pin) = &mut self.n_vext_control {
@@ -305,8 +338,8 @@ mod display {
                 pin.set_low();
             }
 
-            // FIXME toggle the RESET
-            // self.display.init();
+            // perform hardware reset and chip initialization
+            let _ = self.display.init().await;
         }
     }
 

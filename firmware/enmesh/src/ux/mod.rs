@@ -10,15 +10,26 @@ pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget + crate::
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
+
+mod status_led;
+
 /// UX thread
-pub async fn run<DISPLAY>(
+pub async fn run<DISPLAY>
+(
     _global_state: &'static RwLock<NoopRawMutex, crate::State>,
     _display: DISPLAY,
     _button: impl button::ButtonState,
-    _led: impl led::LedState,
+    led: impl led::LedState,
 )
+where
+    DISPLAY: BufferedDisplay,
 {
-    // TODO
+    // create the status LED
+    let _status_led = status_led::StatusLed::new(led);
+
+    // create the UX
+    // let mut ux = Ux::new();
+
 }
 
 

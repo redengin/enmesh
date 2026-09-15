@@ -19,6 +19,7 @@ ssd1306 = { optional = true, git = "https://github.com/rust-embedded-community/s
 ]}
 # epd-rs = { optional = true, version = "*", features = ["log", "async"] }
 epd-rs = { optional = true, git = "https://github.com/redengin/epd-rs.git", features = ["log", "async"] }
+# epd-rs = { optional = true, path = "../../../../../epd-rs", features = ["log", "async"] }
 # st7735 = { version = "*", optional = true}
 display-interface-spi = "*"
 
