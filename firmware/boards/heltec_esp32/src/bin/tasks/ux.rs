@@ -170,6 +170,7 @@ mod display {
 
     impl enmesh_firmware::PowerControl for Display {
         fn power_off(&mut self) {
+            trace!("{TAG} powering off..");
             // disable power
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
@@ -179,6 +180,7 @@ mod display {
         #[allow(async_fn_in_trait)] // usage should never use Send()
         /// must reinitialize the hardware as necessary
         async fn power_on(&mut self) {
+            trace!("{TAG} powering on..");
             // enable power
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_low();
@@ -193,6 +195,7 @@ mod display {
             Delay.delay_ms(10);
 
             // intialize the display driver
+            trace!("{TAG} initializing display driver..");
             let _ = self.display.init().await
                 .map_err(|e| error!("{TAG} failed to initialize display: {:?}", e));
         }

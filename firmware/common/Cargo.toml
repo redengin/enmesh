@@ -37,6 +37,7 @@ lora-phy = "*"
 
 # screen support
 display-interface = "*"
+profont = "*"
 #-------------------------------------------------------------------------------
 
 # provide BLE Host

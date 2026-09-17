@@ -28,6 +28,7 @@ pub use embassy_usb;
 //------------------------------------------------------------------------------
 pub use embedded_graphics;
 pub use embedded_layout;
+pub use profont;
 //------------------------------------------------------------------------------
 
 // Hardware drivers

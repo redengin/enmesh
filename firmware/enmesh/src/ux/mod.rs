@@ -2,8 +2,8 @@
 use common::*;
 
 /// Buffered DrawTarget require a flush() to refresh the screen
-pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget + crate::PowerControl
-// pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget
+pub trait BufferedDisplay:
+    embedded_graphics::draw_target::DrawTarget + crate::PowerControl
 {
     #[allow(async_fn_in_trait)]
     /// sends data to the screen and triggers a screen refresh
@@ -11,250 +11,265 @@ pub trait BufferedDisplay : embedded_graphics::draw_target::DrawTarget + crate::
 }
 
 
+
+/// provide logging primitives
+use log::*;
+const TAG: &str = "[UX]";
+
+
 mod status_led;
 
+mod themes;
+use embedded_graphics::pixelcolor::BinaryColor;
+
 /// UX thread
-pub async fn run<DISPLAY>
-(
+pub async fn run(
     _global_state: &'static RwLock<NoopRawMutex, crate::State>,
-    _display: DISPLAY,
+    mut display: impl BufferedDisplay<Color = BinaryColor>,
     _button: impl button::ButtonState,
     led: impl led::LedState,
-)
-where
-    DISPLAY: BufferedDisplay,
-{
+) {
     // create the status LED
     let _status_led = status_led::StatusLed::new(led);
 
-    // create the UX
+    // create the UX theme
+    let theme = themes::Theme::new(display.bounding_box().size);
+
+    trace!("{TAG} powering on display....");
+    // FIXME TEST-USE-ONLY
+    display.power_on().await;
+    loop {
+        use embedded_graphics::prelude::*;
+        use embedded_graphics::text::Text;
+        use embedded_graphics::pixelcolor::BinaryColor;
+        let _ = display.clear(BinaryColor::On);
+
+        let _ = Text::new("Hello World!", Point::new(0, 20), theme.text_style).draw(&mut display);
+
+        let _ = display.flush().await;
+
+        Timer::after_secs(1).await;
+    }
     // let mut ux = Ux::new();
-
 }
-
-
-
-
 
 use crate::prelude::*;
 
 /// provide controller thread runners
 pub mod controller;
 
-/// provide themes for Views
-pub mod themes;
 
-pub trait View {
-    /// repaint the entire view
-    fn refresh(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        // FIXME should be more generic
-        model: &crate::State,
-        theme: &Theme,
-    );
+// pub trait View {
+//     /// repaint the entire view
+//     fn refresh(
+//         &mut self,
+//         display: &mut impl DrawTargetExt<Color = Rgb888>,
+//         // FIXME should be more generic
+//         model: &crate::State,
+//         theme: &Theme,
+//     );
 
-    /// update the view
-    /// * only needs to update changes
-    fn update(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        // FIXME should be more generic
-        model: &crate::State,
-        theme: &Theme,
-    ) {
-        // default to full refresh
-        self.refresh(display, model, theme);
-    }
+//     /// update the view
+//     /// * only needs to update changes
+//     fn update(
+//         &mut self,
+//         display: &mut impl DrawTargetExt<Color = Rgb888>,
+//         // FIXME should be more generic
+//         model: &crate::State,
+//         theme: &Theme,
+//     ) {
+//         // default to full refresh
+//         self.refresh(display, model, theme);
+//     }
 
-    /// handle HidEvent
-    /// returns true if the event was handled and should not be bubbled up
-    fn handle_event(&mut self, event: &HidEvent) -> bool;
-}
+//     /// handle HidEvent
+//     /// returns true if the event was handled and should not be bubbled up
+//     fn handle_event(&mut self, event: &HidEvent) -> bool;
+// }
 
-/// User interaction events
-pub enum HidEvent {
-    /// move to next selectable item
-    Next,
-    /// move to the previous selectable item
-    Previous,
-    /// invokes the selected item's handler
-    Select,
-    /// finds the touched item and invokes a 'Select' event
-    Touch { x: u32, y: u32 },
-}
-/// active HID input durations greater than this, should generate a HidEvent::Select
-pub const HID_HELD_DURATION: Duration = Duration::from_millis(500);
+// /// User interaction events
+// pub enum HidEvent {
+//     /// move to next selectable item
+//     Next,
+//     /// move to the previous selectable item
+//     Previous,
+//     /// invokes the selected item's handler
+//     Select,
+//     /// finds the touched item and invokes a 'Select' event
+//     Touch { x: u32, y: u32 },
+// }
+// /// active HID input durations greater than this, should generate a HidEvent::Select
+// pub const HID_HELD_DURATION: Duration = Duration::from_millis(500);
 
-/// provide the pages
-mod pages;
-pub struct Ux {
-    current_page: pages::Pages,
-    needs_page_refresh: bool,
-}
-use pages::prelude::*;
-impl Ux {
-    pub fn new() -> Self {
-        Self {
-            current_page: pages::Pages::Page0(pages::home::Home::new()),
-            needs_page_refresh: true,
-        }
-    }
+// /// provide the pages
+// mod pages;
+// pub struct Ux {
+//     current_page: pages::Pages,
+//     needs_page_refresh: bool,
+// }
+// use pages::prelude::*;
+// impl Ux {
+//     pub fn new() -> Self {
+//         Self {
+//             current_page: pages::Pages::Page0(pages::home::Home::new()),
+//             needs_page_refresh: true,
+//         }
+//     }
 
-    fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
-        let _ = display.clear(theme.background.into());
+//     fn tab_bar_refresh(&self, display: &mut impl DrawTargetExt<Color = Rgb888>, theme: &Theme) {
+//         let _ = display.clear(theme.background.into());
 
-        let selected_index = self.current_page.index();
-        const SELECTED: &str = "^";
-        const NOT_SELECTED: &str = "-";
-        LinearLayout::horizontal(
-            Chain::new(Text::new(
-                if selected_index == 0 {
-                    SELECTED
-                } else {
-                    NOT_SELECTED
-                },
-                Point::zero(),
-                theme.text_style,
-            ))
-            .append(Text::new(
-                if selected_index == 1 {
-                    SELECTED
-                } else {
-                    NOT_SELECTED
-                },
-                Point::zero(),
-                theme.text_style,
-            ))
-            .append(Text::new(
-                if selected_index == 2 {
-                    SELECTED
-                } else {
-                    NOT_SELECTED
-                },
-                Point::zero(),
-                theme.text_style,
-            )),
-        )
-        .with_spacing(DistributeFill(display.bounding_box().size.width))
-        .arrange()
-        .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
-        .draw(display)
-        .ok();
-    }
-}
+//         let selected_index = self.current_page.index();
+//         const SELECTED: &str = "^";
+//         const NOT_SELECTED: &str = "-";
+//         LinearLayout::horizontal(
+//             Chain::new(Text::new(
+//                 if selected_index == 0 {
+//                     SELECTED
+//                 } else {
+//                     NOT_SELECTED
+//                 },
+//                 Point::zero(),
+//                 theme.text_style,
+//             ))
+//             .append(Text::new(
+//                 if selected_index == 1 {
+//                     SELECTED
+//                 } else {
+//                     NOT_SELECTED
+//                 },
+//                 Point::zero(),
+//                 theme.text_style,
+//             ))
+//             .append(Text::new(
+//                 if selected_index == 2 {
+//                     SELECTED
+//                 } else {
+//                     NOT_SELECTED
+//                 },
+//                 Point::zero(),
+//                 theme.text_style,
+//             )),
+//         )
+//         .with_spacing(DistributeFill(display.bounding_box().size.width))
+//         .arrange()
+//         .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
+//         .draw(display)
+//         .ok();
+//     }
+// }
 
-impl View for Ux {
-    fn refresh(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        model: &crate::State,
-        theme: &Theme,
-    ) {
-        // UX always uses update as it has full control of the display
-        warn!("UX users should always use View::update()");
-        self.update(display, model, theme);
-    }
+// impl View for Ux {
+//     fn refresh(
+//         &mut self,
+//         display: &mut impl DrawTargetExt<Color = Rgb888>,
+//         model: &crate::State,
+//         theme: &Theme,
+//     ) {
+//         // UX always uses update as it has full control of the display
+//         warn!("UX users should always use View::update()");
+//         self.update(display, model, theme);
+//     }
 
-    fn update(
-        &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
-        model: &crate::State,
-        theme: &Theme,
-    ) {
-        // get the screen size
-        let bounding_box = display.bounding_box();
-        // reserve space for the tab_bar
-        let tab_bar_height = theme.text_style.line_height();
+//     fn update(
+//         &mut self,
+//         display: &mut impl DrawTargetExt<Color = Rgb888>,
+//         model: &crate::State,
+//         theme: &Theme,
+//     ) {
+//         // get the screen size
+//         let bounding_box = display.bounding_box();
+//         // reserve space for the tab_bar
+//         let tab_bar_height = theme.text_style.line_height();
 
-        // create a cropped display for the page content (excluding the tab bar)
-        let mut page_display = display.cropped(&Rectangle {
-            top_left: Point::zero(),
-            size: Size::new(
-                bounding_box.size.width,
-                bounding_box.size.height - tab_bar_height,
-            ),
-        });
+//         // create a cropped display for the page content (excluding the tab bar)
+//         let mut page_display = display.cropped(&Rectangle {
+//             top_left: Point::zero(),
+//             size: Size::new(
+//                 bounding_box.size.width,
+//                 bounding_box.size.height - tab_bar_height,
+//             ),
+//         });
 
-        // paint the current page
-        match self.needs_page_refresh {
-            // do full refresh
-            true => {
-                self.current_page.refresh(&mut page_display, model, &theme);
+//         // paint the current page
+//         match self.needs_page_refresh {
+//             // do full refresh
+//             true => {
+//                 self.current_page.refresh(&mut page_display, model, &theme);
 
-                // refresh the tab bar inside a cropped display
-                let mut tab_bar_display = display.cropped(&Rectangle {
-                    top_left: Point::new(0, (bounding_box.size.height - tab_bar_height) as i32),
-                    size: Size::new(bounding_box.size.width, tab_bar_height),
-                });
-                self.tab_bar_refresh(&mut tab_bar_display, &theme);
+//                 // refresh the tab bar inside a cropped display
+//                 let mut tab_bar_display = display.cropped(&Rectangle {
+//                     top_left: Point::new(0, (bounding_box.size.height - tab_bar_height) as i32),
+//                     size: Size::new(bounding_box.size.width, tab_bar_height),
+//                 });
+//                 self.tab_bar_refresh(&mut tab_bar_display, &theme);
 
-                self.needs_page_refresh = false;
-            }
-            // do simple update
-            false => self.current_page.update(&mut page_display, model, &theme),
-        }
+//                 self.needs_page_refresh = false;
+//             }
+//             // do simple update
+//             false => self.current_page.update(&mut page_display, model, &theme),
+//         }
 
-        // if ble pairing show a dialog with the passkey
-        match model.ble_status {
-            crate::state::BleStatus::Pairing { passkey } => {
-                // draw a framing rectangle
-                let frame = Rectangle::new(Point::zero(), Size::new(120, 40))
-                    .into_styled(
-                        PrimitiveStyleBuilder::new()
-                            .stroke_color(theme.color)
-                            .stroke_width(1)
-                            .fill_color(theme.background)
-                            .build(),
-                    )
-                    .align_to(&bounding_box, horizontal::Center, vertical::Center);
-                frame.draw(display).ok();
+//         // if ble pairing show a dialog with the passkey
+//         match model.ble_status {
+//             crate::state::BleStatus::Pairing { passkey } => {
+//                 // draw a framing rectangle
+//                 let frame = Rectangle::new(Point::zero(), Size::new(120, 40))
+//                     .into_styled(
+//                         PrimitiveStyleBuilder::new()
+//                             .stroke_color(theme.color)
+//                             .stroke_width(1)
+//                             .fill_color(theme.background)
+//                             .build(),
+//                     )
+//                     .align_to(&bounding_box, horizontal::Center, vertical::Center);
+//                 frame.draw(display).ok();
 
-                // draw the dialog text
-                LinearLayout::vertical(
-                    Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style)).append(
-                        Text::new(
-                            format!(6; "{:06}", passkey).unwrap().as_str(),
-                            Point::zero(),
-                            theme.h1_style,
-                        ),
-                    ),
-                )
-                .with_alignment(horizontal::Center)
-                .arrange()
-                .align_to(&frame, horizontal::Center, vertical::Center)
-                .draw(display)
-                .ok();
+//                 // draw the dialog text
+//                 LinearLayout::vertical(
+//                     Chain::new(Text::new("BLE Pairing", Point::zero(), theme.text_style)).append(
+//                         Text::new(
+//                             format!(6; "{:06}", passkey).unwrap().as_str(),
+//                             Point::zero(),
+//                             theme.h1_style,
+//                         ),
+//                     ),
+//                 )
+//                 .with_alignment(horizontal::Center)
+//                 .arrange()
+//                 .align_to(&frame, horizontal::Center, vertical::Center)
+//                 .draw(display)
+//                 .ok();
 
-                // repaint the page below the dialog on next update
-                self.needs_page_refresh = true;
-            }
-            _ => { /* no dialog */ }
-        }
-    }
+//                 // repaint the page below the dialog on next update
+//                 self.needs_page_refresh = true;
+//             }
+//             _ => { /* no dialog */ }
+//         }
+//     }
 
-    /// handle HidEvent
-    fn handle_event(&mut self, event: &HidEvent) -> bool {
-        let handled = self.current_page.handle_event(event);
+//     /// handle HidEvent
+//     fn handle_event(&mut self, event: &HidEvent) -> bool {
+//         let handled = self.current_page.handle_event(event);
 
-        if !handled {
-            match event {
-                HidEvent::Next => {
-                    self.current_page = self.current_page.next();
-                    self.needs_page_refresh = true;
-                }
-                HidEvent::Previous => {
-                    self.current_page = self.current_page.previous();
-                    self.needs_page_refresh = true;
-                }
-                _ => {}
-            }
-        }
+//         if !handled {
+//             match event {
+//                 HidEvent::Next => {
+//                     self.current_page = self.current_page.next();
+//                     self.needs_page_refresh = true;
+//                 }
+//                 HidEvent::Previous => {
+//                     self.current_page = self.current_page.previous();
+//                     self.needs_page_refresh = true;
+//                 }
+//                 _ => {}
+//             }
+//         }
 
-        // UX always handles the event
-        true
-    }
-}
+//         // UX always handles the event
+//         true
+//     }
+// }
 
 // // provide the shared crates via re-export
 // use common::*;

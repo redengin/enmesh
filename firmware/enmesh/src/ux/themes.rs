@@ -2,28 +2,28 @@
 use common::*;
 
 // provide the embedded graphics primitives
-use embedded_graphics::pixelcolor::Rgb888;
+use embedded_graphics::pixelcolor::BinaryColor;
 
 pub struct Theme<'a> {
     /// default color for text and mono-icons
-    pub color: Rgb888,
-    pub background: Rgb888,
+    pub color: BinaryColor,
+    pub background: BinaryColor,
     /// regular text font
-    pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
+    pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, BinaryColor>,
     /// label font
-    pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
+    pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, BinaryColor>,
     /// large text font
-    pub h1_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
+    pub h1_style: embedded_graphics::mono_font::MonoTextStyle<'a, BinaryColor>,
 }
 impl<'a> Theme<'a> {
     /// create a theme to match the display area
     pub fn new(screen_area: embedded_graphics::geometry::Size) -> Theme<'a> {
         use embedded_graphics::prelude::*;
-        use embedded_graphics::mono_font::{MonoTextStyle, ascii::*};
+        use embedded_graphics::mono_font::MonoTextStyle;
 
         // default theme WHITE text on BLACK background
-        let color = embedded_graphics::pixelcolor::Rgb888::WHITE;
-        let background = embedded_graphics::pixelcolor::Rgb888::BLACK;
+        let color = embedded_graphics::pixelcolor::BinaryColor::Off;
+        let background = embedded_graphics::pixelcolor::BinaryColor::On;
 
         // choose font based on display size
         return if screen_area.height <= 64 {
@@ -31,9 +31,9 @@ impl<'a> Theme<'a> {
             Theme {
                 color,
                 background,
-                text_style: MonoTextStyle::new(&FONT_6X9, color),
-                label_style: MonoTextStyle::new(&FONT_6X10, color),
-                h1_style: MonoTextStyle::new(&FONT_10X20, color),
+                text_style: MonoTextStyle::new(&profont::PROFONT_9_POINT, color),
+                label_style: MonoTextStyle::new(&profont::PROFONT_10_POINT, color),
+                h1_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
             }
         }
         else {
@@ -41,10 +41,9 @@ impl<'a> Theme<'a> {
             Theme {
                 color,
                 background,
-                // FIXME this font isn't very large
-                text_style: MonoTextStyle::new(&FONT_9X18, color),
-                label_style: MonoTextStyle::new(&FONT_9X18_BOLD, color),
-                h1_style: MonoTextStyle::new(&FONT_10X20, color),
+                text_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
+                label_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
+                h1_style: MonoTextStyle::new(&profont::PROFONT_18_POINT, color),
             }
         };
 }
