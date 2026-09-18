@@ -33,7 +33,9 @@ pub async fn run(
         use embedded_graphics::pixelcolor::BinaryColor;
         let _ = display.clear(BinaryColor::On);
 
-        let _ = Text::new("Hello World!", Point::new(0, 20), theme.text_style).draw(&mut display);
+        let _ = Text::new("Header Text", Point::new(5, 30), theme.h1_style).draw(&mut display);
+        let _ = Text::new("Label Text", Point::new(5, 60), theme.label_style).draw(&mut display);
+        let _ = Text::new("Normal Text", Point::new(5,90), theme.text_style).draw(&mut display);
 
         let _ = display.flush().await;
 
