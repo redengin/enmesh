@@ -1,0 +1,44 @@
+/// provide the shared crates via re-export
+use common::*;
+
+/// provide logging primitives
+use log::*;
+const TAG: &str = "[UX BinaryColor]";
+
+/// provide enmesh primitives
+use crate::prelude::*;
+
+mod themes;
+use embedded_graphics::pixelcolor::BinaryColor;
+
+/// UX thread
+pub async fn run(
+    _global_state: &'static RwLock<NoopRawMutex, crate::State>,
+    mut display: impl crate::ux::BufferedDisplay<Color = BinaryColor>,
+    _button: impl button::ButtonState,
+    led: impl led::LedState,
+) {
+    // create the status LED
+    let _status_led = crate::ux::status_led::StatusLed::new(led);
+
+    // create the UX theme
+    let theme = themes::Theme::new(display.bounding_box().size);
+
+    trace!("{TAG} powering on display....");
+    // FIXME TEST-USE-ONLY
+    display.power_on().await;
+    loop {
+        use embedded_graphics::prelude::*;
+        use embedded_graphics::text::Text;
+        use embedded_graphics::pixelcolor::BinaryColor;
+        let _ = display.clear(BinaryColor::On);
+
+        let _ = Text::new("Hello World!", Point::new(0, 20), theme.text_style).draw(&mut display);
+
+        let _ = display.flush().await;
+
+        Timer::after_secs(1).await;
+    }
+    // let mut ux = Ux::new();
+}
+

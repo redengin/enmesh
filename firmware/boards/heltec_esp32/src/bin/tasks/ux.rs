@@ -82,7 +82,7 @@ pub async fn task_ux(
     .unwrap();
 
     // run UX handler
-    enmesh_firmware::ux::run(global_state, display, button, led).await;
+    enmesh_firmware::ux::binary_color::run(global_state, display, button, led).await;
 
     error!("UX task ended");
 }

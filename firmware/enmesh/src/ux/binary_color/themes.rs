@@ -41,9 +41,9 @@ impl<'a> Theme<'a> {
             Theme {
                 color,
                 background,
-                text_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
-                label_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
-                h1_style: MonoTextStyle::new(&profont::PROFONT_18_POINT, color),
+                text_style: MonoTextStyle::new(&profont::PROFONT_18_POINT, color),
+                label_style: MonoTextStyle::new(&profont::PROFONT_18_POINT, color),
+                h1_style: MonoTextStyle::new(&profont::PROFONT_24_POINT, color),
             }
         };
 }

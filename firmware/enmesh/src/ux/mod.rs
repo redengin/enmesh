@@ -10,53 +10,13 @@ pub trait BufferedDisplay:
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
+/// provide support for status led
+pub mod status_led;
+
+/// provide support for BinaryColor displays (i.e. monochrome)
+pub mod binary_color;
 
 
-/// provide logging primitives
-use log::*;
-const TAG: &str = "[UX]";
-
-
-mod status_led;
-
-mod themes;
-use embedded_graphics::pixelcolor::BinaryColor;
-
-/// UX thread
-pub async fn run(
-    _global_state: &'static RwLock<NoopRawMutex, crate::State>,
-    mut display: impl BufferedDisplay<Color = BinaryColor>,
-    _button: impl button::ButtonState,
-    led: impl led::LedState,
-) {
-    // create the status LED
-    let _status_led = status_led::StatusLed::new(led);
-
-    // create the UX theme
-    let theme = themes::Theme::new(display.bounding_box().size);
-
-    trace!("{TAG} powering on display....");
-    // FIXME TEST-USE-ONLY
-    display.power_on().await;
-    loop {
-        use embedded_graphics::prelude::*;
-        use embedded_graphics::text::Text;
-        use embedded_graphics::pixelcolor::BinaryColor;
-        let _ = display.clear(BinaryColor::On);
-
-        let _ = Text::new("Hello World!", Point::new(0, 20), theme.text_style).draw(&mut display);
-
-        let _ = display.flush().await;
-
-        Timer::after_secs(1).await;
-    }
-    // let mut ux = Ux::new();
-}
-
-use crate::prelude::*;
-
-/// provide controller thread runners
-pub mod controller;
 
 
 // pub trait View {
