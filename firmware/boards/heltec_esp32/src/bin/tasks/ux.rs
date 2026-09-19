@@ -51,12 +51,6 @@ pub async fn task_ux(
     // create the led
     let led = led::Led::active_high(ux_io.led);
 
-    // // create the power control
-    // let display_power = match ux_io.n_vext_control {
-    //     Some(pin) => Some(led::Led::active_low(pin)),
-    //     None => None,
-    // };
-
     // create the screen driver
     //================================================================================
     #[cfg(feature = "_screen-ssd1306")]
@@ -104,16 +98,23 @@ mod display {
 
     /// provide access to the display driver
     use ssd1306::prelude::*;
-    use ssd1306::{Ssd1306Async, mode::BufferedGraphicsModeAsync};
+    // use ssd1306::{Ssd1306Async, mode::BufferedGraphicsModeAsync};
+    use ssd1306::{Ssd1306, mode::BufferedGraphicsMode};
 
     pub struct Display {
         n_vext_control: Option<esp_hal::gpio::Output<'static>>,
         n_reset: esp_hal::gpio::Output<'static>,
         /// FIXME type is overspecified
-        display: Ssd1306Async<
+        // display: Ssd1306Async<
+        //     I2CInterface<soc_esp32::esp_hal::i2c::master::I2c<'static, esp_hal::Async>>,
+        //     DisplaySize128x64,
+        //     BufferedGraphicsModeAsync<DisplaySize128x64>,
+        // >,
+        // display: Ssd1306Async<
+        display: ssd1306::Ssd1306<
             I2CInterface<soc_esp32::esp_hal::i2c::master::I2c<'static, esp_hal::Async>>,
             DisplaySize128x64,
-            BufferedGraphicsModeAsync<DisplaySize128x64>,
+            BufferedGraphicsMode<DisplaySize128x64>,
         >,
     }
     impl Display {
@@ -124,6 +125,7 @@ mod display {
             mut sda: esp_hal::gpio::Flex<'static>,
             mut scl: esp_hal::gpio::Flex<'static>,
         ) -> Self {
+            trace!("{TAG} configuring FLEX sda...");
             // configure sda, scl Flex pins to support I2C
             sda.apply_output_config(
                 &esp_hal::gpio::OutputConfig::default()
@@ -131,6 +133,8 @@ mod display {
             );
             sda.set_input_enable(true);
             sda.set_output_enable(true);
+
+            trace!("{TAG} configuring FLEX scl...");
             scl.apply_output_config(
                 &esp_hal::gpio::OutputConfig::default()
                     .with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain),
@@ -150,7 +154,8 @@ mod display {
             .into_async();
 
             // create the driver instance
-            let display = ssd1306::Ssd1306Async::new(
+            // let display = ssd1306::Ssd1306Async::new(
+            let display = ssd1306::Ssd1306::new(
                 ssd1306::I2CDisplayInterface::new(i2c_bus),
                 ssd1306::size::DisplaySize128x64,
                 ssd1306::rotation::DisplayRotation::Rotate0,
@@ -166,7 +171,9 @@ mod display {
     }
 
     /// provide the shared crates via re-export
-    use common::{display_interface, embedded_graphics, embedded_hal::delay::DelayNs};
+    use common::{display_interface, embedded_graphics};
+
+    use embedded_hal_async::delay::DelayNs;
 
     impl enmesh_firmware::PowerControl for Display {
         fn power_off(&mut self) {
@@ -185,18 +192,20 @@ mod display {
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_low();
             }
+            Delay.delay_ms(10).await;
 
             // place chip into RESET
             self.n_reset.set_low();
-            Delay.delay_ms(1);
+            Delay.delay_ms(10).await;
 
             // take chip out of RESET
             self.n_reset.set_high();
-            Delay.delay_ms(10);
+            Delay.delay_ms(1000).await;
 
             // intialize the display driver
             trace!("{TAG} initializing display driver..");
-            let _ = self.display.init().await
+            // let _ = self.display.init().await
+            let _ = self.display.init()
                 .map_err(|e| error!("{TAG} failed to initialize display: {:?}", e));
         }
     }
@@ -245,7 +254,7 @@ mod display {
     /// expose internal driver support
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
-            self.display.flush().await
+            self.display.flush()
         }
     }
 }

@@ -47,8 +47,12 @@ enable-backtrace = [
 
 # board support by name
 #-------------------------------------------------------------------------------
-wifi_lora_32 = [
+wifi_lora_32-v3 = [
     # [WiFi LoRa 32 v3](https://heltec.org/project/wifi-lora-32-v3/)
+    "dep:ssd1306",     # uses an OLED screen
+    "_screen-ssd1306",
+]
+wifi_lora_32-v4 = [
     # [WiFi LoRa 32 v4](https://heltec.org/project/wifi-lora-32-v4/)
     "dep:ssd1306",     # uses an OLED screen
     "_screen-ssd1306",
@@ -82,7 +86,6 @@ wireless_paper = [
 # _gps = []
 _screen-ssd1306 = []
 _screen-epd = []
-
 
 #-------------------------------------------------------------------------------
 [profile.dev]

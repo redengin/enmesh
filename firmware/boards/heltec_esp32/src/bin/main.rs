@@ -83,8 +83,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     debug!("creating UX peripherals interface...");
     #[cfg(all(
         not(feature = "disable-ux"),
-        feature = "wifi_lora_32",
-        feature = "_screen-ssd1306"
+        feature = "wifi_lora_32-v3",
     ))]
     let ux_io = tasks::ux::UxIo {
         button: InputPin!(peripherals.GPIO0),
@@ -92,7 +91,22 @@ async fn main(spawner: embassy_executor::Spawner) {
         // start with screen powered off
         n_vext_control: Some(OutputPin!(peripherals.GPIO36, esp_hal::gpio::Level::High)),
         // start screen in RESET
-        n_reset: OutputPin!(peripherals.GPIO21, esp_hal::gpio::Level::High),
+        n_reset: OutputPin!(peripherals.GPIO21),
+        i2c: peripherals.I2C0,
+        sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
+        scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
+    };
+    #[cfg(all(
+        not(feature = "disable-ux"),
+        feature = "wifi_lora_32-v4",
+    ))]
+    let ux_io = tasks::ux::UxIo {
+        button: InputPin!(peripherals.GPIO0),
+        led: OutputPin!(peripherals.GPIO35),
+        // start with screen powered off
+        n_vext_control: Some(OutputPin!(peripherals.GPIO40, esp_hal::gpio::Level::High)),
+        // start screen in RESET
+        n_reset: OutputPin!(peripherals.GPIO21),
         i2c: peripherals.I2C0,
         sda: esp_hal::gpio::Flex::new(peripherals.GPIO17),
         scl: esp_hal::gpio::Flex::new(peripherals.GPIO18),
