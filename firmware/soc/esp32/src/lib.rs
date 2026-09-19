@@ -78,3 +78,20 @@ macro_rules!  OutputPin {
         esp_hal::gpio::Output::new($pin, $level, esp_hal::gpio::OutputConfig::default())
     };
 }
+#[macro_export]
+macro_rules!  FlexPin {
+    ($pin:expr) => {
+        {
+            let mut pin = esp_hal::gpio::Flex::new($pin);
+            // configure pin for both input and output
+            pin.apply_output_config(
+                &esp_hal::gpio::OutputConfig::default()
+                    .with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain),
+            );
+            pin.set_input_enable(true);
+            pin.set_output_enable(true);
+
+            pin
+        }
+    };
+}
