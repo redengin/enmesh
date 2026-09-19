@@ -51,7 +51,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     };
     let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
 
-    // Map the hardware interfaces to peripherals
+    // Map the LoRa hardware interfaces to peripherals
     //--------------------------------------------------------------------------------
     debug!("creating LoRa peripheral interface...");
     #[cfg(feature = "wireless_stick_v3")]
@@ -79,6 +79,8 @@ async fn main(spawner: embassy_executor::Spawner) {
         miso: InputPin!(peripherals.GPIO11),
     };
 
+    // Map the UX hardware interfaces to peripherals
+    //--------------------------------------------------------------------------------
     #[cfg(not(feature = "disable-ux"))]
     debug!("creating UX peripherals interface...");
     #[cfg(all(
