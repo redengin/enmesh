@@ -98,23 +98,14 @@ mod display {
 
     /// provide access to the display driver
     use ssd1306::prelude::*;
-    // use ssd1306::{Ssd1306Async, mode::BufferedGraphicsModeAsync};
-    use ssd1306::{Ssd1306, mode::BufferedGraphicsMode};
 
     pub struct Display {
         n_vext_control: Option<esp_hal::gpio::Output<'static>>,
         n_reset: esp_hal::gpio::Output<'static>,
-        /// FIXME type is overspecified
-        // display: Ssd1306Async<
-        //     I2CInterface<soc_esp32::esp_hal::i2c::master::I2c<'static, esp_hal::Async>>,
-        //     DisplaySize128x64,
-        //     BufferedGraphicsModeAsync<DisplaySize128x64>,
-        // >,
-        // display: Ssd1306Async<
-        display: ssd1306::Ssd1306<
+        display: ssd1306::Ssd1306Async<
             I2CInterface<soc_esp32::esp_hal::i2c::master::I2c<'static, esp_hal::Async>>,
             DisplaySize128x64,
-            BufferedGraphicsMode<DisplaySize128x64>,
+            ssd1306::mode::BufferedGraphicsModeAsync<DisplaySize128x64>,
         >,
     }
     impl Display {
@@ -122,26 +113,9 @@ mod display {
             n_vext_control: Option<esp_hal::gpio::Output<'static>>,
             n_reset: esp_hal::gpio::Output<'static>,
             i2c: esp_hal::peripherals::I2C0<'static>,
-            mut sda: esp_hal::gpio::Flex<'static>,
-            mut scl: esp_hal::gpio::Flex<'static>,
+            sda: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
+            scl: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
         ) -> Self {
-            trace!("{TAG} configuring FLEX sda...");
-            // configure sda, scl Flex pins to support I2C
-            sda.apply_output_config(
-                &esp_hal::gpio::OutputConfig::default()
-                    .with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain),
-            );
-            sda.set_input_enable(true);
-            sda.set_output_enable(true);
-
-            trace!("{TAG} configuring FLEX scl...");
-            scl.apply_output_config(
-                &esp_hal::gpio::OutputConfig::default()
-                    .with_drive_mode(esp_hal::gpio::DriveMode::OpenDrain),
-            );
-            scl.set_input_enable(true);
-            scl.set_output_enable(true);
-
             // create the i2c bus
             let i2c_bus = esp_hal::i2c::master::I2c::new(
                 i2c,
@@ -154,8 +128,7 @@ mod display {
             .into_async();
 
             // create the driver instance
-            // let display = ssd1306::Ssd1306Async::new(
-            let display = ssd1306::Ssd1306::new(
+            let display = ssd1306::Ssd1306Async::new(
                 ssd1306::I2CDisplayInterface::new(i2c_bus),
                 ssd1306::size::DisplaySize128x64,
                 ssd1306::rotation::DisplayRotation::Rotate0,
@@ -170,42 +143,38 @@ mod display {
         }
     }
 
-    /// provide the shared crates via re-export
-    use common::{display_interface, embedded_graphics};
-
-    use embedded_hal_async::delay::DelayNs;
-
     impl enmesh_firmware::PowerControl for Display {
         fn power_off(&mut self) {
-            trace!("{TAG} powering off..");
-            // disable power
+            trace!("{TAG} powering off...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
         }
 
-        #[allow(async_fn_in_trait)] // usage should never use Send()
-        /// must reinitialize the hardware as necessary
         async fn power_on(&mut self) {
-            trace!("{TAG} powering on..");
+            trace!("{TAG} powering on...");
             // enable power
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_low();
             }
-            Delay.delay_ms(10).await;
+            Timer::after_micros(3).await;
 
+            trace!("{TAG} reseting the display chip...");
             // place chip into RESET
             self.n_reset.set_low();
-            Delay.delay_ms(10).await;
+            Timer::after_micros(3).await;
 
             // take chip out of RESET
             self.n_reset.set_high();
-            Delay.delay_ms(1000).await;
+            Timer::after_micros(3).await;
 
-            // intialize the display driver
-            trace!("{TAG} initializing display driver..");
-            // let _ = self.display.init().await
-            let _ = self.display.init()
+            // initialize the display driver
+            trace!("{TAG} initializing display driver...");
+            // FIXME ssd1306.init() results in a BUS ERROR
+            let _ = self
+                .display
+                .init()
+                .await
                 .map_err(|e| error!("{TAG} failed to initialize display: {:?}", e));
         }
     }
@@ -215,6 +184,7 @@ mod display {
         type Color = embedded_graphics::pixelcolor::BinaryColor;
         type Error = display_interface::DisplayError;
 
+        /// proxy to the driver
         fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
         where
             I: IntoIterator<Item = embedded_graphics::prelude::Pixel<Self::Color>>,
@@ -222,6 +192,7 @@ mod display {
             self.display.draw_iter(pixels)
         }
 
+        /// proxy to the driver
         fn fill_contiguous<I>(
             &mut self,
             area: &embedded_graphics::primitives::Rectangle,
@@ -233,6 +204,7 @@ mod display {
             self.display.fill_contiguous(area, colors)
         }
 
+        /// proxy to the driver
         fn fill_solid(
             &mut self,
             area: &embedded_graphics::primitives::Rectangle,
@@ -241,20 +213,21 @@ mod display {
             self.display.fill_solid(area, color)
         }
 
+        /// proxy to the driver
         fn clear(&mut self, color: Self::Color) -> Result<(), Self::Error> {
             self.display.clear(color)
         }
     }
-    /// expose internal embedded_graphics support
+    /// proxy to the driver
     impl embedded_graphics::geometry::Dimensions for Display {
         fn bounding_box(&self) -> embedded_graphics::primitives::Rectangle {
             self.display.bounding_box()
         }
     }
-    /// expose internal driver support
+    /// proxy to the driver
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
-            self.display.flush()
+            self.display.flush().await
         }
     }
 }
@@ -262,7 +235,7 @@ mod display {
 #[cfg(feature = "_screen-epd")]
 mod display {
     /// provide the shared crates via re-export
-    use common::{display_interface::DisplayError, *};
+    use common::*;
 
     /// provide enmesh firmware primitives
     use enmesh_firmware::prelude::*;
@@ -299,7 +272,7 @@ mod display {
             clk: esp_hal::gpio::Output<'static>,
             cs: esp_hal::gpio::Output<'static>,
             dc: esp_hal::gpio::Output<'static>,
-        ) -> Result<Self, DisplayError> {
+        ) -> Result<Self, display_interface::DisplayError> {
             // create SPI bus
             let spi_bus = esp_hal::spi::master::Spi::new(
                 spi,
@@ -324,6 +297,7 @@ mod display {
             // create the display driver
             let driver = epd_rs::drivers::E0213A367::new(display_interface).await?;
 
+            // create the display
             let display = epd_rs::EpdDisplay::new(driver, epd_rs::DisplayRotation::Rotate270);
 
             Ok(Self {
@@ -333,8 +307,7 @@ mod display {
         }
     }
 
-    impl enmesh_firmware::PowerControl for Display
-    {
+    impl enmesh_firmware::PowerControl for Display {
         fn power_off(&mut self) {
             // disable power
             if let Some(pin) = &mut self.n_vext_control {
@@ -363,7 +336,8 @@ mod display {
         where
             I: IntoIterator<Item = embedded_graphics::prelude::Pixel<Self::Color>>,
         {
-            self.display.draw_iter(pixels)
+            // self.display.draw_iter(pixels)
+            Ok(())
         }
 
         fn fill_contiguous<I>(
