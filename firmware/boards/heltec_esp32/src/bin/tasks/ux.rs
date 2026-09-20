@@ -34,10 +34,10 @@ pub struct UxIo {
     /// LOW: busy, HIGH: idle
     pub n_busy: esp_hal::gpio::Input<'static>,
     pub spi: esp_hal::peripherals::SPI3<'static>,
-    pub sdi: esp_hal::gpio::Flex<'static>,
-    pub clk: esp_hal::gpio::Output<'static>,
-    pub cs: esp_hal::gpio::Output<'static>,
     pub dc: esp_hal::gpio::Output<'static>,
+    pub cs: esp_hal::gpio::Output<'static>,
+    pub clk: esp_hal::gpio::Output<'static>,
+    pub sdi: esp_hal::gpio::Output<'static>,
 }
 
 #[embassy_executor::task]
@@ -67,10 +67,10 @@ pub async fn task_ux(
         ux_io.n_reset,
         ux_io.n_busy,
         ux_io.spi,
-        ux_io.sdi,
-        ux_io.clk,
-        ux_io.cs,
         ux_io.dc,
+        ux_io.cs,
+        ux_io.clk,
+        ux_io.sdi,
     )
     .await
     .unwrap();
@@ -81,6 +81,8 @@ pub async fn task_ux(
     error!("UX task ended");
 }
 
+// SSD1306 Support
+//--------------------------------------------------------------------------------
 #[cfg(feature = "_screen-ssd1306")]
 mod display {
     /// provide the shared crates via re-export
@@ -222,11 +224,14 @@ mod display {
     /// proxy to the driver
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
+            trace!("{TAG} refreshing display...");
             self.display.flush().await
         }
     }
 }
 
+// EPD Support
+//--------------------------------------------------------------------------------
 #[cfg(feature = "_screen-epd")]
 mod display {
     /// provide the shared crates via re-export
@@ -267,10 +272,10 @@ mod display {
             n_reset: esp_hal::gpio::Output<'static>,
             n_busy: esp_hal::gpio::Input<'static>,
             spi: esp_hal::peripherals::SPI3<'static>,
-            sdi: esp_hal::gpio::Flex<'static>,
-            clk: esp_hal::gpio::Output<'static>,
-            cs: esp_hal::gpio::Output<'static>,
             dc: esp_hal::gpio::Output<'static>,
+            cs: esp_hal::gpio::Output<'static>,
+            clk: esp_hal::gpio::Output<'static>,
+            sdi: esp_hal::gpio::Output<'static>,
         ) -> Result<Self, display_interface::DisplayError> {
             // create SPI bus
             let spi_bus = esp_hal::spi::master::Spi::new(
@@ -308,7 +313,7 @@ mod display {
 
     impl enmesh_firmware::PowerControl for Display {
         fn power_off(&mut self) {
-            // disable power
+            trace!("{TAG} powering off...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
@@ -317,11 +322,13 @@ mod display {
         #[allow(async_fn_in_trait)] // usage should never use Send()
         /// must reinitialize the hardware as necessary
         async fn power_on(&mut self) {
-            // enable power
+            trace!("{TAG} powering on...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_low();
             }
+            Timer::after_micros(50).await;
 
+            trace!("{TAG} resetting display hardware...");
             // perform hardware reset and chip initialization
             let _ = self.display.init().await
                 .map_err(|e| error!("{TAG} failed ot intialized display: {:?}", e));
@@ -375,6 +382,7 @@ mod display {
     // proxy to driver
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
+            trace!("{TAG} refreshing display...");
             self.display.refresh().await
         }
     }

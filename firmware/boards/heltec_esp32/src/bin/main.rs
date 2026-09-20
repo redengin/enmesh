@@ -134,10 +134,10 @@ async fn main(spawner: embassy_executor::Spawner) {
         n_reset: OutputPin!(peripherals.GPIO6, esp_hal::gpio::Level::High),
         n_busy: InputPin!(peripherals.GPIO7),
         spi: peripherals.SPI3,
-        sdi: FlexPin!(peripherals.GPIO2),
-        clk: OutputPin!(peripherals.GPIO3),
-        cs: OutputPin!(peripherals.GPIO4),
         dc: OutputPin!(peripherals.GPIO5),
+        cs: OutputPin!(peripherals.GPIO4),
+        clk: OutputPin!(peripherals.GPIO3),
+        sdi: OutputPin!(peripherals.GPIO2),
     };
 
     // create the tasks
