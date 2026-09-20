@@ -11,24 +11,24 @@ use soc_esp32::*;
 pub struct UxIo {
     pub button: esp_hal::gpio::Input<'static>,
     pub led: esp_hal::gpio::Output<'static>,
+    // display interface
     /// LOW: powered, HIGH: disabled
     pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
-    // display interface
     /// LOW: reset, HIGH: run
     pub n_reset: esp_hal::gpio::Output<'static>,
     pub i2c: esp_hal::peripherals::I2C0<'static>,
-    pub sda: esp_hal::gpio::Flex<'static>,
     pub scl: esp_hal::gpio::Flex<'static>,
+    pub sda: esp_hal::gpio::Flex<'static>,
 }
 
 #[cfg(feature = "_screen-epd")]
 pub struct UxIo {
     pub button: esp_hal::gpio::Input<'static>,
     pub led: esp_hal::gpio::Output<'static>,
+    // display interface
     /// LOW: powered, HIGH: disabled
     pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
     /// LOW: reset, HIGH: run
-    // display interface
     /// LOW: reset, HIGH: run
     pub n_reset: esp_hal::gpio::Output<'static>,
     /// LOW: busy, HIGH: idle
@@ -86,7 +86,7 @@ mod display {
     /// provide the shared crates via re-export
     use common::*;
 
-    /// provide logging prmititives
+    /// provide logging primititives
     use log::*;
     const TAG: &str = "[SSD1306]";
 
@@ -113,8 +113,8 @@ mod display {
             n_vext_control: Option<esp_hal::gpio::Output<'static>>,
             n_reset: esp_hal::gpio::Output<'static>,
             i2c: esp_hal::peripherals::I2C0<'static>,
-            sda: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
             scl: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
+            sda: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
         ) -> Self {
             // create the i2c bus
             let i2c_bus = esp_hal::i2c::master::I2c::new(
@@ -123,8 +123,8 @@ mod display {
                     .with_frequency(esp_hal::time::Rate::from_mhz(1)), // suggested rate from ssd1306
             )
             .unwrap()
-            .with_sda(sda)
             .with_scl(scl)
+            .with_sda(sda)
             .into_async();
 
             // create the driver instance
@@ -149,6 +149,7 @@ mod display {
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
+            self.n_reset.set_low();
         }
 
         async fn power_on(&mut self) {
@@ -159,18 +160,12 @@ mod display {
             }
             Timer::after_micros(3).await;
 
-            trace!("{TAG} reseting the display chip...");
-            // place chip into RESET
-            self.n_reset.set_low();
-            Timer::after_micros(3).await;
-
-            // take chip out of RESET
+            trace!("{TAG} taking the display chip out of reset...");
             self.n_reset.set_high();
             Timer::after_micros(3).await;
 
             // initialize the display driver
             trace!("{TAG} initializing display driver...");
-            // FIXME ssd1306.init() results in a BUS ERROR
             let _ = self
                 .display
                 .init()
@@ -236,6 +231,10 @@ mod display {
 mod display {
     /// provide the shared crates via re-export
     use common::*;
+
+    /// provide logging primititives
+    use log::*;
+    const TAG: &str = "[EpdDisplay]";
 
     /// provide enmesh firmware primitives
     use enmesh_firmware::prelude::*;
@@ -324,7 +323,8 @@ mod display {
             }
 
             // perform hardware reset and chip initialization
-            let _ = self.display.init().await;
+            let _ = self.display.init().await
+                .map_err(|e| error!("{TAG} failed ot intialized display: {:?}", e));
         }
     }
 
@@ -332,14 +332,15 @@ mod display {
         type Color = embedded_graphics::pixelcolor::BinaryColor;
         type Error = display_interface::DisplayError;
 
+        // proxy to driver
         fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
         where
             I: IntoIterator<Item = embedded_graphics::prelude::Pixel<Self::Color>>,
         {
-            // self.display.draw_iter(pixels)
-            Ok(())
+            self.display.draw_iter(pixels)
         }
 
+        // proxy to driver
         fn fill_contiguous<I>(
             &mut self,
             area: &embedded_graphics::primitives::Rectangle,
@@ -351,6 +352,7 @@ mod display {
             self.display.fill_contiguous(area, colors)
         }
 
+        // proxy to driver
         fn fill_solid(
             &mut self,
             area: &embedded_graphics::primitives::Rectangle,
@@ -359,15 +361,18 @@ mod display {
             self.display.fill_solid(area, color)
         }
 
+        // proxy to driver
         fn clear(&mut self, color: Self::Color) -> Result<(), Self::Error> {
             self.display.clear(color)
         }
     }
+    // proxy to driver
     impl embedded_graphics::geometry::Dimensions for Display {
         fn bounding_box(&self) -> embedded_graphics::primitives::Rectangle {
             self.display.bounding_box()
         }
     }
+    // proxy to driver
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
             self.display.refresh().await
