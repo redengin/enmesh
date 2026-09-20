@@ -21,8 +21,8 @@ impl<'a> Theme<'a> {
         use embedded_graphics::mono_font::MonoTextStyle;
 
         // default theme BLACK text on WHITE background
-        let color = embedded_graphics::pixelcolor::BinaryColor::Off;
-        let background = embedded_graphics::pixelcolor::BinaryColor::On;
+        let color = embedded_graphics::pixelcolor::BinaryColor::On;
+        let background = embedded_graphics::pixelcolor::BinaryColor::Off;
 
         // choose font based on display size
         return if screen_area.height <= 64 {

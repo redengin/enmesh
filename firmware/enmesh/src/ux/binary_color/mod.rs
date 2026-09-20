@@ -1,5 +1,5 @@
 /// provide the shared crates via re-export
-use common::*;
+use common::{embedded_graphics::text::renderer::TextRenderer, *};
 
 /// provide logging primitives
 use log::*;
@@ -31,11 +31,14 @@ pub async fn run(
         use embedded_graphics::prelude::*;
         use embedded_graphics::text::Text;
         use embedded_graphics::pixelcolor::BinaryColor;
-        let _ = display.clear(BinaryColor::On);
+        let _ = display.clear(theme.background);
 
-        let _ = Text::new("Header Text", Point::new(5, 30), theme.h1_style).draw(&mut display);
-        let _ = Text::new("Label Text", Point::new(5, 60), theme.label_style).draw(&mut display);
-        let _ = Text::new("Normal Text", Point::new(5,90), theme.text_style).draw(&mut display);
+        let mut anchor = theme.h1_style.line_height() as i32;
+        let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw(&mut display);
+        anchor += theme.label_style.line_height() as i32;
+        let _ = Text::new("Label Text", Point::new(0, anchor), theme.label_style).draw(&mut display);
+        anchor += theme.text_style.line_height() as i32;
+        let _ = Text::new("Normal Text", Point::new(0, anchor), theme.text_style).draw(&mut display);
 
         let _ = display.flush().await;
 
