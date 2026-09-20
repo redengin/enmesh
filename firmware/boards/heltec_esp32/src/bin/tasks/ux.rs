@@ -11,33 +11,33 @@ use soc_esp32::*;
 pub struct UxIo {
     pub button: esp_hal::gpio::Input<'static>,
     pub led: esp_hal::gpio::Output<'static>,
+    // display interface
     /// LOW: powered, HIGH: disabled
     pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
-    // display interface
     /// LOW: reset, HIGH: run
     pub n_reset: esp_hal::gpio::Output<'static>,
     pub i2c: esp_hal::peripherals::I2C0<'static>,
-    pub sda: esp_hal::gpio::Flex<'static>,
     pub scl: esp_hal::gpio::Flex<'static>,
+    pub sda: esp_hal::gpio::Flex<'static>,
 }
 
 #[cfg(feature = "_screen-epd")]
 pub struct UxIo {
     pub button: esp_hal::gpio::Input<'static>,
     pub led: esp_hal::gpio::Output<'static>,
+    // display interface
     /// LOW: powered, HIGH: disabled
     pub n_vext_control: Option<esp_hal::gpio::Output<'static>>,
     /// LOW: reset, HIGH: run
-    // display interface
     /// LOW: reset, HIGH: run
     pub n_reset: esp_hal::gpio::Output<'static>,
     /// LOW: busy, HIGH: idle
     pub n_busy: esp_hal::gpio::Input<'static>,
     pub spi: esp_hal::peripherals::SPI3<'static>,
-    pub sdi: esp_hal::gpio::Flex<'static>,
-    pub clk: esp_hal::gpio::Output<'static>,
-    pub cs: esp_hal::gpio::Output<'static>,
     pub dc: esp_hal::gpio::Output<'static>,
+    pub cs: esp_hal::gpio::Output<'static>,
+    pub clk: esp_hal::gpio::Output<'static>,
+    pub sdi: esp_hal::gpio::Output<'static>,
 }
 
 #[embassy_executor::task]
@@ -67,10 +67,10 @@ pub async fn task_ux(
         ux_io.n_reset,
         ux_io.n_busy,
         ux_io.spi,
-        ux_io.sdi,
-        ux_io.clk,
-        ux_io.cs,
         ux_io.dc,
+        ux_io.cs,
+        ux_io.clk,
+        ux_io.sdi,
     )
     .await
     .unwrap();
@@ -81,12 +81,14 @@ pub async fn task_ux(
     error!("UX task ended");
 }
 
+// SSD1306 Support
+//--------------------------------------------------------------------------------
 #[cfg(feature = "_screen-ssd1306")]
 mod display {
     /// provide the shared crates via re-export
     use common::*;
 
-    /// provide logging prmititives
+    /// provide logging primititives
     use log::*;
     const TAG: &str = "[SSD1306]";
 
@@ -113,8 +115,8 @@ mod display {
             n_vext_control: Option<esp_hal::gpio::Output<'static>>,
             n_reset: esp_hal::gpio::Output<'static>,
             i2c: esp_hal::peripherals::I2C0<'static>,
-            sda: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
             scl: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
+            sda: esp_hal::gpio::Flex<'static>, // assumes already configured for input/output
         ) -> Self {
             // create the i2c bus
             let i2c_bus = esp_hal::i2c::master::I2c::new(
@@ -123,8 +125,8 @@ mod display {
                     .with_frequency(esp_hal::time::Rate::from_mhz(1)), // suggested rate from ssd1306
             )
             .unwrap()
-            .with_sda(sda)
             .with_scl(scl)
+            .with_sda(sda)
             .into_async();
 
             // create the driver instance
@@ -149,6 +151,7 @@ mod display {
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
+            self.n_reset.set_low();
         }
 
         async fn power_on(&mut self) {
@@ -159,18 +162,12 @@ mod display {
             }
             Timer::after_micros(3).await;
 
-            trace!("{TAG} reseting the display chip...");
-            // place chip into RESET
-            self.n_reset.set_low();
-            Timer::after_micros(3).await;
-
-            // take chip out of RESET
+            trace!("{TAG} taking the display chip out of reset...");
             self.n_reset.set_high();
             Timer::after_micros(3).await;
 
             // initialize the display driver
             trace!("{TAG} initializing display driver...");
-            // FIXME ssd1306.init() results in a BUS ERROR
             let _ = self
                 .display
                 .init()
@@ -227,15 +224,22 @@ mod display {
     /// proxy to the driver
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
+            trace!("{TAG} refreshing display...");
             self.display.flush().await
         }
     }
 }
 
+// EPD Support
+//--------------------------------------------------------------------------------
 #[cfg(feature = "_screen-epd")]
 mod display {
     /// provide the shared crates via re-export
     use common::*;
+
+    /// provide logging primititives
+    use log::*;
+    const TAG: &str = "[EpdDisplay]";
 
     /// provide enmesh firmware primitives
     use enmesh_firmware::prelude::*;
@@ -268,10 +272,10 @@ mod display {
             n_reset: esp_hal::gpio::Output<'static>,
             n_busy: esp_hal::gpio::Input<'static>,
             spi: esp_hal::peripherals::SPI3<'static>,
-            sdi: esp_hal::gpio::Flex<'static>,
-            clk: esp_hal::gpio::Output<'static>,
-            cs: esp_hal::gpio::Output<'static>,
             dc: esp_hal::gpio::Output<'static>,
+            cs: esp_hal::gpio::Output<'static>,
+            clk: esp_hal::gpio::Output<'static>,
+            sdi: esp_hal::gpio::Output<'static>,
         ) -> Result<Self, display_interface::DisplayError> {
             // create SPI bus
             let spi_bus = esp_hal::spi::master::Spi::new(
@@ -309,7 +313,7 @@ mod display {
 
     impl enmesh_firmware::PowerControl for Display {
         fn power_off(&mut self) {
-            // disable power
+            trace!("{TAG} powering off...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
@@ -318,13 +322,16 @@ mod display {
         #[allow(async_fn_in_trait)] // usage should never use Send()
         /// must reinitialize the hardware as necessary
         async fn power_on(&mut self) {
-            // enable power
+            trace!("{TAG} powering on...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_low();
             }
+            Timer::after_micros(50).await;
 
+            trace!("{TAG} resetting display hardware...");
             // perform hardware reset and chip initialization
-            let _ = self.display.init().await;
+            let _ = self.display.init().await
+                .map_err(|e| error!("{TAG} failed ot intialized display: {:?}", e));
         }
     }
 
@@ -332,14 +339,15 @@ mod display {
         type Color = embedded_graphics::pixelcolor::BinaryColor;
         type Error = display_interface::DisplayError;
 
+        // proxy to driver
         fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
         where
             I: IntoIterator<Item = embedded_graphics::prelude::Pixel<Self::Color>>,
         {
-            // self.display.draw_iter(pixels)
-            Ok(())
+            self.display.draw_iter(pixels)
         }
 
+        // proxy to driver
         fn fill_contiguous<I>(
             &mut self,
             area: &embedded_graphics::primitives::Rectangle,
@@ -351,6 +359,7 @@ mod display {
             self.display.fill_contiguous(area, colors)
         }
 
+        // proxy to driver
         fn fill_solid(
             &mut self,
             area: &embedded_graphics::primitives::Rectangle,
@@ -359,17 +368,21 @@ mod display {
             self.display.fill_solid(area, color)
         }
 
+        // proxy to driver
         fn clear(&mut self, color: Self::Color) -> Result<(), Self::Error> {
             self.display.clear(color)
         }
     }
+    // proxy to driver
     impl embedded_graphics::geometry::Dimensions for Display {
         fn bounding_box(&self) -> embedded_graphics::primitives::Rectangle {
             self.display.bounding_box()
         }
     }
+    // proxy to driver
     impl enmesh_firmware::ux::BufferedDisplay for Display {
         async fn flush(&mut self) -> Result<(), display_interface::DisplayError> {
+            trace!("{TAG} refreshing display...");
             self.display.refresh().await
         }
     }

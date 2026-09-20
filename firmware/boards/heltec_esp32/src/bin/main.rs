@@ -95,8 +95,8 @@ async fn main(spawner: embassy_executor::Spawner) {
         // start screen in RESET
         n_reset: OutputPin!(peripherals.GPIO21),
         i2c: peripherals.I2C0,
-        sda: FlexPin!(peripherals.GPIO17),
         scl: FlexPin!(peripherals.GPIO18),
+        sda: FlexPin!(peripherals.GPIO17),
     };
     #[cfg(all(
         not(feature = "disable-ux"),
@@ -110,8 +110,8 @@ async fn main(spawner: embassy_executor::Spawner) {
         // start screen in RESET
         n_reset: OutputPin!(peripherals.GPIO21),
         i2c: peripherals.I2C0,
-        sda: FlexPin!(peripherals.GPIO17),
         scl: FlexPin!(peripherals.GPIO18),
+        sda: FlexPin!(peripherals.GPIO17),
     };
     #[cfg(all(not(feature = "disable-ux"), feature = "wireless_stick_v3",))]
     let ux_io = tasks::ux::UxIo {
@@ -121,8 +121,8 @@ async fn main(spawner: embassy_executor::Spawner) {
         // start screen in RESET
         n_reset: OutputPin!(peripherals.GPIO16, esp_hal::gpio::Level::High),
         i2c: peripherals.I2C0,
-        sda: FlexPin!(peripherals.GPIO17),
         scl: FlexPin!(peripherals.GPIO18),
+        sda: FlexPin!(peripherals.GPIO17),
     };
     #[cfg(all(not(feature = "disable-ux"), feature = "wireless_paper"))]
     let ux_io = tasks::ux::UxIo {
@@ -134,10 +134,10 @@ async fn main(spawner: embassy_executor::Spawner) {
         n_reset: OutputPin!(peripherals.GPIO6, esp_hal::gpio::Level::High),
         n_busy: InputPin!(peripherals.GPIO7),
         spi: peripherals.SPI3,
-        sdi: FlexPin!(peripherals.GPIO2),
-        clk: OutputPin!(peripherals.GPIO3),
-        cs: OutputPin!(peripherals.GPIO4),
         dc: OutputPin!(peripherals.GPIO5),
+        cs: OutputPin!(peripherals.GPIO4),
+        clk: OutputPin!(peripherals.GPIO3),
+        sdi: OutputPin!(peripherals.GPIO2),
     };
 
     // create the tasks
