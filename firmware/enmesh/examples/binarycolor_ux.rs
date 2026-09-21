@@ -54,8 +54,10 @@ fn run(
     // create a simulated button
     use embedded_graphics_simulator::sdl2::Keycode;
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
-    let mut simulated_button = SimulatedButton { active: false };
-    // let button_monitor = ButtonMonitor::new(&simulated_button);
+    let mut simulated_button_state = false;
+    let mut simulated_button = SimulatedButton { active: &simulated_button_state };
+    use enmesh_firmware::ux::ButtonMonitor;
+    let button_monitor = ButtonMonitor::new(simulated_button);
 
     //     // create our enmesh State (used as Ux model)
     //     let state = enmesh_firmware::State::new();
@@ -91,7 +93,7 @@ fn run(
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
                         // record the event timestamp to determine type of interaction
-                        simulated_button.active = true;
+                        simulated_button_state = true;
                     }
                 }
                 // handle simulated button UP, and standard keyboard ux
@@ -102,7 +104,7 @@ fn run(
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
                         // record the event timestamp to determine type of interaction
-                        simulated_button.active = false;
+                        simulated_button_state = false;
                     }
                     // handle standard keyboard ux
                     // else if keycode == Keycode::TAB {
@@ -151,13 +153,13 @@ fn run(
     }
 }
 
-struct SimulatedButton {
-    pub active: bool,
+struct SimulatedButton<'a> {
+    pub active: &'a bool,
 }
-impl common::button::ButtonState for SimulatedButton {
+impl<'a> common::button::ButtonState for SimulatedButton<'a> {
     type Error = ();
 
     fn is_active(&mut self) -> Result<bool, Self::Error> {
-        Ok(self.active)
+        Ok(*self.active)
     }
 }
