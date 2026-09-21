@@ -1,5 +1,5 @@
 /// provide the shared crates via re-export
-use common::*;
+use common::{button::ButtonState, *};
 
 /// Buffered DrawTarget require a flush() to refresh the screen
 pub trait BufferedDisplay:
@@ -16,7 +16,77 @@ pub mod status_led;
 /// provide support for BinaryColor displays (i.e. monochrome)
 pub mod binary_color;
 
+/// User interaction events
+pub enum HidEvent {
+    /// move to next selectable item
+    Next,
+    /// move to the previous selectable item
+    Previous,
+    /// invokes the selected item's handler
+    Select,
+    /// finds the touched item and invokes a 'Select' event
+    Touch { x: u32, y: u32 },
+}
 
+
+/// provide enmesh primitives
+use crate::prelude::*;
+
+pub struct ButtonMonitor<BUTTON> {
+    button: BUTTON,
+    active_start: Option<Instant>,
+}
+impl<BUTTON> ButtonMonitor<BUTTON>
+where
+    BUTTON: ButtonState,
+{
+    pub fn new(button: BUTTON) -> Self {
+        Self
+        {
+            button,
+            active_start: None,
+        }
+    }
+
+    /// active HID input durations greater than this, should generate a HidEvent::Select
+    // const HID_HELD_DURATION: Duration = Duration::from_millis(500);
+    pub async fn update(&mut self) -> Option<HidEvent>
+    {
+        const SCAN_PERIOD_MILLIS: u64 = 100;
+        const SHORT_PRESS_DURATION: Duration = Duration::from_millis(2 * SCAN_PERIOD_MILLIS);
+        const LONG_PRESS_DURATION: Duration = Duration::from_millis(3 * SCAN_PERIOD_MILLIS);
+
+        let mut ticker = Ticker::every(Duration::from_millis(SCAN_PERIOD_MILLIS));
+        for _ in 0..4 {
+            if let Ok(is_active) = self.button.is_active() {
+                if is_active && self.active_start.is_none() {
+                    // memo when the press began
+                    self.active_start = Some(Instant::now());
+                }
+                else if !is_active && self.active_start.is_some() {
+                    let duration = Instant::now() - self.active_start.unwrap();
+                    // clear the memo
+                    self.active_start = None;
+
+                    // determine HID Event
+                    if duration > LONG_PRESS_DURATION {
+                        return Some(HidEvent::Select)
+                    }
+                    else if duration > SHORT_PRESS_DURATION {
+                        return Some(HidEvent::Next)
+                    }
+                    else {
+                        return None
+                    }
+                }
+            }
+            // delay until next cycle
+            ticker.next().await;
+        }
+
+        None
+    }
+}
 
 
 // pub trait View {
@@ -47,19 +117,6 @@ pub mod binary_color;
 //     fn handle_event(&mut self, event: &HidEvent) -> bool;
 // }
 
-// /// User interaction events
-// pub enum HidEvent {
-//     /// move to next selectable item
-//     Next,
-//     /// move to the previous selectable item
-//     Previous,
-//     /// invokes the selected item's handler
-//     Select,
-//     /// finds the touched item and invokes a 'Select' event
-//     Touch { x: u32, y: u32 },
-// }
-// /// active HID input durations greater than this, should generate a HidEvent::Select
-// pub const HID_HELD_DURATION: Duration = Duration::from_millis(500);
 
 // /// provide the pages
 // mod pages;

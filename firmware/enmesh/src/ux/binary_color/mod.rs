@@ -15,18 +15,25 @@ use embedded_graphics::pixelcolor::BinaryColor;
 pub async fn run(
     _global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut display: impl crate::ux::BufferedDisplay<Color = BinaryColor>,
-    _button: impl button::ButtonState,
+    button: impl button::ButtonState,
     led: impl led::LedState,
 ) {
     // create the status LED
     let _status_led = crate::ux::status_led::StatusLed::new(led);
 
+    // create the button monitor
+    let mut button_monitor = crate::ux::ButtonMonitor::new(button);
+
     // create the UX theme
     let theme = themes::Theme::new(display.bounding_box().size);
 
     trace!("{TAG} powering on display....");
-    // FIXME TEST-USE-ONLY
     display.power_on().await;
+
+
+    // FIXME test-use-only
+    let mut has_hid_event = false;
+
     loop {
         use embedded_graphics::prelude::*;
         use embedded_graphics::text::Text;
@@ -39,10 +46,24 @@ pub async fn run(
         let _ = Text::new("Label Text", Point::new(0, anchor), theme.label_style).draw(&mut display);
         anchor += theme.text_style.line_height() as i32;
         let _ = Text::new("Normal Text", Point::new(0, anchor), theme.text_style).draw(&mut display);
+        if has_hid_event {
+            anchor += theme.text_style.line_height() as i32;
+            let _ = Text::new("Button PRESSED", Point::new(0, anchor), theme.text_style).draw(&mut display);
+        }
 
         let _ = display.flush().await;
 
-        Timer::after_secs(1).await;
+
+        // check button for HID Events
+        if let Some(hid_event) = button_monitor.update().await
+        {
+            has_hid_event = true;
+            // handle the event
+            // ux.handle_event(hid_event);
+        }
+        else {
+            has_hid_event = false;
+        }
     }
     // let mut ux = Ux::new();
 }
