@@ -16,7 +16,7 @@ fn main() -> Result<(), std::convert::Infallible> {
         // create a native window for the simulation
         let output_settings = OutputSettingsBuilder::new().scale(2).build();
         let window = embedded_graphics_simulator::Window::new(
-            "User Interface (SPACEBAR as button)",
+            "Large Display (SPACEBAR as button)",
             &output_settings,
         );
 
@@ -32,7 +32,7 @@ fn main() -> Result<(), std::convert::Infallible> {
             .theme(embedded_graphics_simulator::BinaryColorTheme::OledBlue)
             .build();
         let window = embedded_graphics_simulator::Window::new(
-            "Heltec User Interface (SPACEBAR as button)",
+            "Small Display (SPACEBAR as button)",
             &output_settings,
         );
 
