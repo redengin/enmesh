@@ -145,13 +145,11 @@ fn run(
         // ux.update(&mut rgb_screen, &state, &theme);
 
         // TODO handle the HID Events
-        if let Some(_hid_event) = button_monitor.update().await
-        {
-            // handle the event
-            // ux.handle_event(hid_event);
-        }
-        else {
-        }
+        // if let Some(_hid_event) = button_monitor.update().await
+        // {
+        //     // handle the event
+        //     // ux.handle_event(hid_event);
+        // }
 
         // sleep for a frame period
         const FPS_HZ: u64 = 10;
