@@ -142,6 +142,8 @@ fn run(
         // let mut rgb_screen = screen.color_converted();
         // ux.update(&mut rgb_screen, &state, &theme);
 
+        // TODO handle the HID Events
+
         // sleep for a frame period
         const FPS_HZ: u64 = 10;
         const FRAME_PERIOD_MILLIS: u64 = 1000 / FPS_HZ;
