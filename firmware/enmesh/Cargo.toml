@@ -24,5 +24,6 @@ embedded-graphics-simulator = { version = "*", default-features = false, feature
 
 
 [features]
+
 # ux choice for demonstrations
-ux-heltec = []
+example_ux-large = []   # default is small display
