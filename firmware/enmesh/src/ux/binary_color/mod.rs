@@ -37,7 +37,6 @@ pub async fn run(
     loop {
         use embedded_graphics::prelude::*;
         use embedded_graphics::text::Text;
-        use embedded_graphics::pixelcolor::BinaryColor;
         let _ = display.clear(theme.background);
 
         let mut anchor = theme.h1_style.line_height() as i32;
@@ -55,7 +54,7 @@ pub async fn run(
 
 
         // check button for HID Events
-        if let Some(hid_event) = button_monitor.update().await
+        if let Some(_hid_event) = button_monitor.update().await
         {
             has_hid_event = true;
             // handle the event

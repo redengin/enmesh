@@ -6,6 +6,7 @@ use common::*;
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
 // use embedded_graphics::prelude::*; // provide common traits
 use embedded_graphics::pixelcolor::BinaryColor;
+// use enmesh_firmware::ux::ButtonMonitor;
 
 fn main() -> Result<(), std::convert::Infallible> {
     use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay};
@@ -50,6 +51,12 @@ fn run(
     mut window: embedded_graphics_simulator::Window,
     mut screen: embedded_graphics_simulator::SimulatorDisplay<BinaryColor>,
 ) {
+    // create a simulated button
+    use embedded_graphics_simulator::sdl2::Keycode;
+    const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
+    let mut simulated_button = SimulatedButton { active: false };
+    // let button_monitor = ButtonMonitor::new(&simulated_button);
+
     //     // create our enmesh State (used as Ux model)
     //     let state = enmesh_firmware::State::new();
     //     // create our enmesh ux instance
@@ -61,10 +68,6 @@ fn run(
     //     let mut rgb_screen = screen.color_converted();
     //     use enmesh_firmware::ux::View;
     //     ux.update(&mut rgb_screen, &state, &theme);
-
-    //     // create a simulation button
-    //     use embedded_graphics_simulator::sdl2::Keycode;
-    //     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
 
     //     let mut button_down_time: Option<std::time::Instant> = None;
     'running: loop {
@@ -80,62 +83,55 @@ fn run(
                     break 'running;
                 }
 
-                // handle simulated embedded button DOWN
-                // SimulatorEvent::KeyDown {
-                //     keycode,
-                //     keymod: _,
-                //     repeat,
-                // } => {
-                //     if (keycode == SIMULATED_BUTTON) && !repeat {
-                //         // record the event timestamp to determine type of interaction
-                //         button_down_time = Some(std::time::Instant::now());
-                //     }
-                // }
-                // // handle simulated embedded button UP, and standard keyboard ux
-                // SimulatorEvent::KeyUp {
-                //     keycode,
-                //     keymod,
-                //     repeat,
-                // } => {
-                //     if (keycode == SIMULATED_BUTTON) && !repeat {
-                //         if let Some(start) = button_down_time {
-                //             // handle button press
-                //             let elapsed_millis = std::time::Instant::now() - start;
-                //             // handle the event by the UX
-                //             if elapsed_millis >= enmesh_firmware::ux::HID_HELD_DURATION.into() {
-                //                 ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
-                //             } else {
-                //                 ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
-                //             }
-                //             // reset the start time
-                //             button_down_time = None;
-                //         }
-                //     }
-                //     // handle standard keyboard ux
-                //     else if keycode == Keycode::TAB {
-                //         use embedded_graphics_simulator::sdl2::Mod;
-                //         // handle the event by the UX
-                //         if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
-                //             ux.handle_event(&enmesh_firmware::ux::HidEvent::Previous);
-                //         } else {
-                //             ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
-                //         }
-                //     } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
-                //         ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
-                //     }
-                // }
+                // handle simulated button DOWN
+                SimulatorEvent::KeyDown {
+                    keycode,
+                    keymod: _,
+                    repeat,
+                } => {
+                    if (keycode == SIMULATED_BUTTON) && !repeat {
+                        // record the event timestamp to determine type of interaction
+                        simulated_button.active = true;
+                    }
+                }
+                // handle simulated button UP, and standard keyboard ux
+                SimulatorEvent::KeyUp {
+                    keycode,
+                    keymod: _,
+                    repeat,
+                } => {
+                    if (keycode == SIMULATED_BUTTON) && !repeat {
+                        // record the event timestamp to determine type of interaction
+                        simulated_button.active = false;
+                    }
+                    // handle standard keyboard ux
+                    // else if keycode == Keycode::TAB {
+                    //     use embedded_graphics_simulator::sdl2::Mod;
+                    //     // handle the event by the UX
+                    //     if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
+                    //         ux.handle_event(&enmesh_firmware::ux::HidEvent::Previous);
+                    //     } else {
+                    //         ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
+                    //     }
+                    // } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
+                    //     ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
+                    // }
+                }
 
-                // // handle touch/mouse-click events
-                // SimulatorEvent::MouseButtonDown { mouse_btn, point } => {
-                //     use embedded_graphics_simulator::sdl2::MouseButton;
-                //     if mouse_btn == MouseButton::Left {
-                //         // handle event by the UX
-                //         ux.handle_event(&enmesh_firmware::ux::HidEvent::Touch {
-                //             x: point.x as u32,
-                //             y: point.y as u32,
-                //         });
-                //     }
-                // }
+                // handle touch/mouse-click events
+                SimulatorEvent::MouseButtonDown {
+                    mouse_btn,
+                    point: _,
+                } => {
+                    use embedded_graphics_simulator::sdl2::MouseButton;
+                    if mouse_btn == MouseButton::Left {
+                        // handle event by the UX
+                        // ux.handle_event(&enmesh_firmware::ux::HidEvent::Touch {
+                        //     x: point.x as u32,
+                        //     y: point.y as u32,
+                        // });
+                    }
+                }
 
                 // ignore all other events
                 _ => {}
@@ -150,5 +146,16 @@ fn run(
         const FPS_HZ: u64 = 10;
         const FRAME_PERIOD_MILLIS: u64 = 1000 / FPS_HZ;
         std::thread::sleep(std::time::Duration::from_millis(FRAME_PERIOD_MILLIS));
+    }
+}
+
+struct SimulatedButton {
+    pub active: bool,
+}
+impl common::button::ButtonState for SimulatedButton {
+    type Error = ();
+
+    fn is_active(&mut self) -> Result<bool, Self::Error> {
+        Ok(self.active)
     }
 }
