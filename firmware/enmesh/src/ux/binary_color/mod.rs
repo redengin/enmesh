@@ -1,5 +1,5 @@
 /// provide the shared crates via re-export
-use common::{embedded_graphics::text::renderer::TextRenderer, *};
+use common::*;
 
 /// provide logging primitives
 use log::*;
@@ -10,6 +10,7 @@ use crate::prelude::*;
 
 pub mod themes;
 use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::text::renderer::TextRenderer;
 
 /// UX thread
 pub async fn run(

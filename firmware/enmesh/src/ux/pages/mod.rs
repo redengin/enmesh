@@ -4,8 +4,6 @@ use common::*;
 /// provide embedded graphics primitives
 use embedded_graphics::prelude::*;
 
-
-
 pub struct Theme<'a, COLOR> {
     pub color: COLOR,
     pub background: COLOR,
