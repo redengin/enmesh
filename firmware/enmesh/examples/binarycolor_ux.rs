@@ -54,10 +54,9 @@ fn run(
     // create a simulated button
     use embedded_graphics_simulator::sdl2::Keycode;
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
-    let mut simulated_button_state = false;
-    let mut simulated_button = SimulatedButton { active: &simulated_button_state };
-    use enmesh_firmware::ux::ButtonMonitor;
-    let button_monitor = ButtonMonitor::new(simulated_button);
+    // let mut simulated_button = SimulatedButton { active: false };
+    // use enmesh_firmware::ux::ButtonMonitor;
+    // let mut button_monitor = ButtonMonitor::new(simulated_button);
 
     //     // create our enmesh State (used as Ux model)
     //     let state = enmesh_firmware::State::new();
@@ -92,32 +91,32 @@ fn run(
                     repeat,
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
-                        // record the event timestamp to determine type of interaction
-                        simulated_button_state = true;
+                    //     // record the event timestamp to determine type of interaction
+                    //     simulated_button.set_active(true);
                     }
                 }
                 // handle simulated button UP, and standard keyboard ux
                 SimulatorEvent::KeyUp {
                     keycode,
-                    keymod: _,
+                    keymod,
                     repeat,
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
                         // record the event timestamp to determine type of interaction
-                        simulated_button_state = false;
+                        // simulated_button_state = false;
                     }
                     // handle standard keyboard ux
-                    // else if keycode == Keycode::TAB {
-                    //     use embedded_graphics_simulator::sdl2::Mod;
-                    //     // handle the event by the UX
-                    //     if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
-                    //         ux.handle_event(&enmesh_firmware::ux::HidEvent::Previous);
-                    //     } else {
-                    //         ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
-                    //     }
-                    // } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
-                    //     ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
-                    // }
+                    else if keycode == Keycode::TAB {
+                        use embedded_graphics_simulator::sdl2::Mod;
+                        // handle the event by the UX
+                        if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
+                            // ux.handle_event(&enmesh_firmware::ux::HidEvent::Previous);
+                        } else {
+                            // ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
+                        }
+                    } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
+                        // ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
+                    }
                 }
 
                 // handle touch/mouse-click events
@@ -147,8 +146,8 @@ fn run(
         // TODO handle the HID Events
         // if let Some(_hid_event) = button_monitor.update().await
         // {
-        //     // handle the event
-        //     // ux.handle_event(hid_event);
+        //     handle the event
+        //     ux.handle_event(hid_event);
         // }
 
         // sleep for a frame period
@@ -158,13 +157,21 @@ fn run(
     }
 }
 
-struct SimulatedButton<'a> {
-    pub active: &'a bool,
-}
-impl<'a> common::button::ButtonState for SimulatedButton<'a> {
-    type Error = ();
+// struct SimulatedButton {
+//     pub active: bool,
+// }
+// impl SimulatedButton {
+//     pub fn set_active(&mut self, active: bool) 
+//     {
+//         self.active = active;
+//     }
+// }
 
-    fn is_active(&mut self) -> Result<bool, Self::Error> {
-        Ok(*self.active)
-    }
-}
+// impl common::button::ButtonState for SimulatedButton {
+//     type Error = ();
+
+//     fn is_active(&mut self) -> Result<bool, Self::Error> {
+//         Ok(self.active)
+//     }
+
+// }
