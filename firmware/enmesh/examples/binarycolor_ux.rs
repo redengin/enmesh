@@ -1,11 +1,12 @@
 // provide the shared crates via re-export
-use common::*;
+use common::{embassy_time::Duration, *};
 
 // use embedded_graphics::pixelcolor::{PixelColor, Rgb888};
 /// UX designed for RGB888
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
 // use embedded_graphics::prelude::*; // provide common traits
 use embedded_graphics::pixelcolor::BinaryColor;
+use enmesh_firmware::ux::pages;
 // use enmesh_firmware::ux::ButtonMonitor;
 
 fn main() -> Result<(), std::convert::Infallible> {
@@ -21,11 +22,11 @@ fn main() -> Result<(), std::convert::Infallible> {
         );
 
         // create a simulation display
-        let screen_size = embedded_graphics::geometry::Size::new(250, 122);
-        let screen: SimulatorDisplay<BinaryColor> = SimulatorDisplay::new(screen_size);
+        let display_size = embedded_graphics::geometry::Size::new(250, 122);
+        let display: SimulatorDisplay<BinaryColor> = SimulatorDisplay::new(display_size);
 
         // start the UX simulation
-        run(window, screen);
+        run(window, display);
     } else {
         // create a native window for the simulation
         let output_settings = OutputSettingsBuilder::new()
@@ -37,11 +38,11 @@ fn main() -> Result<(), std::convert::Infallible> {
         );
 
         // create a simulation screen
-        let screen_size = embedded_graphics::geometry::Size::new(128, 64);
-        let screen: SimulatorDisplay<BinaryColor> = SimulatorDisplay::new(screen_size);
+        let display_size = embedded_graphics::geometry::Size::new(128, 64);
+        let display: SimulatorDisplay<BinaryColor> = SimulatorDisplay::new(display_size);
 
         // start the UX simulation
-        run(window, screen);
+        run(window, display);
     }
 
     Ok(())
@@ -49,8 +50,17 @@ fn main() -> Result<(), std::convert::Infallible> {
 
 fn run(
     mut window: embedded_graphics_simulator::Window,
-    mut screen: embedded_graphics_simulator::SimulatorDisplay<BinaryColor>,
+    mut display: embedded_graphics_simulator::SimulatorDisplay<BinaryColor>,
 ) {
+    // create theme for pages
+    use common::embedded_graphics::geometry::OriginDimensions;
+    let theme = enmesh_firmware::ux::binary_color::themes::Theme::new(display.size());
+    // create the page controller
+    let mut page_controller = pages::PageController::new();
+
+    // create the enmesh State (used as MVC model)
+    let state = enmesh_firmware::State::new();
+ 
     // create a simulated button
     use embedded_graphics_simulator::sdl2::Keycode;
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
@@ -58,25 +68,17 @@ fn run(
     // use enmesh_firmware::ux::ButtonMonitor;
     // let mut button_monitor = ButtonMonitor::new(simulated_button);
 
-    //     // create our enmesh State (used as Ux model)
-    //     let state = enmesh_firmware::State::new();
-    //     // create our enmesh ux instance
-    //     let mut ux = enmesh_firmware::ux::Ux::new();
-    //     // create our enmesh ux theme
-    //     let screen_size = screen.size();
-    //     let theme = enmesh_firmware::ux::themes::Theme::new(screen_size);
-    //     // refresh the simulated display
-    //     let mut rgb_screen = screen.color_converted();
-    //     use enmesh_firmware::ux::View;
-    //     ux.update(&mut rgb_screen, &state, &theme);
-
-    //     let mut button_down_time: Option<std::time::Instant> = None;
+    /// provide ux primitives
+    use enmesh_firmware::ux::HidEvent;
     'running: loop {
+        // update the display
+        page_controller.update(&mut display, &state);
+
         // update the native window to gather events
-        window.update(&screen);
+        window.update(&display);
 
         // handle Simulator events
-        use embedded_graphics_simulator::SimulatorEvent;
+        use embedded_graphics_simulator::SimulatorEvent;  // provide trait access
         for event in window.events() {
             match event {
                 // stop running upon Quit
@@ -110,12 +112,12 @@ fn run(
                         use embedded_graphics_simulator::sdl2::Mod;
                         // handle the event by the UX
                         if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
-                            // ux.handle_event(&enmesh_firmware::ux::HidEvent::Previous);
+                            page_controller.handle_event(&HidEvent::Previous);
                         } else {
-                            // ux.handle_event(&enmesh_firmware::ux::HidEvent::Next);
+                            page_controller.handle_event(&HidEvent::Next);
                         }
                     } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
-                        // ux.handle_event(&enmesh_firmware::ux::HidEvent::Select);
+                        page_controller.handle_event(&HidEvent::Select);
                     }
                 }
 
@@ -139,21 +141,9 @@ fn run(
             }
         }
 
-        // update the simulated display
-        // let mut rgb_screen = screen.color_converted();
-        // ux.update(&mut rgb_screen, &state, &theme);
-
-        // TODO handle the HID Events
-        // if let Some(_hid_event) = button_monitor.update().await
-        // {
-        //     handle the event
-        //     ux.handle_event(hid_event);
-        // }
-
         // sleep for a frame period
-        const FPS_HZ: u64 = 10;
-        const FRAME_PERIOD_MILLIS: u64 = 1000 / FPS_HZ;
-        std::thread::sleep(std::time::Duration::from_millis(FRAME_PERIOD_MILLIS));
+        const FRAME_PERIOD: std::time::Duration = std::time::Duration::from_millis(100);
+        std::thread::sleep(FRAME_PERIOD);
     }
 }
 

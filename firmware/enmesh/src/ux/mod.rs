@@ -1,5 +1,5 @@
 /// provide the shared crates via re-export
-use common::{button::ButtonState, *};
+use common::*;
 
 /// Buffered DrawTarget require a flush() to refresh the screen
 pub trait BufferedDisplay:
@@ -38,7 +38,7 @@ pub struct ButtonMonitor<BUTTON> {
 }
 impl<BUTTON> ButtonMonitor<BUTTON>
 where
-    BUTTON: ButtonState,
+    BUTTON: button::ButtonState,
 {
     pub fn new(button: BUTTON) -> Self {
         Self
@@ -48,8 +48,6 @@ where
         }
     }
 
-    /// active HID input durations greater than this, should generate a HidEvent::Select
-    // const HID_HELD_DURATION: Duration = Duration::from_millis(500);
     pub async fn update(&mut self) -> Option<HidEvent>
     {
         const SCAN_PERIOD_MILLIS: u64 = 100;
@@ -89,33 +87,11 @@ where
 }
 
 
-// pub trait View {
-//     /// repaint the entire view
-//     fn refresh(
-//         &mut self,
-//         display: &mut impl DrawTargetExt<Color = Rgb888>,
-//         // FIXME should be more generic
-//         model: &crate::State,
-//         theme: &Theme,
-//     );
+/// provide screens and navigation
+pub mod pages;
 
-//     /// update the view
-//     /// * only needs to update changes
-//     fn update(
-//         &mut self,
-//         display: &mut impl DrawTargetExt<Color = Rgb888>,
-//         // FIXME should be more generic
-//         model: &crate::State,
-//         theme: &Theme,
-//     ) {
-//         // default to full refresh
-//         self.refresh(display, model, theme);
-//     }
 
-//     /// handle HidEvent
-//     /// returns true if the event was handled and should not be bubbled up
-//     fn handle_event(&mut self, event: &HidEvent) -> bool;
-// }
+
 
 
 // /// provide the pages

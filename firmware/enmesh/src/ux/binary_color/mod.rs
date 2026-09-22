@@ -8,7 +8,7 @@ const TAG: &str = "[UX BinaryColor]";
 /// provide enmesh primitives
 use crate::prelude::*;
 
-mod themes;
+pub mod themes;
 use embedded_graphics::pixelcolor::BinaryColor;
 
 /// UX thread
