@@ -17,7 +17,7 @@ pub mod themes;
 pub mod status_led;
 
 /// provide support for BinaryColor displays (i.e. monochrome)
-pub mod binary_color;
+// pub mod binary_color;
 
 /// User interaction events
 pub enum HidEvent {

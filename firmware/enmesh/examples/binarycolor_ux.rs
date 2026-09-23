@@ -66,7 +66,7 @@ fn run(
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
     let simulated_button = SimulatedButton;
     use enmesh_firmware::ux::ButtonMonitor;
-    let mut button_monitor = ButtonMonitor::new(simulated_button);
+    let button_monitor = ButtonMonitor::new(simulated_button);
 
     /// provide ux primitives
     use enmesh_firmware::ux::HidEvent;

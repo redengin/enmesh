@@ -1,15 +1,26 @@
-use common::embedded_graphics::primitives::Rectangle;
-use common::embedded_layout::layout::linear::LinearLayout;
 /// provide the shared crates via re-export
 use common::*;
 
 /// provide embedded graphics primitives
 use embedded_graphics::prelude::*;
+use embedded_graphics::primitives::Rectangle;
 use embedded_graphics::text::Text;
 use embedded_graphics::text::renderer::TextRenderer;
 
-/// provide embedded layout primitives
-use embedded_layout::prelude::*;
+
+mod prelude {
+    /// provide the shared crates via re-export
+    use common::*;
+
+    /// provide embedded graphics primitives
+    use embedded_graphics::prelude::*;
+    use embedded_graphics::primitives::Rectangle;
+    use embedded_graphics::text::Text;
+    use embedded_graphics::text::renderer::TextRenderer;
+
+    /// provide embedded layout primitives
+    use embedded_layout::prelude::*;
+}
 
 pub struct Theme<'a, COLOR> {
     pub color: COLOR,
@@ -50,9 +61,9 @@ impl PageController {
                 display.bounding_box().size.height - TAB_BAR_HEIGHT,
             ),
         });
-        // if this is a full refresh, clear the display
+        // update the page
         if self.needs_refresh {
-            display.clear(theme.background);
+            display.clear(theme.background).ok();
             // TODO refresh the current page
             self.needs_refresh = false;
             has_changed = true;
@@ -86,29 +97,42 @@ pub trait View {
     /// repaint the entire view
     fn refresh(
         &mut self,
-        display: &mut impl DrawTarget,
-        // theme: &crate::ux::Theme,
-        // FIXME should be more generic
+        draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
+        theme: &crate::ux::themes::Theme,
         model: &crate::State,
     );
 
     /// update the view
     /// * only needs to update changes
-    // fn update(
-    //     &mut self,
-    //     display: &mut impl DrawTarget,
-    //     // theme: &Theme,
-    //     // FIXME should be more generic
-    //     model: &crate::State,
-    // ) {
-    //     // default to full refresh
-    //     // self.refresh(display, model, theme);
-    // }
+    /// returns true if display changed
+    fn update(
+        &mut self,
+        draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
+        theme: &crate::ux::themes::Theme,
+        model: &crate::State,
+    ) -> bool
+    {
+        // default to full refresh
+        self.refresh(draw_target, theme, model);
+        true
+    }
 
     /// handle HidEvent
     /// returns true if the event was handled and should not be bubbled up
-    fn handle_event(&mut self, event: &crate::ux::HidEvent) -> bool;
+    fn handle_event(&mut self, event: &crate::ux::HidEvent) -> bool
+    {
+        // default doesn't handle event
+        false
+    }
 }
+
+
+/// provide reusable Views
+pub mod widgets;
+
+
+
+
 
 // /// provide page implementations
 // pub mod home;
