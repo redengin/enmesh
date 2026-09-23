@@ -94,14 +94,6 @@ impl PageController {
 }
 
 pub trait View {
-    /// repaint the entire view
-    fn refresh(
-        &mut self,
-        draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
-        theme: &crate::ux::themes::Theme,
-        model: &crate::State,
-    );
-
     /// update the view
     /// * only needs to update changes
     /// returns true if display changed
@@ -110,12 +102,7 @@ pub trait View {
         draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
-    ) -> bool
-    {
-        // default to full refresh
-        self.refresh(draw_target, theme, model);
-        true
-    }
+    ) -> bool;
 
     /// handle HidEvent
     /// returns true if the event was handled and should not be bubbled up

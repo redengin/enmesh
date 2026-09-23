@@ -7,16 +7,6 @@ pub struct TabBar {
 
 }
 impl crate::ux::pages::View for TabBar {
-    fn refresh(
-        &mut self,
-        draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
-        theme: &crate::ux::themes::Theme,
-        model: &crate::State,
-    ) {
-        // tab bar is always visible, so proxy to update()
-        self.update(draw_target, theme, model);
-    }
-
     fn update(
         &mut self,
         draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
