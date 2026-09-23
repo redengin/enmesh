@@ -64,9 +64,9 @@ fn run(
     // create a simulated button
     use embedded_graphics_simulator::sdl2::Keycode;
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
-    // let mut simulated_button = SimulatedButton { active: false };
-    // use enmesh_firmware::ux::ButtonMonitor;
-    // let mut button_monitor = ButtonMonitor::new(simulated_button);
+    let simulated_button = SimulatedButton;
+    use enmesh_firmware::ux::ButtonMonitor;
+    let mut button_monitor = ButtonMonitor::new(simulated_button);
 
     /// provide ux primitives
     use enmesh_firmware::ux::HidEvent;
@@ -93,8 +93,9 @@ fn run(
                     repeat,
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
-                    //     // record the event timestamp to determine type of interaction
-                    //     simulated_button.set_active(true);
+                        unsafe {
+                            SIMULATED_BUTTON_STATE = true;
+                        }
                     }
                 }
                 // handle simulated button UP, and standard keyboard ux
@@ -104,13 +105,13 @@ fn run(
                     repeat,
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
-                        // record the event timestamp to determine type of interaction
-                        // simulated_button_state = false;
+                        unsafe {
+                            SIMULATED_BUTTON_STATE = false;
+                        }
                     }
-                    // handle standard keyboard ux
+                    // handle standard keyboard eventes
                     else if keycode == Keycode::TAB {
                         use embedded_graphics_simulator::sdl2::Mod;
-                        // handle the event by the UX
                         if keymod.contains(Mod::LSHIFTMOD) || keymod.contains(Mod::RSHIFTMOD) {
                             page_controller.handle_event(&HidEvent::Previous);
                         } else {
@@ -124,15 +125,13 @@ fn run(
                 // handle touch/mouse-click events
                 SimulatorEvent::MouseButtonDown {
                     mouse_btn,
-                    point: _,
+                    point,
                 } => {
                     use embedded_graphics_simulator::sdl2::MouseButton;
                     if mouse_btn == MouseButton::Left {
-                        // handle event by the UX
-                        // ux.handle_event(&enmesh_firmware::ux::HidEvent::Touch {
-                        //     x: point.x as u32,
-                        //     y: point.y as u32,
-                        // });
+                        page_controller.handle_event(&HidEvent::Touch {
+                            x: point.x as u32, y: point.y as u32, 
+                        });
                     }
                 }
 
@@ -147,21 +146,16 @@ fn run(
     }
 }
 
-// struct SimulatedButton {
-//     pub active: bool,
-// }
-// impl SimulatedButton {
-//     pub fn set_active(&mut self, active: bool) 
-//     {
-//         self.active = active;
-//     }
-// }
 
-// impl common::button::ButtonState for SimulatedButton {
-//     type Error = ();
 
-//     fn is_active(&mut self) -> Result<bool, Self::Error> {
-//         Ok(self.active)
-//     }
+static mut SIMULATED_BUTTON_STATE: bool = false;
+struct SimulatedButton;
+impl common::button::ButtonState for SimulatedButton {
+    type Error = ();
 
-// }
+    fn is_active(&mut self) -> Result<bool, Self::Error> {
+        unsafe {
+            Ok(SIMULATED_BUTTON_STATE)
+        }
+    }
+}
