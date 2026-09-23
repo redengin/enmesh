@@ -27,7 +27,7 @@ impl PageController {
     /// returns true if display has been changed
     pub fn update(
         &mut self,
-        display: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::BinaryColor>,
+        display: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
         // theme: &THEME,
         theme: &crate::ux::binary_color::themes::Theme,
         // FIXME should be more generic

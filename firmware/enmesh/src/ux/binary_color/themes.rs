@@ -1,19 +1,19 @@
 // provide the shared crates via re-export
-use common::*;
+use common::{embedded_graphics::pixelcolor::RgbColor, *};
 
 // provide the embedded graphics primitives
-use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::pixelcolor::Rgb888;
 
 pub struct Theme<'a> {
     /// default color for text and mono-icons
-    pub color: BinaryColor,
-    pub background: BinaryColor,
+    pub color: Rgb888,
+    pub background: Rgb888,
     /// regular text font
-    pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, BinaryColor>,
+    pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
     /// label font
-    pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, BinaryColor>,
+    pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
     /// large text font
-    pub h1_style: embedded_graphics::mono_font::MonoTextStyle<'a, BinaryColor>,
+    pub h1_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
 }
 impl<'a> Theme<'a> {
     /// create a theme to match the display area
@@ -21,8 +21,8 @@ impl<'a> Theme<'a> {
         use embedded_graphics::mono_font::MonoTextStyle;
 
         // default theme BLACK text on WHITE background
-        let color = embedded_graphics::pixelcolor::BinaryColor::On;
-        let background = embedded_graphics::pixelcolor::BinaryColor::Off;
+        let color = Rgb888::BLACK;
+        let background = Rgb888::WHITE;
 
         // choose font based on display size
         return if screen_area.height <= 64 {

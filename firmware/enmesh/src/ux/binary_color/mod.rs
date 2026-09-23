@@ -35,34 +35,35 @@ pub async fn run(
     let mut has_hid_event = false;
 
     loop {
-        use embedded_graphics::prelude::*;
-        use embedded_graphics::text::Text;
-        let _ = display.clear(theme.background);
+        // FIXME
+        // use embedded_graphics::prelude::*;
+        // use embedded_graphics::text::Text;
+        // let _ = display.clear(theme.background);
 
-        let mut anchor = theme.h1_style.line_height() as i32;
-        let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw(&mut display);
-        anchor += theme.label_style.line_height() as i32;
-        let _ = Text::new("Label Text", Point::new(0, anchor), theme.label_style).draw(&mut display);
-        anchor += theme.text_style.line_height() as i32;
-        let _ = Text::new("Normal Text", Point::new(0, anchor), theme.text_style).draw(&mut display);
-        if has_hid_event {
-            anchor += theme.text_style.line_height() as i32;
-            let _ = Text::new("Button PRESSED", Point::new(0, anchor), theme.text_style).draw(&mut display);
-        }
+        // let mut anchor = theme.h1_style.line_height() as i32;
+        // let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw(&mut display);
+        // anchor += theme.label_style.line_height() as i32;
+        // let _ = Text::new("Label Text", Point::new(0, anchor), theme.label_style).draw(&mut display);
+        // anchor += theme.text_style.line_height() as i32;
+        // let _ = Text::new("Normal Text", Point::new(0, anchor), theme.text_style).draw(&mut display);
+        // if has_hid_event {
+        //     anchor += theme.text_style.line_height() as i32;
+        //     let _ = Text::new("Button PRESSED", Point::new(0, anchor), theme.text_style).draw(&mut display);
+        // }
 
-        let _ = display.flush().await;
+        // let _ = display.flush().await;
 
 
-        // check button for HID Events
-        if let Some(_hid_event) = button_monitor.update().await
-        {
-            has_hid_event = true;
-            // handle the event
-            // ux.handle_event(hid_event);
-        }
-        else {
-            has_hid_event = false;
-        }
+        // // check button for HID Events
+        // if let Some(_hid_event) = button_monitor.update().await
+        // {
+        //     has_hid_event = true;
+        //     // handle the event
+        //     // ux.handle_event(hid_event);
+        // }
+        // else {
+        //     has_hid_event = false;
+        // }
     }
     // let mut ux = Ux::new();
 }

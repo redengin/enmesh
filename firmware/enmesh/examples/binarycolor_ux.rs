@@ -1,5 +1,5 @@
 // provide the shared crates via re-export
-use common::{embassy_time::Duration, *};
+use common::{embassy_time::Duration, embedded_graphics::draw_target::DrawTargetExt, *};
 
 // use embedded_graphics::pixelcolor::{PixelColor, Rgb888};
 /// UX designed for RGB888
@@ -71,8 +71,9 @@ fn run(
     /// provide ux primitives
     use enmesh_firmware::ux::HidEvent;
     'running: loop {
-        // update the display
-        page_controller.update(&mut display, &theme, &state);
+        // update the display (using Rgb888 color conversion)
+        let mut display_color = display.color_converted();
+        page_controller.update(&mut display_color, &theme, &state);
 
         // update the native window to gather events
         window.update(&display);
