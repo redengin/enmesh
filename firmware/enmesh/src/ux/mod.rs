@@ -10,6 +10,7 @@ pub trait BufferedDisplay:
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
+/// provide themes
 pub mod themes;
 
 /// provide support for status led

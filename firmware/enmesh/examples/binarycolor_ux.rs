@@ -71,9 +71,8 @@ fn run(
     /// provide ux primitives
     use enmesh_firmware::ux::HidEvent;
     'running: loop {
-        // update the display (using Rgb888 color conversion)
-        let mut display_color = display.color_converted();
-        page_controller.update(&mut display_color, &theme, &state);
+        // update the display (using color conversion)
+        page_controller.update(&mut display.color_converted(), &theme, &state);
 
         // update the native window to gather events
         window.update(&display);
