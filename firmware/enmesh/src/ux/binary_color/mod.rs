@@ -31,7 +31,6 @@ pub async fn run(
     trace!("{TAG} powering on display....");
     display.power_on().await;
 
-
     // FIXME test-use-only
     let mut has_hid_event = false;
 

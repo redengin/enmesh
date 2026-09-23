@@ -10,6 +10,10 @@ pub trait BufferedDisplay:
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
+// pub trait Theme {
+//     fn color(&self) -> embedded_graphics::pixelcolor::raw::
+// }
+
 /// provide support for status led
 pub mod status_led;
 
@@ -27,7 +31,6 @@ pub enum HidEvent {
     /// finds the touched item and invokes a 'Select' event
     Touch { x: u32, y: u32 },
 }
-
 
 /// provide enmesh primitives
 use crate::prelude::*;

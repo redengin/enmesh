@@ -72,7 +72,7 @@ fn run(
     use enmesh_firmware::ux::HidEvent;
     'running: loop {
         // update the display
-        page_controller.update(&mut display, &state);
+        page_controller.update(&mut display, &theme, &state);
 
         // update the native window to gather events
         window.update(&display);

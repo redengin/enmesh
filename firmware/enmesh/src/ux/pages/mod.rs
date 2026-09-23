@@ -24,33 +24,29 @@ impl PageController {
         }
     }
 
+    /// returns true if display has been changed
     pub fn update(
         &mut self,
-        display: &mut impl DrawTarget,
+        display: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::BinaryColor>,
         // theme: &THEME,
+        theme: &crate::ux::binary_color::themes::Theme,
         // FIXME should be more generic
         model: &crate::State,
-    )
+    ) -> bool
     {
-        use embedded_graphics::prelude::*;
-        use embedded_graphics::text::Text;
-        // let _ = display.clear(theme.background);
+        let mut has_changed = false; 
 
-        // let mut anchor = theme.h1_style.line_height() as i32;
-        // let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw(&mut display);
-        // anchor += theme.label_style.line_height() as i32;
-        // let _ = Text::new("Label Text", Point::new(0, anchor), theme.label_style).draw(&mut display);
-        // anchor += theme.text_style.line_height() as i32;
-        // let _ = Text::new("Normal Text", Point::new(0, anchor), theme.text_style).draw(&mut display);
-        // if has_hid_event {
-        //     anchor += theme.text_style.line_height() as i32;
-        //     let _ = Text::new("Button PRESSED", Point::new(0, anchor), theme.text_style).draw(&mut display);
-        // }
+        use embedded_graphics::text::renderer::TextRenderer;
+        use embedded_graphics::text::Text;
+
+        let mut anchor = theme.h1_style.line_height() as i32;
+        let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw( display);
+
+        return has_changed;
     }
 
-    pub fn handle_event(&mut self, event: &crate::ux::HidEvent) -> bool
+    pub fn handle_event(&mut self, event: &crate::ux::HidEvent)
     {
-        false
     }
 
 }
