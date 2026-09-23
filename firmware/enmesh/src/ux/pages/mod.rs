@@ -1,8 +1,15 @@
+use common::embedded_graphics::primitives::Rectangle;
+use common::embedded_layout::layout::linear::LinearLayout;
 /// provide the shared crates via re-export
 use common::*;
 
 /// provide embedded graphics primitives
 use embedded_graphics::prelude::*;
+use embedded_graphics::text::Text;
+use embedded_graphics::text::renderer::TextRenderer;
+
+/// provide embedded layout primitives
+use embedded_layout::prelude::*;
 
 pub struct Theme<'a, COLOR> {
     pub color: COLOR,
@@ -11,7 +18,6 @@ pub struct Theme<'a, COLOR> {
     pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
     pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
 }
-
 
 pub struct PageController {
     // current_page: pages::Pages,
@@ -29,27 +35,52 @@ impl PageController {
         &mut self,
         display: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
         theme: &crate::ux::themes::Theme,
-        // FIXME should be more generic
         model: &crate::State,
-    ) -> bool
-    {
-        let mut has_changed = false; 
+    ) -> bool {
+        let mut has_changed = false;
 
-        use embedded_graphics::text::renderer::TextRenderer;
-        use embedded_graphics::text::Text;
+        // FIXME need a tab bar widget
+        let TAB_BAR_HEIGHT = theme.text_style.line_height();
+
+        // create a screen region for the page contents
+        let mut page_area = display.cropped(&Rectangle {
+            top_left: Point::zero(),
+            size: Size::new(
+                display.bounding_box().size.width,
+                display.bounding_box().size.height - TAB_BAR_HEIGHT,
+            ),
+        });
+        // if this is a full refresh, clear the display
+        if self.needs_refresh {
+            display.clear(theme.background);
+            // TODO refresh the current page
+            self.needs_refresh = false;
+            has_changed = true;
+        } else {
+            // TODO update the current page
+            // has_changed = <page>.update();
+        }
+
+        // draw the tab bar
+        // TODO
+
+        // provide BLE pairing dialog overlay
+        use crate::state::BleStatus;
+        match model.ble_status {
+            BleStatus::Pairing { passkey } => {
+                // TODO use BlePairingDialog widget
+            }
+            _ => { /* ignored */ }
+        }
 
         let mut anchor = theme.h1_style.line_height() as i32;
-        let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw( display);
+        let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw(display);
 
         return has_changed;
     }
 
-    pub fn handle_event(&mut self, event: &crate::ux::HidEvent)
-    {
-    }
-
+    pub fn handle_event(&mut self, event: &crate::ux::HidEvent) {}
 }
-
 
 pub trait View {
     /// repaint the entire view
@@ -78,26 +109,6 @@ pub trait View {
     /// returns true if the event was handled and should not be bubbled up
     fn handle_event(&mut self, event: &crate::ux::HidEvent) -> bool;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // /// provide page implementations
 // pub mod home;

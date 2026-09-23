@@ -20,9 +20,9 @@ impl<'a> Theme<'a> {
     pub fn new(screen_area: embedded_graphics::geometry::Size) -> Theme<'a> {
         use embedded_graphics::mono_font::MonoTextStyle;
 
-        // default theme BLACK text on WHITE background
-        let color = Rgb888::BLACK;
-        let background = Rgb888::WHITE;
+        // default theme WHITE text on BLACK background
+        let color = Rgb888::WHITE;
+        let background = Rgb888::BLACK;
 
         // choose font based on display size
         return if screen_area.height <= 64 {
