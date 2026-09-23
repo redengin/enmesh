@@ -28,8 +28,7 @@ impl PageController {
     pub fn update(
         &mut self,
         display: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
-        // theme: &THEME,
-        theme: &crate::ux::binary_color::themes::Theme,
+        theme: &crate::ux::themes::Theme,
         // FIXME should be more generic
         model: &crate::State,
     ) -> bool

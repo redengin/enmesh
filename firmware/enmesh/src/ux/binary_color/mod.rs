@@ -8,7 +8,6 @@ const TAG: &str = "[UX BinaryColor]";
 /// provide enmesh primitives
 use crate::prelude::*;
 
-pub mod themes;
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::text::renderer::TextRenderer;
 
@@ -26,7 +25,7 @@ pub async fn run(
     let mut button_monitor = crate::ux::ButtonMonitor::new(button);
 
     // create the UX theme
-    let theme = themes::Theme::new(display.bounding_box().size);
+    // let theme = themes::Theme::new(display.bounding_box().size);
 
     trace!("{TAG} powering on display....");
     display.power_on().await;

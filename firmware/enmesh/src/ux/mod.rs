@@ -10,9 +10,7 @@ pub trait BufferedDisplay:
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
-// pub trait Theme {
-//     fn color(&self) -> embedded_graphics::pixelcolor::raw::
-// }
+pub mod themes;
 
 /// provide support for status led
 pub mod status_led;
