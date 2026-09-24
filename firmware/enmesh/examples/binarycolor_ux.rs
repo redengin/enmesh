@@ -1,11 +1,12 @@
 // provide the shared crates via re-export
-use common::{embassy_time::Duration, embedded_graphics::draw_target::DrawTargetExt, *};
+use common::*;
 
 // use embedded_graphics::pixelcolor::{PixelColor, Rgb888};
 /// UX designed for RGB888
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
 // use embedded_graphics::prelude::*; // provide common traits
 use embedded_graphics::pixelcolor::BinaryColor;
+use embedded_graphics::draw_target::DrawTargetExt;
 use enmesh_firmware::ux::pages;
 // use enmesh_firmware::ux::ButtonMonitor;
 
@@ -66,7 +67,8 @@ fn run(
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
     let simulated_button = SimulatedButton;
     use enmesh_firmware::ux::ButtonMonitor;
-    let button_monitor = ButtonMonitor::new(simulated_button);
+    // FIXME button monitor is async
+    let _button_monitor = ButtonMonitor::new(simulated_button);
 
     /// provide ux primitives
     use enmesh_firmware::ux::HidEvent;
@@ -139,6 +141,11 @@ fn run(
                 _ => {}
             }
         }
+
+        // handle button events
+        // if let Some(event) = button_monitor.update().await {
+        //     page_controller.handle_event(event);
+        // }
 
         // sleep for a frame period
         const FRAME_PERIOD: std::time::Duration = std::time::Duration::from_millis(100);

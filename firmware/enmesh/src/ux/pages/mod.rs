@@ -1,26 +1,24 @@
 /// provide the shared crates via re-export
 use common::*;
 
-/// provide embedded graphics primitives
-use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::Rectangle;
-use embedded_graphics::text::Text;
-use embedded_graphics::text::renderer::TextRenderer;
-
-
-mod prelude {
+pub mod prelude {
     /// provide the shared crates via re-export
-    use common::*;
+    pub use common::*;
 
     /// provide embedded graphics primitives
-    use embedded_graphics::prelude::*;
-    use embedded_graphics::primitives::Rectangle;
-    use embedded_graphics::text::Text;
-    use embedded_graphics::text::renderer::TextRenderer;
+    pub use embedded_graphics::prelude::*;
+    pub use embedded_graphics::primitives::Rectangle;
+    pub use embedded_graphics::text::Text;
+    pub use embedded_graphics::text::renderer::TextRenderer;
 
     /// provide embedded layout primitives
-    use embedded_layout::prelude::*;
+    pub use embedded_layout::prelude::*;
+    pub use embedded_layout::object_chain::Chain;
 }
+
+/// provide Page primitives
+use prelude::*;
+
 
 pub struct Theme<'a, COLOR> {
     pub color: COLOR,
@@ -54,7 +52,7 @@ impl PageController {
         let TAB_BAR_HEIGHT = theme.text_style.line_height();
 
         // create a screen region for the page contents
-        let mut page_area = display.cropped(&Rectangle {
+        let _page_area = display.cropped(&Rectangle {
             top_left: Point::zero(),
             size: Size::new(
                 display.bounding_box().size.width,
@@ -78,22 +76,29 @@ impl PageController {
         // provide BLE pairing dialog overlay
         use crate::state::BleStatus;
         match model.ble_status {
-            BleStatus::Pairing { passkey } => {
+            BleStatus::Pairing { passkey: _ } => {
                 // TODO use BlePairingDialog widget
             }
             _ => { /* ignored */ }
         }
 
-        let mut anchor = theme.h1_style.line_height() as i32;
-        let _ = Text::new("Header Text", Point::new(0, anchor), theme.h1_style).draw(display);
-
         return has_changed;
     }
 
-    pub fn handle_event(&mut self, event: &crate::ux::HidEvent) {}
+    pub fn handle_event(&mut self, _event: &crate::ux::HidEvent) {
+        // TODO
+    }
 }
 
 pub trait View {
+    /// repaint the whole view
+    fn refresh (
+        &mut self,
+        draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
+        theme: &crate::ux::themes::Theme,
+        model: &crate::State,
+    );
+
     /// update the view
     /// * only needs to update changes
     /// returns true if display changed
@@ -106,7 +111,7 @@ pub trait View {
 
     /// handle HidEvent
     /// returns true if the event was handled and should not be bubbled up
-    fn handle_event(&mut self, event: &crate::ux::HidEvent) -> bool
+    fn handle_event(&mut self, _event: &crate::ux::HidEvent) -> bool
     {
         // default doesn't handle event
         false
