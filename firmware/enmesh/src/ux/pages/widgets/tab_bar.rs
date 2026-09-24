@@ -1,5 +1,5 @@
-// /// provide Page primitives
-// use crate::ux::pages::prelude::*;
+/// provide Page primitives
+use crate::ux::pages::prelude::*;
 
 pub struct TabBar {
     count: u8,
@@ -20,74 +20,50 @@ impl crate::ux::pages::View for TabBar {
 
     fn refresh(
         &mut self,
-        _draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
-        _theme: &crate::ux::themes::Theme,
+        draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
+        theme: &crate::ux::themes::Theme,
         _model: &crate::State,
     ) {
         // draw the tab bar
-        // let mut tab_views: Text[self.count];
+        // FIXME only supports a specific number of tabs (3)
+        const SELECTED: &str = "^";
+        const NOT_SELECTED: &str = "-";
+        LinearLayout::horizontal(
+            Chain::new(Text::new(
+                if self.current_tab == 0 {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if self.current_tab == 1 {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            ))
+            .append(Text::new(
+                if self.current_tab == 2 {
+                    SELECTED
+                } else {
+                    NOT_SELECTED
+                },
+                Point::zero(),
+                theme.text_style,
+            )),
+        )
+        .with_spacing(DistributeFill(draw_target.bounding_box().size.width))
+        .arrange()
+        .align_to(&draw_target.bounding_box(), horizontal::Left, vertical::Bottom)
+        .draw(draw_target)
+        .ok();
 
-        // const SELECTED: &str = "^";
-        // const NOT_SELECTED: &str = "-";
-        // let mut tabbar_chain = Chain::new(Text::new(
-        //     if self.current_tab == 0 {
-        //         SELECTED
-        //     }
-        //     else {
-        //         NOT_SELECTED
-        //     },
-        //     Point::zero(),
-        //     theme.text_style
-        // ));
-        // for i in 1..self.count {
-        //     tabbar_chain.append(
-        //         Text::new(
-        //     if self.current_tab == 0 {
-        //         SELECTED
-        //     }
-        //     else {
-        //         NOT_SELECTED
-        //     },
-        //     Point::zero(),
-        //     theme.text_style
 
-        //     ));
-        // }
-
-        // LinearLayout::horizontal(
-        //     Chain::new(Text::new(
-        //         if self.current_tab == 0 {
-        //             SELECTED
-        //         } else {
-        //             NOT_SELECTED
-        //         },
-        //         Point::zero(),
-        //         theme.text_style,
-        //     ))
-        //     .append(Text::new(
-        //         if selected_index == 1 {
-        //             SELECTED
-        //         } else {
-        //             NOT_SELECTED
-        //         },
-        //         Point::zero(),
-        //         theme.text_style,
-        //     ))
-        //     .append(Text::new(
-        //         if selected_index == 2 {
-        //             SELECTED
-        //         } else {
-        //             NOT_SELECTED
-        //         },
-        //         Point::zero(),
-        //         theme.text_style,
-        //     )),
-        // )
-        // .with_spacing(DistributeFill(display.bounding_box().size.width))
-        // .arrange()
-        // .align_to(&display.bounding_box(), horizontal::Left, vertical::Bottom)
-        // .draw(display)
-        // .ok();
     }
 
     fn update(

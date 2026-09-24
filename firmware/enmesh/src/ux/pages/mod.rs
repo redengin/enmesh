@@ -13,6 +13,8 @@ pub mod prelude {
 
     /// provide embedded layout primitives
     pub use embedded_layout::prelude::*;
+    pub use embedded_layout::layout::linear::LinearLayout;
+    pub use embedded_layout::layout::linear::spacing::DistributeFill;
     pub use embedded_layout::object_chain::Chain;
 }
 
