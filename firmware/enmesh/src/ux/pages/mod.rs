@@ -58,37 +58,34 @@ impl PageController {
     ) -> bool {
         let mut has_changed = false;
 
-        let TAB_BAR_HEIGHT = theme.text_style.line_height();
+        // clear the display if needs full refresh
+        if self.needs_refresh {
+            display.clear(theme.background).ok();
+            has_changed = true;
+        }
 
-        // create a screen region for the page contents
+        // provide a region for tab bar and battery widgets
+        let drawer_height = theme.text_style.line_height();
+
+        // update the page
         let _page_area = display.cropped(&Rectangle {
             top_left: Point::zero(),
             size: Size::new(
                 display.bounding_box().size.width,
-                display.bounding_box().size.height - TAB_BAR_HEIGHT,
+                display.bounding_box().size.height - drawer_height,
             ),
         });
-        // update the page
-        if self.needs_refresh {
-            display.clear(theme.background).ok();
-            // TODO refresh the current page
-            self.needs_refresh = false;
-            has_changed = true;
-        } else {
-            // TODO update the current page
-            // has_changed = <page>.update();
-        }
+        // TODO choose screen to update/refresh
 
-        // create a screen region for the tab bar
+        // update the tab bar
         let mut tab_bar_area = display.cropped(&Rectangle {
-            top_left: Point::new(0, (display.bounding_box().size.height - TAB_BAR_HEIGHT).try_into().expect("should fit")),
+            top_left: Point::new(0, (display.bounding_box().size.height - drawer_height).try_into().expect("should fit")),
             size: Size::new(
                 display.bounding_box().size.width,
-                TAB_BAR_HEIGHT,
+                drawer_height,
             ),
         });
-        // draw the tab bar
-        self.tab_bar.update(&mut tab_bar_area, theme, model);
+        has_changed = self.tab_bar.update(&mut tab_bar_area, theme, model) || has_changed;
 
         // provide BLE pairing dialog overlay
         use crate::state::BleStatus;
@@ -97,6 +94,11 @@ impl PageController {
                 // TODO use BlePairingDialog widget
             }
             _ => { /* ignored */ }
+        }
+
+        // screen has been refreshed
+        if self.needs_refresh {
+            self.needs_refresh = false;
         }
 
         return has_changed;

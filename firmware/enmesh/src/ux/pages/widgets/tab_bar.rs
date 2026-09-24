@@ -24,7 +24,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
         _model: &crate::State,
     ) {
         // clear the region
-        draw_target.clear(theme.background);
+        draw_target.clear(theme.background).ok();
 
         // draw the tab bar
         const SELECTED: &str = "^";
