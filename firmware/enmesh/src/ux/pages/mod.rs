@@ -66,6 +66,9 @@ impl PageController {
 
         // provide a region for tab bar and battery widgets
         let drawer_height = theme.text_style.line_height();
+        // FIXME
+        // let battery_widget_width = theme.icon_width;
+        let battery_widget_width = 10;
 
         // update the page
         let _page_area = display.cropped(&Rectangle {
@@ -81,7 +84,7 @@ impl PageController {
         let mut tab_bar_area = display.cropped(&Rectangle {
             top_left: Point::new(0, (display.bounding_box().size.height - drawer_height).try_into().expect("should fit")),
             size: Size::new(
-                display.bounding_box().size.width,
+                display.bounding_box().size.width - battery_widget_width,
                 drawer_height,
             ),
         });
