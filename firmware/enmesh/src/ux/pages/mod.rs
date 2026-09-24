@@ -21,6 +21,9 @@ pub mod prelude {
 /// provide Page primitives
 use prelude::*;
 
+/// provide Widgets
+use crate::ux::pages::widgets::prelude::*;
+
 
 pub struct Theme<'a, COLOR> {
     pub color: COLOR,
@@ -30,13 +33,18 @@ pub struct Theme<'a, COLOR> {
     pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
 }
 
+
+
+const PAGE_COUNT: usize = 4;
 pub struct PageController {
     // current_page: pages::Pages,
+    tab_bar: TabBar<PAGE_COUNT>,
     needs_refresh: bool,
 }
 impl PageController {
     pub fn new() -> Self {
         Self {
+            tab_bar: TabBar::<PAGE_COUNT>::new(),
             needs_refresh: true,
         }
     }
@@ -50,7 +58,6 @@ impl PageController {
     ) -> bool {
         let mut has_changed = false;
 
-        // FIXME need a tab bar widget
         let TAB_BAR_HEIGHT = theme.text_style.line_height();
 
         // create a screen region for the page contents
@@ -72,8 +79,16 @@ impl PageController {
             // has_changed = <page>.update();
         }
 
+        // create a screen region for the tab bar
+        let mut tab_bar_area = display.cropped(&Rectangle {
+            top_left: Point::new(0, (display.bounding_box().size.height - TAB_BAR_HEIGHT).try_into().expect("should fit")),
+            size: Size::new(
+                display.bounding_box().size.width,
+                TAB_BAR_HEIGHT,
+            ),
+        });
         // draw the tab bar
-        // TODO
+        self.tab_bar.update(&mut tab_bar_area, theme, model);
 
         // provide BLE pairing dialog overlay
         use crate::state::BleStatus;
@@ -87,8 +102,10 @@ impl PageController {
         return has_changed;
     }
 
-    pub fn handle_event(&mut self, _event: &crate::ux::HidEvent) {
-        // TODO
+    pub fn handle_event(&mut self, event: &crate::ux::HidEvent) {
+        // TODO pass event to page
+
+        self.tab_bar.handle_event(event);
     }
 }
 

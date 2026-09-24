@@ -1,80 +1,59 @@
 /// provide Page primitives
 use crate::ux::pages::prelude::*;
 
-pub struct TabBar {
-    count: u8,
-    pub current_tab: u8,
+pub struct TabBar<const TAB_COUNT: usize> {
+    pub current_tab: usize,
     needs_refresh: bool,
 }
-impl TabBar {
-    pub fn new(count: u8) -> Self {
+impl<const TAB_COUNT: usize> TabBar<TAB_COUNT> {
+    pub fn new() -> Self {
         Self {
-            count,
             current_tab: 0,
             needs_refresh: true,
         }
     }
 }
 
-impl crate::ux::pages::View for TabBar {
-
+impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
     fn refresh(
         &mut self,
-        draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
+        draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<
+            Color = common::embedded_graphics::pixelcolor::Rgb888,
+        >,
         theme: &crate::ux::themes::Theme,
         _model: &crate::State,
     ) {
+        // clear the region
+        draw_target.clear(theme.background);
+
         // draw the tab bar
-        // FIXME only supports a specific number of tabs (3)
         const SELECTED: &str = "^";
         const NOT_SELECTED: &str = "-";
-        LinearLayout::horizontal(
-            Chain::new(Text::new(
-                if self.current_tab == 0 {
-                    SELECTED
-                } else {
-                    NOT_SELECTED
-                },
-                Point::zero(),
-                theme.text_style,
-            ))
-            .append(Text::new(
-                if self.current_tab == 1 {
-                    SELECTED
-                } else {
-                    NOT_SELECTED
-                },
-                Point::zero(),
-                theme.text_style,
-            ))
-            .append(Text::new(
-                if self.current_tab == 2 {
-                    SELECTED
-                } else {
-                    NOT_SELECTED
-                },
-                Point::zero(),
-                theme.text_style,
-            )),
-        )
-        .with_spacing(DistributeFill(draw_target.bounding_box().size.width))
-        .arrange()
-        .align_to(&draw_target.bounding_box(), horizontal::Left, vertical::Bottom)
-        .draw(draw_target)
-        .ok();
+        let mut tabs = [Text::new(NOT_SELECTED, Point::zero(), theme.text_style); TAB_COUNT];
+        // mark the selected tab
+        tabs[self.current_tab] = Text::new(SELECTED, Point::zero(), theme.text_style);
 
-
+        LinearLayout::horizontal(Views::new(&mut tabs))
+            .with_spacing(DistributeFill(draw_target.bounding_box().size.width))
+            .arrange()
+            .align_to(
+                &draw_target.bounding_box(),
+                horizontal::Left,
+                vertical::Bottom,
+            )
+            .draw(draw_target)
+            .ok();
     }
 
     fn update(
         &mut self,
-        draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
+        draw_target: &mut impl common::embedded_graphics::prelude::DrawTarget<
+            Color = common::embedded_graphics::pixelcolor::Rgb888,
+        >,
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
-    ) -> bool
-    {
-        if self.needs_refresh
-        {
+    ) -> bool {
+        if self.needs_refresh {
             self.refresh(draw_target, theme, model);
             return true;
         }
@@ -86,18 +65,17 @@ impl crate::ux::pages::View for TabBar {
         match event {
             crate::ux::HidEvent::Next => {
                 self.current_tab += 1;
-                self.current_tab %= self.count;
+                self.current_tab %= TAB_COUNT;
                 self.needs_refresh = true;
                 return true;
             }
             crate::ux::HidEvent::Previous => {
                 self.current_tab -= 1;
-                self.current_tab %= self.count;
+                self.current_tab %= TAB_COUNT;
                 self.needs_refresh = true;
                 return true;
             }
-
-            _ => return false
+            _ => return false,
         };
     }
 }
