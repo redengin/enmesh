@@ -70,8 +70,13 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
                 return true;
             }
             crate::ux::HidEvent::Previous => {
-                self.current_tab -= 1;
-                self.current_tab %= TAB_COUNT;
+                if self.current_tab > 0 {
+                    self.current_tab -= 1;
+                    self.current_tab %= TAB_COUNT;
+                }
+                else {
+                    self.current_tab = TAB_COUNT - 1;
+                }
                 self.needs_refresh = true;
                 return true;
             }

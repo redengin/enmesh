@@ -9,6 +9,7 @@ use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::draw_target::DrawTargetExt;
 use enmesh_firmware::ux::pages;
 // use enmesh_firmware::ux::ButtonMonitor;
+use std::time::{Instant, Duration};
 
 fn main() -> Result<(), std::convert::Infallible> {
     use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay};
@@ -65,10 +66,7 @@ fn run(
     // create a simulated button
     use embedded_graphics_simulator::sdl2::Keycode;
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
-    let simulated_button = SimulatedButton;
-    use enmesh_firmware::ux::ButtonMonitor;
-    // FIXME button monitor is async
-    let _button_monitor = ButtonMonitor::new(simulated_button);
+    let mut simulated_button_down_start: Option<Instant> = None;
 
     /// provide ux primitives
     use enmesh_firmware::ux::HidEvent;
@@ -95,8 +93,8 @@ fn run(
                     repeat,
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
-                        unsafe {
-                            SIMULATED_BUTTON_STATE = true;
+                        if simulated_button_down_start.is_none() {
+                            simulated_button_down_start = Some(Instant::now());
                         }
                     }
                 }
@@ -107,8 +105,18 @@ fn run(
                     repeat,
                 } => {
                     if (keycode == SIMULATED_BUTTON) && !repeat {
-                        unsafe {
-                            SIMULATED_BUTTON_STATE = false;
+                        if let Some(start) = simulated_button_down_start {
+                            let duration = Instant::now() - start;
+                            simulated_button_down_start = None;
+
+                            if duration > Duration::from_millis(300)
+                            {
+                                page_controller.handle_event(&HidEvent::Select);
+                            }
+                            else if duration > Duration::from_millis(10)
+                            {
+                                page_controller.handle_event(&HidEvent::Next);
+                            }
                         }
                     }
                     // handle standard keyboard eventes
@@ -148,21 +156,7 @@ fn run(
         // }
 
         // sleep for a frame period
-        const FRAME_PERIOD: std::time::Duration = std::time::Duration::from_millis(100);
-        std::thread::sleep(FRAME_PERIOD);
-    }
-}
-
-
-
-static mut SIMULATED_BUTTON_STATE: bool = false;
-struct SimulatedButton;
-impl common::button::ButtonState for SimulatedButton {
-    type Error = ();
-
-    fn is_active(&mut self) -> Result<bool, Self::Error> {
-        unsafe {
-            Ok(SIMULATED_BUTTON_STATE)
-        }
+        // const FRAME_PERIOD: std::time::Duration = std::time::Duration::from_millis(100);
+        // std::thread::sleep(FRAME_PERIOD);
     }
 }

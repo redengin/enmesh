@@ -10,6 +10,7 @@ pub mod prelude {
     pub use embedded_graphics::primitives::Rectangle;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
+    pub use embedded_graphics::primitives::RoundedRectangle;
 
     /// provide embedded layout primitives
     pub use embedded_layout::prelude::*;
@@ -31,20 +32,21 @@ pub struct Theme<'a, COLOR> {
     pub header_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
     pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
     pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
+    pub small_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
 }
-
-
 
 const PAGE_COUNT: usize = 4;
 pub struct PageController {
     // current_page: pages::Pages,
     tab_bar: TabBar<PAGE_COUNT>,
+    battery_widget: BatteryWidget,
     needs_refresh: bool,
 }
 impl PageController {
     pub fn new() -> Self {
         Self {
             tab_bar: TabBar::<PAGE_COUNT>::new(),
+            battery_widget: BatteryWidget::new(),
             needs_refresh: true,
         }
     }
@@ -64,11 +66,8 @@ impl PageController {
             has_changed = true;
         }
 
-        // provide a region for tab bar and battery widgets
+        // provide space for drawer
         let drawer_height = theme.text_style.line_height();
-        // FIXME
-        // let battery_widget_width = theme.icon_width;
-        let battery_widget_width = 10;
 
         // update the page
         let _page_area = display.cropped(&Rectangle {
@@ -80,6 +79,10 @@ impl PageController {
         });
         // TODO choose screen to update/refresh
 
+        // partition drawer into region for tab bar and battery widget
+        let battery_widget_width = 2 * theme.text_style.line_height();
+        let tab_bar_width = display.bounding_box().size.width - battery_widget_width;
+
         // update the tab bar
         let mut tab_bar_area = display.cropped(&Rectangle {
             top_left: Point::new(0, (display.bounding_box().size.height - drawer_height).try_into().expect("should fit")),
@@ -89,6 +92,17 @@ impl PageController {
             ),
         });
         has_changed = self.tab_bar.update(&mut tab_bar_area, theme, model) || has_changed;
+
+        // update the battery widget
+        let mut battery_area = display.cropped(&Rectangle {
+            top_left: Point::new(tab_bar_width as i32, (display.bounding_box().size.height - drawer_height) as i32),
+            size: Size::new(
+                battery_widget_width,
+                drawer_height,
+            ),
+        });
+        has_changed = self.battery_widget.update(&mut battery_area, theme, model) || has_changed;
+
 
         // provide BLE pairing dialog overlay
         use crate::state::BleStatus;

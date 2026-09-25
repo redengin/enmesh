@@ -14,6 +14,8 @@ pub struct Theme<'a> {
     pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
     /// large text font
     pub h1_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
+    /// small text font
+    pub small_style: embedded_graphics::mono_font::MonoTextStyle<'a, Rgb888>,
 }
 impl<'a> Theme<'a> {
     /// create a theme to match the display area
@@ -32,6 +34,7 @@ impl<'a> Theme<'a> {
                 text_style: MonoTextStyle::new(&embedded_graphics::mono_font::ascii::FONT_8X13_BOLD, color),
                 label_style: MonoTextStyle::new(&embedded_graphics::mono_font::ascii::FONT_8X13, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
+                small_style: MonoTextStyle::new(&embedded_graphics::mono_font::ascii::FONT_5X8, color),
             }
         }
         else {
@@ -41,6 +44,7 @@ impl<'a> Theme<'a> {
                 text_style: MonoTextStyle::new(&embedded_graphics::mono_font::ascii::FONT_9X18_BOLD, color),
                 label_style: MonoTextStyle::new(&embedded_graphics::mono_font::ascii::FONT_9X18, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_24_POINT, color),
+                small_style: MonoTextStyle::new(&profont::PROFONT_9_POINT, color),
             }
         };
 }
