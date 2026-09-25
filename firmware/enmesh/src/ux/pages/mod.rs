@@ -8,15 +8,15 @@ pub mod prelude {
     /// provide embedded graphics primitives
     pub use embedded_graphics::prelude::*;
     pub use embedded_graphics::primitives::Rectangle;
+    pub use embedded_graphics::primitives::RoundedRectangle;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
-    pub use embedded_graphics::primitives::RoundedRectangle;
 
-    /// provide embedded layout primitives
-    pub use embedded_layout::prelude::*;
     pub use embedded_layout::layout::linear::LinearLayout;
     pub use embedded_layout::layout::linear::spacing::DistributeFill;
     pub use embedded_layout::object_chain::Chain;
+    /// provide embedded layout primitives
+    pub use embedded_layout::prelude::*;
 }
 
 /// provide Page primitives
@@ -24,16 +24,6 @@ use prelude::*;
 
 /// provide Widgets
 use crate::ux::pages::widgets::prelude::*;
-
-
-pub struct Theme<'a, COLOR> {
-    pub color: COLOR,
-    pub background: COLOR,
-    pub header_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
-    pub label_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
-    pub text_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
-    pub small_style: embedded_graphics::mono_font::MonoTextStyle<'a, COLOR>,
-}
 
 const PAGE_COUNT: usize = 4;
 pub struct PageController {
@@ -80,14 +70,23 @@ impl PageController {
         // TODO choose screen to update/refresh
 
         // partition drawer into region for tab bar and battery widget
+        let battery_widget_size = Size::new(
+            (2 * theme.text_style.line_height()),
+            (theme.text_style.line_height() as f32 * 0.8) as u32,
+        );
         let battery_widget_width = 2 * theme.text_style.line_height();
-        let tab_bar_width = display.bounding_box().size.width - battery_widget_width;
+        let tab_bar_width = (display.bounding_box().size.width - battery_widget_width) as i32;
 
         // update the tab bar
         let mut tab_bar_area = display.cropped(&Rectangle {
-            top_left: Point::new(0, (display.bounding_box().size.height - drawer_height).try_into().expect("should fit")),
+            top_left: Point::new(
+                0,
+                (display.bounding_box().size.height - drawer_height)
+                    .try_into()
+                    .expect("should fit"),
+            ),
             size: Size::new(
-                display.bounding_box().size.width - battery_widget_width,
+                display.bounding_box().size.width - battery_widget_size.width,
                 drawer_height,
             ),
         });
@@ -95,14 +94,13 @@ impl PageController {
 
         // update the battery widget
         let mut battery_area = display.cropped(&Rectangle {
-            top_left: Point::new(tab_bar_width as i32, (display.bounding_box().size.height - drawer_height) as i32),
-            size: Size::new(
-                battery_widget_width,
-                drawer_height,
+            top_left: Point::new(
+                tab_bar_width,
+                (display.bounding_box().size.height - drawer_height) as i32,
             ),
+            size: battery_widget_size,
         });
         has_changed = self.battery_widget.update(&mut battery_area, theme, model) || has_changed;
-
 
         // provide BLE pairing dialog overlay
         use crate::state::BleStatus;
@@ -130,7 +128,7 @@ impl PageController {
 
 pub trait View {
     /// repaint the whole view
-    fn refresh (
+    fn refresh(
         &mut self,
         draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
         theme: &crate::ux::themes::Theme,
@@ -149,20 +147,14 @@ pub trait View {
 
     /// handle HidEvent
     /// returns true if the event was handled and should not be bubbled up
-    fn handle_event(&mut self, _event: &crate::ux::HidEvent) -> bool
-    {
+    fn handle_event(&mut self, _event: &crate::ux::HidEvent) -> bool {
         // default doesn't handle event
         false
     }
 }
 
-
 /// provide reusable Views
 pub mod widgets;
-
-
-
-
 
 // /// provide page implementations
 // pub mod home;

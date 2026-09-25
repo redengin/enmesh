@@ -52,7 +52,7 @@ where
 
     pub async fn update(&mut self) -> Option<HidEvent>
     {
-        const SCAN_PERIOD_MILLIS: u64 = 100;
+        const SCAN_PERIOD_MILLIS: u64 = 10;
         const SHORT_PRESS_DURATION: Duration = Duration::from_millis(2 * SCAN_PERIOD_MILLIS);
         const LONG_PRESS_DURATION: Duration = Duration::from_millis(3 * SCAN_PERIOD_MILLIS);
 
