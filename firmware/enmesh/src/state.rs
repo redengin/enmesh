@@ -18,7 +18,7 @@ pub struct State {
     /// settings (persisted in non-volatile memory)
     pub settings: crate::Settings,
 
-    pub battery_percent: u8,
+    pub battery_state: BatteryState,
 
     /// used by UX for display, set by lora thread
     pub current_protocol: Option<LoRaProtocol>,
@@ -37,6 +37,22 @@ impl State {
             // FIXME bind to actual firmware version
             firmware_version: "0.0.1",
             ..Default::default()
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone, PartialEq)]
+pub enum BatteryState {
+    #[default]
+    NotAvailable,
+    Available{percent_charged: u8},
+}
+impl core::fmt::Display for BatteryState {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::NotAvailable => f.write_str("N/A"),
+            // Self::Available { percent_charged} => f.write_fmt(format_args!("{}", percent_charged)),
+            _ => f.write_str("BORKED"),
         }
     }
 }

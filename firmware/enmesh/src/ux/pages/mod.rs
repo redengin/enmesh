@@ -5,6 +5,9 @@ pub mod prelude {
     /// provide the shared crates via re-export
     pub use common::*;
 
+    /// provide string creation
+    pub use crate::alloc::string::ToString;
+
     /// provide embedded graphics primitives
     pub use embedded_graphics::prelude::*;
     pub use embedded_graphics::primitives::Rectangle;
@@ -71,7 +74,7 @@ impl PageController {
 
         // partition drawer into region for tab bar and battery widget
         let battery_widget_size = Size::new(
-            (2 * theme.text_style.line_height()),
+            2 * theme.text_style.line_height(),
             (theme.text_style.line_height() as f32 * 0.8) as u32,
         );
         let battery_widget_width = 2 * theme.text_style.line_height();
