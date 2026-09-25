@@ -91,9 +91,4 @@ impl crate::ux::pages::View for BatteryWidget {
         }
         return false;
     }
-
-    fn handle_event(&mut self, _event: &crate::ux::HidEvent) -> bool {
-        // default doesn't handle event
-        false
-    }
 }
