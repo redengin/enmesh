@@ -3,6 +3,9 @@ pub mod prelude {
     /// provide the shared crates via re-export
     use common::*;
 
+    /// provide View trait
+    pub use super::View;
+
     /// provide string creation
     pub use crate::alloc::string::ToString;
 
@@ -27,6 +30,7 @@ pub mod prelude {
 /// provide the shared crates via re-export
 use common::*;
 
+use postcard::ser_flavors::HVec;
 /// provide Page primitives
 use prelude::*;
 
@@ -34,11 +38,16 @@ use prelude::*;
 mod widgets;
 use crate::ux::pages::widgets::prelude::*;
 
+/// provide pages
+mod home;
+
 const PAGE_COUNT: usize = 4;
 pub struct PageController {
     tab_bar: TabBar<PAGE_COUNT>,
     battery_widget: BatteryWidget,
     needs_refresh: bool,
+    // pages
+    home: home::Home,
 }
 impl PageController {
     pub fn new() -> Self {
@@ -46,6 +55,8 @@ impl PageController {
             tab_bar: TabBar::<PAGE_COUNT>::new(),
             battery_widget: BatteryWidget::new(),
             needs_refresh: true,
+            // pages
+            home: home::Home::new(),
         }
     }
 
