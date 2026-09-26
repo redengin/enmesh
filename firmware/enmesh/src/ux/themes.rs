@@ -14,6 +14,8 @@ pub struct Theme<'a> {
     /// small text font
     pub small_style: MonoTextStyle<'a, Rgb888>,
 }
+
+/// provide monochrome support
 pub mod binary_color {
     // provide the Page primitives
     use super::super::pages::prelude::*;
@@ -47,6 +49,7 @@ pub mod binary_color {
     }
 }
 
+/// provide full color support
 pub mod color {
     // provide the Page primitives
     use super::super::pages::prelude::*;
