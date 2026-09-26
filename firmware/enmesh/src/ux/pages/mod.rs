@@ -9,9 +9,13 @@ pub mod prelude {
     /// provide embedded graphics primitives
     pub use embedded_graphics::prelude::*;
     pub use embedded_graphics::pixelcolor::*;
+    pub use embedded_graphics::mono_font::{self, MonoTextStyle};
     pub use embedded_graphics::primitives::*;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
+
+    /// provide additional fonts
+    pub use common::profont;
 
     /// provide embedded layout primitives
     pub use embedded_layout::prelude::*;
@@ -32,7 +36,6 @@ use crate::ux::pages::widgets::prelude::*;
 
 const PAGE_COUNT: usize = 4;
 pub struct PageController {
-    // current_page: pages::Pages,
     tab_bar: TabBar<PAGE_COUNT>,
     battery_widget: BatteryWidget,
     needs_refresh: bool,
