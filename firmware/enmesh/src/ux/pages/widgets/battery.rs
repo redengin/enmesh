@@ -1,10 +1,3 @@
-use core::fmt::Display;
-
-use common::embedded_graphics::{
-    pixelcolor::Rgb888,
-    primitives::{PrimitiveStyleBuilder, StyledDrawable},
-};
-
 /// provide Page primitives
 use crate::ux::pages::prelude::*;
 
@@ -23,7 +16,7 @@ impl BatteryWidget {
 impl crate::ux::pages::View for BatteryWidget {
     fn refresh(
         &mut self,
-        draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
+        draw_target: &mut impl DrawTarget<Color = Rgb888>,
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
     ) {
@@ -81,7 +74,7 @@ impl crate::ux::pages::View for BatteryWidget {
 
     fn update(
         &mut self,
-        draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,
+        draw_target: &mut impl DrawTarget<Color = Rgb888>,
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
     ) -> bool {

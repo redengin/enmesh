@@ -3,23 +3,23 @@ use common::*;
 
 pub mod prelude {
     /// provide the shared crates via re-export
-    pub use common::*;
+    use common::*;
 
     /// provide string creation
     pub use crate::alloc::string::ToString;
 
     /// provide embedded graphics primitives
     pub use embedded_graphics::prelude::*;
-    pub use embedded_graphics::primitives::Rectangle;
-    pub use embedded_graphics::primitives::RoundedRectangle;
+    pub use embedded_graphics::pixelcolor::*;
+    pub use embedded_graphics::primitives::*;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
 
+    /// provide embedded layout primitives
+    pub use embedded_layout::prelude::*;
     pub use embedded_layout::layout::linear::LinearLayout;
     pub use embedded_layout::layout::linear::spacing::DistributeFill;
     pub use embedded_layout::object_chain::Chain;
-    /// provide embedded layout primitives
-    pub use embedded_layout::prelude::*;
 }
 
 /// provide Page primitives

@@ -51,8 +51,7 @@ impl core::fmt::Display for BatteryState {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::NotAvailable => f.write_str("N/A"),
-            // Self::Available { percent_charged} => f.write_fmt(format_args!("{}", percent_charged)),
-            _ => f.write_str("BORKED"),
+            Self::Available { percent_charged} => f.write_fmt(format_args!("{}", percent_charged)),
         }
     }
 }
