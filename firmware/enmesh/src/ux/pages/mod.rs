@@ -30,7 +30,6 @@ pub mod prelude {
 /// provide the shared crates via re-export
 use common::*;
 
-use postcard::ser_flavors::HVec;
 /// provide Page primitives
 use prelude::*;
 
@@ -39,7 +38,7 @@ mod widgets;
 use crate::ux::pages::widgets::prelude::*;
 
 /// provide pages
-mod home;
+// mod home;
 
 const PAGE_COUNT: usize = 4;
 pub struct PageController {
@@ -47,7 +46,7 @@ pub struct PageController {
     battery_widget: BatteryWidget,
     needs_refresh: bool,
     // pages
-    home: home::Home,
+    // home: home::Home,
 }
 impl PageController {
     pub fn new() -> Self {
@@ -56,7 +55,7 @@ impl PageController {
             battery_widget: BatteryWidget::new(),
             needs_refresh: true,
             // pages
-            home: home::Home::new(),
+            // home: home::Home::new(),
         }
     }
 

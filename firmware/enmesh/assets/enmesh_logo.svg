@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="19.999557mm"
+   height="19.987652mm"
+   viewBox="0 0 19.999558 19.987652"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   sodipodi:docname="enmesh_logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="3.2890292"
+     inkscape:cx="85.435545"
+     inkscape:cy="48.190512"
+     inkscape:window-width="1920"
+     inkscape:window-height="1170"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-94.671836,-105.20478)">
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0"
+       id="rect1"
+       width="11.781968"
+       height="3.0776019"
+       x="-11.987291"
+       y="154.0686"
+       transform="matrix(0.7112124,-0.70297719,0.70391578,0.71028345,0,0)" />
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0"
+       id="rect1-4"
+       width="11.781968"
+       height="3.0776019"
+       x="-11.987291"
+       y="147.91341"
+       transform="matrix(0.7112124,-0.70297719,0.70391578,0.71028345,0,0)" />
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0"
+       id="rect1-4-0"
+       width="11.781968"
+       height="3.0776019"
+       x="-12.010983"
+       y="160.05878"
+       transform="matrix(0.7112124,-0.70297719,0.70391578,0.71028345,0,0)" />
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0"
+       id="rect1-2"
+       width="25"
+       height="5"
+       x="100"
+       y="7" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:3.64168;stroke-dasharray:none"
+       d="m 96.56968,116.1585 c -0.960412,8.04565 7.13366,7.17914 7.13366,7.17914 z"
+       id="path1" />
+  </g>
+</svg>
