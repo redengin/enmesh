@@ -41,3 +41,5 @@ pub trait PowerControl {
     async fn power_on(&mut self);
 }
 
+/// build.rs generated assets
+mod generated;
