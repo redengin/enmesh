@@ -10,14 +10,11 @@ pub trait BufferedDisplay:
     async fn flush(&mut self) -> Result<(), display_interface::DisplayError>;
 }
 
-/// provide themes
-pub mod themes;
-
 /// provide support for status led
 pub mod status_led;
 
-/// provide support for BinaryColor displays (i.e. monochrome)
-// pub mod binary_color;
+/// provide themes
+pub mod themes;
 
 /// User interaction events
 pub enum HidEvent {
@@ -34,6 +31,7 @@ pub enum HidEvent {
 /// provide enmesh primitives
 use crate::prelude::*;
 
+/// monitors button for HID events
 pub struct ButtonMonitor<BUTTON> {
     button: BUTTON,
     active_start: Option<Instant>,
@@ -50,35 +48,44 @@ where
         }
     }
 
+    const SCAN_PERIOD_MILLIS: u64 = 10;
+    const SHORT_PRESS_DURATION: Duration = Duration::from_millis(2 * Self::SCAN_PERIOD_MILLIS);
+    const LONG_PRESS_DURATION: Duration = Duration::from_millis(3 * Self::SCAN_PERIOD_MILLIS);
+
+    fn scan_button(&mut self) -> Option<HidEvent>
+    {
+        if let Ok(is_active) = self.button.is_active() {
+            if is_active && self.active_start.is_none() {
+                // memo when the press began
+                self.active_start = Some(Instant::now());
+            }
+            else if !is_active && self.active_start.is_some() {
+                let duration = Instant::now() - self.active_start.unwrap();
+                // clear the memo
+                self.active_start = None;
+
+                // determine HID Event
+                if duration > Self::LONG_PRESS_DURATION {
+                    return Some(HidEvent::Select)
+                }
+                else if duration > Self::SHORT_PRESS_DURATION {
+                    return Some(HidEvent::Next)
+                }
+                else {
+                    return None
+                }
+            }
+        }
+        None
+    }
+
     pub async fn update(&mut self) -> Option<HidEvent>
     {
-        const SCAN_PERIOD_MILLIS: u64 = 10;
-        const SHORT_PRESS_DURATION: Duration = Duration::from_millis(2 * SCAN_PERIOD_MILLIS);
-        const LONG_PRESS_DURATION: Duration = Duration::from_millis(3 * SCAN_PERIOD_MILLIS);
-
-        let mut ticker = Ticker::every(Duration::from_millis(SCAN_PERIOD_MILLIS));
+        let mut ticker = Ticker::every(Duration::from_millis(Self::SCAN_PERIOD_MILLIS));
         for _ in 0..4 {
-            if let Ok(is_active) = self.button.is_active() {
-                if is_active && self.active_start.is_none() {
-                    // memo when the press began
-                    self.active_start = Some(Instant::now());
-                }
-                else if !is_active && self.active_start.is_some() {
-                    let duration = Instant::now() - self.active_start.unwrap();
-                    // clear the memo
-                    self.active_start = None;
-
-                    // determine HID Event
-                    if duration > LONG_PRESS_DURATION {
-                        return Some(HidEvent::Select)
-                    }
-                    else if duration > SHORT_PRESS_DURATION {
-                        return Some(HidEvent::Next)
-                    }
-                    else {
-                        return None
-                    }
-                }
+            if let Some(event) = self.scan_button()
+            {
+                return Some(event);
             }
             // delay until next cycle
             ticker.next().await;
@@ -86,6 +93,22 @@ where
 
         None
     }
+
+    pub fn update_sync(&mut self, delay_ns: &mut impl embedded_hal::delay::DelayNs) -> Option<HidEvent>
+    {
+        for _ in 0..4 {
+            if let Some(event) = self.scan_button()
+            {
+                return Some(event);
+            }
+             // delay until next cycle
+            delay_ns.delay_ms(Self::SCAN_PERIOD_MILLIS as u32);
+        }
+
+        None
+    }
+
+
 }
 
 
