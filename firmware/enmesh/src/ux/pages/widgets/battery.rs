@@ -80,6 +80,7 @@ impl crate::ux::pages::View for BatteryWidget {
     ) -> bool {
         if self.needs_refresh || (model.battery_state != self.last_battery_state) {
             self.refresh(draw_target, theme, model);
+            self.needs_refresh = false;
             return true;
         }
         return false;

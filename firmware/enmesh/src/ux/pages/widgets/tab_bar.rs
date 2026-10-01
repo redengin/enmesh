@@ -55,6 +55,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
     ) -> bool {
         if self.needs_refresh {
             self.refresh(draw_target, theme, model);
+            self.needs_refresh = false;
             return true;
         }
 

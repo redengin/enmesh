@@ -36,7 +36,6 @@ where
             use embedded_graphics::draw_target::DrawTargetExt;
             let needs_refresh = page_controller.update(&mut display.color_converted(), &theme, &model);
             if needs_refresh {
-                // info!("XXXX Refreshing XXX");
                 display.flush().await.ok();
             }
         }

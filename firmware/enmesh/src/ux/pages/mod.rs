@@ -71,6 +71,7 @@ impl PageController {
         // clear the display if needs full refresh
         if self.needs_refresh {
             display.clear(theme.background).ok();
+            self.needs_refresh = false;
             has_changed = true;
         }
 
