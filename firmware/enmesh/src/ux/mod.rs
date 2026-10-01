@@ -36,11 +36,13 @@ where
             use embedded_graphics::draw_target::DrawTargetExt;
             let needs_refresh = page_controller.update(&mut display.color_converted(), &theme, &model);
             if needs_refresh {
+                // info!("XXXX Refreshing XXX");
                 display.flush().await.ok();
             }
         }
 
         // update the status led
+        // TODO
 
         // monitor button
         if let Some(event) = button_monitor.update().await
@@ -71,6 +73,7 @@ pub mod status_led;
 pub mod themes;
 
 /// User interaction events
+#[derive(Debug)]
 pub enum HidEvent {
     /// move to next selectable item
     Next,
@@ -102,10 +105,9 @@ where
         }
     }
 
-    const SCAN_PERIOD_MILLIS: u64 = 10;
+    const SCAN_PERIOD_MILLIS: u64 = 33;
     const SHORT_PRESS_DURATION: Duration = Duration::from_millis(2 * Self::SCAN_PERIOD_MILLIS);
-    const LONG_PRESS_DURATION: Duration = Duration::from_millis(3 * Self::SCAN_PERIOD_MILLIS);
-
+    const LONG_PRESS_DURATION: Duration = Duration::from_millis(10 * Self::SCAN_PERIOD_MILLIS);
     fn scan_button(&mut self) -> Option<HidEvent>
     {
         if let Ok(is_active) = self.button.is_active() {
