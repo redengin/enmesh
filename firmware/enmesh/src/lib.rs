@@ -34,11 +34,18 @@ pub mod ble;
 
 /// support boards that allow turning off peripherals (i.e. save power)
 pub trait PowerControl {
+    /// returns true if power enabled
+    fn is_powered(&self) -> bool
+    {
+        true
+    }
+
     fn power_off(&mut self);
 
     #[allow(async_fn_in_trait)] // usage should never use Send()
     /// must reinitialize the hardware as necessary
     async fn power_on(&mut self);
+
 }
 
 /// build.rs generated assets

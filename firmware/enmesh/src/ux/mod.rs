@@ -1,6 +1,60 @@
 /// provide the shared crates via re-export
 use common::*;
 
+pub async fn run<DISPLAY>(
+    global_state: &'static RwLock<NoopRawMutex, crate::State>,
+    mut display: DISPLAY,
+    button: impl button::ButtonState,
+    led: impl led::LedState,
+)
+where
+    DISPLAY: BufferedDisplay,
+    <DISPLAY as embedded_graphics::draw_target::DrawTarget>::Color: From<embedded_graphics::pixelcolor::Rgb888>
+{
+    // create the status led
+    let status_led = status_led::StatusLed::new(led);
+
+    // create a button monitor
+    let mut button_monitor = ButtonMonitor::new(button);
+
+    // create the theme
+    // FIXME choose theme by display COLOR
+    let theme = themes::binary_color::new(display.bounding_box().size);
+
+    // create the page controller
+    let mut page_controller = pages::PageController::new();
+
+    // enable the display
+    display.power_on().await;
+
+    loop {
+        // clone the current state
+        let model = global_state.read().await.clone();
+
+        if display.is_powered() {
+            // update the display
+            use embedded_graphics::draw_target::DrawTargetExt;
+            let needs_refresh = page_controller.update(&mut display.color_converted(), &theme, &model);
+            if needs_refresh {
+                display.flush().await.ok();
+            }
+        }
+
+        // update the status led
+
+        // monitor button
+        if let Some(event) = button_monitor.update().await
+        {
+            if display.is_powered() {
+                page_controller.handle_event(&event);
+            }
+            else {
+                display.power_on().await;
+            }
+        }
+    }
+}
+
 /// Buffered DrawTarget require a flush() to refresh the screen
 pub trait BufferedDisplay:
     embedded_graphics::draw_target::DrawTarget + crate::PowerControl

@@ -38,6 +38,7 @@ lora-phy = "*"
 # screen support
 display-interface = "*"
 profont = "*"
+tinyqoi = "*"
 #-------------------------------------------------------------------------------
 
 # provide BLE Host

@@ -272,6 +272,7 @@ dependencies = [
  "lora-phy",
  "profont",
  "static_cell",
+ "tinyqoi",
  "trouble-host",
 ]
 
@@ -2609,6 +2610,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ad99c4c6d32803332c548b1af0540b357b3f5fc0be8f6c6bfe8b2e6ae784070"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "tinyqoi"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4de2a035998f73717bcbe9ce7d0ace9cc7e242371d19bea0a8ee25a531ffef62"
+dependencies = [
+ "embedded-graphics",
 ]
 
 [[package]]
