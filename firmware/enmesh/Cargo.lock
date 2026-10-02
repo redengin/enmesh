@@ -799,10 +799,9 @@ dependencies = [
  "meshcore",
  "meshtastic",
  "postcard",
+ "qoi",
  "resvg",
  "serde",
- "tiny-skia",
- "usvg",
 ]
 
 [[package]]
@@ -1493,6 +1492,15 @@ name = "pxfm"
 version = "0.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d55d956fa96f5ec02be2e13af0e20391a5aa83d6a074e3ad368959d0fab299ea"
+
+[[package]]
+name = "qoi"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f6d64c71eb498fe9eae14ce4ec935c555749aef511cca85b5568910d6e48001"
+dependencies = [
+ "bytemuck",
+]
 
 [[package]]
 name = "quick-error"

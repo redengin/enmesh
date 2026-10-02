@@ -22,10 +22,10 @@ embedded-graphics-simulator = { version = "*", default-features = false, feature
     "with-sdl",
 ] }
 
-# tools to generate fonts and bitmaps from assets
+[build-dependencies]
+# used to generate fonts and bitmaps from assets (see generators/)
 resvg = "*"
-usvg = "*"
-tiny-skia = "*"
+qoi = "*"
 
 
 [features]
