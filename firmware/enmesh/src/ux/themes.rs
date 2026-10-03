@@ -34,8 +34,8 @@ impl ThemeForColor for BinaryColor {
             Theme {
                 color,
                 background,
-                text_style: MonoTextStyle::new(&mono_font::ascii::FONT_8X13_BOLD, color),
-                label_style: MonoTextStyle::new(&mono_font::ascii::FONT_8X13, color),
+                text_style: MonoTextStyle::new(&mono_font::ascii::FONT_6X10, color),
+                label_style: MonoTextStyle::new(&mono_font::ascii::FONT_6X10, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
                 small_style: MonoTextStyle::new(&mono_font::ascii::FONT_5X8, color),
             }

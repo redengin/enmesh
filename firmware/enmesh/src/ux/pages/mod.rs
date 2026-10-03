@@ -20,6 +20,7 @@ pub mod prelude {
     /// provide additional fonts
     pub use common::profont;
 
+    pub use embedded_layout::layout::linear::FixedMargin;
     pub use embedded_layout::layout::linear::LinearLayout;
     pub use embedded_layout::layout::linear::spacing::DistributeFill;
     pub use embedded_layout::object_chain::Chain;
@@ -30,6 +31,10 @@ pub mod prelude {
 /// provide the shared crates via re-export
 use common::*;
 
+/// provide logging primitives
+use log::*;
+const TAG: &str = "[PageController]";
+
 /// provide Page primitives
 use prelude::*;
 
@@ -38,7 +43,7 @@ mod widgets;
 use crate::ux::pages::widgets::prelude::*;
 
 /// provide pages
-// mod home;
+mod home;
 
 const PAGE_COUNT: usize = 4;
 pub struct PageController {
@@ -47,7 +52,7 @@ pub struct PageController {
     needs_refresh: bool,
     // dialog_active: bool,
     // pages
-    // home: home::Home,
+    home: home::Home,
 }
 impl PageController {
     pub fn new() -> Self {
@@ -57,7 +62,7 @@ impl PageController {
             needs_refresh: true,
             // dialog_active: false,
             // pages
-            // home: home::Home::new(),
+            home: home::Home::new(),
         }
     }
 
@@ -96,14 +101,22 @@ impl PageController {
         let drawer_height = theme.text_style.line_height();
 
         // update the page
-        let _page_area = display.cropped(&Rectangle {
+        let mut page_area = display.cropped(&Rectangle {
             top_left: Point::zero(),
             size: Size::new(
                 display.bounding_box().size.width,
                 display.bounding_box().size.height - drawer_height,
             ),
         });
-        // TODO choose screen to update/refresh
+        match self.tab_bar.current_tab {
+            _ => {
+                if self.needs_refresh {
+                    self.home.refresh(&mut page_area, theme, model);
+                } else {
+                    has_changed |= self.home.update(&mut page_area, theme, model);
+                }
+            }
+        }
 
         // partition drawer into region for tab bar and battery widget
         let battery_widget_size = Size::new(
@@ -154,9 +167,25 @@ impl PageController {
     }
 
     pub fn handle_event(&mut self, event: &crate::ux::HidEvent) {
-        // TODO pass event to page
+        let mut handled = false;
+        // pass the unhandled event to dialog
+        // TODO
 
-        self.tab_bar.handle_event(event);
+        // pass the unhandled event to the page
+        if !handled {
+            handled = match self.tab_bar.current_tab {
+                _ => self.home.handle_event(event),
+            };
+        };
+
+        // pass the unhandled event to the tab_bar
+        if !handled {
+            handled = self.tab_bar.handle_event(event);
+        }
+
+        if !handled {
+            debug!("{TAG} unhandled event: {:?}", event);
+        }
     }
 }
 
