@@ -1,11 +1,6 @@
 // provide the Page primitives
 use super::pages::prelude::*;
 
-
-pub trait ThemeForColor {
-    fn new(screen_size: Size) -> Theme<'static>;
-}
-
 pub struct Theme<'a> {
     /// default color for text and mono-icons
     pub color: Rgb888,
@@ -20,9 +15,15 @@ pub struct Theme<'a> {
     pub small_style: MonoTextStyle<'a, Rgb888>,
 }
 
+/// provide theme creator using display size and Color
+pub trait ThemeForColor {
+    fn theme(screen_size: Size) -> Theme<'static>;
+}
+
+
 /// provide monochrome support
 impl ThemeForColor for BinaryColor {
-    fn new(screen_size: Size) -> Theme<'static>
+    fn theme(screen_size: Size) -> Theme<'static>
     {
         // default theme WHITE text on BLACK background
         let color = Rgb888::WHITE;
@@ -53,7 +54,7 @@ impl ThemeForColor for BinaryColor {
 
 /// provide monochrome support
 impl ThemeForColor for Rgb888 {
-    fn new(screen_size: Size) -> Theme<'static>
+    fn theme(screen_size: Size) -> Theme<'static>
     {
         // default theme WHITE text on BLACK background
         let color = Rgb888::WHITE;

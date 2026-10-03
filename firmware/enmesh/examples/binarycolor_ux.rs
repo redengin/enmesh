@@ -56,7 +56,7 @@ fn run(
 ) {
     // create theme for pages
     use common::embedded_graphics::geometry::OriginDimensions;  // trait for size()
-    let theme = <BinaryColor as enmesh_firmware::ux::themes::ThemeForColor>::new(display.size());
+    let theme = <BinaryColor as enmesh_firmware::ux::themes::ThemeForColor>::theme(display.size());
 
     // create the page controller
     let mut page_controller = pages::PageController::new();

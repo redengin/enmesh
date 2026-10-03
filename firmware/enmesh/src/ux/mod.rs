@@ -21,7 +21,7 @@ where
     // create the theme
     let theme =
         <<DISPLAY as embedded_graphics::draw_target::DrawTarget>::Color as themes::ThemeForColor>
-            ::new(display.bounding_box().size);
+            ::theme(display.bounding_box().size);
 
     // create the page controller
     let mut page_controller = pages::PageController::new();
