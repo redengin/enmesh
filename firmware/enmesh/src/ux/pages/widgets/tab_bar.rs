@@ -27,19 +27,32 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
         draw_target.clear(theme.background).ok();
 
         // draw the tab bar
-        const SELECTED: &str = "^";
-        const NOT_SELECTED: &str = "-";
-        let mut tabs = [Text::new(NOT_SELECTED, Point::zero(), theme.text_style); TAB_COUNT];
+        let tab_size = theme.text_style.line_height() >> 1;
+        let unselected_style: PrimitiveStyle<Rgb888> = PrimitiveStyleBuilder::new()
+            .stroke_width(1)
+            .stroke_color(Rgb888::WHITE)
+            .fill_color(Rgb888::WHITE)
+            .build();
+        let unselected_tab = Rectangle::new(Point::zero(), Size{width: tab_size, height: tab_size})
+        .into_styled(unselected_style);
+        let mut tabs = [unselected_tab; TAB_COUNT];
+
         // mark the selected tab
-        tabs[self.current_tab] = Text::new(SELECTED, Point::zero(), theme.text_style);
+        let selected_style: PrimitiveStyle<Rgb888> = PrimitiveStyleBuilder::new()
+            .stroke_width(1)
+            .stroke_color(Rgb888::WHITE)
+            .fill_color(Rgb888::BLACK)
+            .build();
+        tabs[self.current_tab] = Rectangle::new(Point::zero(), Size{width: tab_size, height: tab_size})
+        .into_styled(selected_style);
 
         LinearLayout::horizontal(Views::new(&mut tabs))
             .with_spacing(DistributeFill(draw_target.bounding_box().size.width))
             .arrange()
             .align_to(
                 &draw_target.bounding_box(),
-                horizontal::Left,
-                vertical::Bottom,
+                horizontal::Center,
+                vertical::Center,
             )
             .draw(draw_target)
             .ok();

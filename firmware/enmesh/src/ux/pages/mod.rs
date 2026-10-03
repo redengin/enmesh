@@ -9,10 +9,10 @@ pub mod prelude {
     /// provide string creation
     pub use crate::alloc::string::ToString;
 
+    pub use embedded_graphics::mono_font::{self, MonoTextStyle};
+    pub use embedded_graphics::pixelcolor::*;
     /// provide embedded graphics primitives
     pub use embedded_graphics::prelude::*;
-    pub use embedded_graphics::pixelcolor::*;
-    pub use embedded_graphics::mono_font::{self, MonoTextStyle};
     pub use embedded_graphics::primitives::*;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
@@ -20,11 +20,11 @@ pub mod prelude {
     /// provide additional fonts
     pub use common::profont;
 
-    /// provide embedded layout primitives
-    pub use embedded_layout::prelude::*;
     pub use embedded_layout::layout::linear::LinearLayout;
     pub use embedded_layout::layout::linear::spacing::DistributeFill;
     pub use embedded_layout::object_chain::Chain;
+    /// provide embedded layout primitives
+    pub use embedded_layout::prelude::*;
 }
 
 /// provide the shared crates via re-export
@@ -45,6 +45,7 @@ pub struct PageController {
     tab_bar: TabBar<PAGE_COUNT>,
     battery_widget: BatteryWidget,
     needs_refresh: bool,
+    dialog_active: bool,
     // pages
     // home: home::Home,
 }
@@ -54,6 +55,7 @@ impl PageController {
             tab_bar: TabBar::<PAGE_COUNT>::new(),
             battery_widget: BatteryWidget::new(),
             needs_refresh: true,
+            dialog_active: false,
             // pages
             // home: home::Home::new(),
         }
@@ -66,13 +68,28 @@ impl PageController {
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
     ) -> bool {
-        let mut has_changed = false;
+        // refresh will always result in changes
+        let mut has_changed = self.needs_refresh;
 
-        // clear the display if needs full refresh
-        if self.needs_refresh {
-            display.clear(theme.background).ok();
-            self.needs_refresh = false;
-            has_changed = true;
+        // provide BLE pairing dialog overlay
+        use crate::state::BleStatus;
+        match model.ble_status {
+            BleStatus::Pairing { passkey: _ } => {
+                if ! self.dialog_active {
+                    self.dialog_active = true;
+                    has_changed = true;
+                }
+                // TODO use BlePairingDialog widget
+
+                // while the dialog is active don't update the page
+                return has_changed;
+            }
+            _ => {
+                if self.dialog_active {
+                    self.needs_refresh = true;
+                }
+                self.dialog_active = false;
+            }
         }
 
         // provide space for drawer
@@ -93,48 +110,47 @@ impl PageController {
             2 * theme.text_style.line_height(),
             (theme.text_style.line_height() as f32 * 0.8) as u32,
         );
-        let battery_widget_width = 2 * theme.text_style.line_height();
-        let tab_bar_width = (display.bounding_box().size.width - battery_widget_width) as i32;
+        let spacer_width = theme.text_style.line_height() / 3;
 
         // update the tab bar
         let mut tab_bar_area = display.cropped(&Rectangle {
             top_left: Point::new(
-                0,
+                spacer_width as i32,
                 (display.bounding_box().size.height - drawer_height)
                     .try_into()
                     .expect("should fit"),
             ),
             size: Size::new(
-                display.bounding_box().size.width - battery_widget_size.width,
+                display.bounding_box().size.width
+                    - spacer_width
+                    - spacer_width
+                    - battery_widget_size.width,
                 drawer_height,
             ),
         });
-        has_changed = self.tab_bar.update(&mut tab_bar_area, theme, model) || has_changed;
+        if self.needs_refresh {
+            self.tab_bar.refresh(&mut tab_bar_area, theme, model);
+        } else {
+            has_changed = self.tab_bar.update(&mut tab_bar_area, theme, model) || has_changed;
+        }
 
         // update the battery widget
         let mut battery_area = display.cropped(&Rectangle {
             top_left: Point::new(
-                tab_bar_width,
+                (display.bounding_box().size.width - battery_widget_size.width) as i32,
                 (display.bounding_box().size.height - drawer_height) as i32,
             ),
             size: battery_widget_size,
         });
-        has_changed = self.battery_widget.update(&mut battery_area, theme, model) || has_changed;
-
-        // provide BLE pairing dialog overlay
-        use crate::state::BleStatus;
-        match model.ble_status {
-            BleStatus::Pairing { passkey: _ } => {
-                // TODO use BlePairingDialog widget
-            }
-            _ => { /* ignored */ }
-        }
-
-        // screen has been refreshed
         if self.needs_refresh {
-            self.needs_refresh = false;
+            self.battery_widget.refresh(&mut battery_area, theme, model);
+        } else {
+            has_changed =
+                self.battery_widget.update(&mut battery_area, theme, model) || has_changed;
         }
 
+        // everything has been refreshed
+        self.needs_refresh = false;
         return has_changed;
     }
 
@@ -171,4 +187,3 @@ pub trait View {
         false
     }
 }
-
