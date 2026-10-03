@@ -45,7 +45,7 @@ pub struct PageController {
     tab_bar: TabBar<PAGE_COUNT>,
     battery_widget: BatteryWidget,
     needs_refresh: bool,
-    dialog_active: bool,
+    // dialog_active: bool,
     // pages
     // home: home::Home,
 }
@@ -55,7 +55,7 @@ impl PageController {
             tab_bar: TabBar::<PAGE_COUNT>::new(),
             battery_widget: BatteryWidget::new(),
             needs_refresh: true,
-            dialog_active: false,
+            // dialog_active: false,
             // pages
             // home: home::Home::new(),
         }
@@ -71,26 +71,26 @@ impl PageController {
         // refresh will always result in changes
         let mut has_changed = self.needs_refresh;
 
-        // provide BLE pairing dialog overlay
-        use crate::state::BleStatus;
-        match model.ble_status {
-            BleStatus::Pairing { passkey: _ } => {
-                if ! self.dialog_active {
-                    self.dialog_active = true;
-                    has_changed = true;
-                }
-                // TODO use BlePairingDialog widget
+        // // provide BLE pairing dialog overlay
+        // use crate::state::BleStatus;
+        // match model.ble_status {
+        //     BleStatus::Pairing { passkey: _ } => {
+        //         if !self.dialog_active {
+        //             self.dialog_active = true;
+        //             has_changed = true;
+        //         }
+        //         // TODO use BlePairingDialog widget
 
-                // while the dialog is active don't update the page
-                return has_changed;
-            }
-            _ => {
-                if self.dialog_active {
-                    self.needs_refresh = true;
-                }
-                self.dialog_active = false;
-            }
-        }
+        //         // while the dialog is active don't update the page
+        //         return has_changed;
+        //     }
+        //     _ => {
+        //         if self.dialog_active {
+        //             self.needs_refresh = true;
+        //         }
+        //         self.dialog_active = false;
+        //     }
+        // }
 
         // provide space for drawer
         let drawer_height = theme.text_style.line_height();
@@ -131,7 +131,7 @@ impl PageController {
         if self.needs_refresh {
             self.tab_bar.refresh(&mut tab_bar_area, theme, model);
         } else {
-            has_changed = self.tab_bar.update(&mut tab_bar_area, theme, model) || has_changed;
+            has_changed |= self.tab_bar.update(&mut tab_bar_area, theme, model);
         }
 
         // update the battery widget
@@ -145,8 +145,7 @@ impl PageController {
         if self.needs_refresh {
             self.battery_widget.refresh(&mut battery_area, theme, model);
         } else {
-            has_changed =
-                self.battery_widget.update(&mut battery_area, theme, model) || has_changed;
+            has_changed |= self.battery_widget.update(&mut battery_area, theme, model);
         }
 
         // everything has been refreshed

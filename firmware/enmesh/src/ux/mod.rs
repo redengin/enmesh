@@ -13,7 +13,7 @@ where
     + themes::ThemeForColor,
 {
     // create the status led
-    let status_led = status_led::StatusLed::new(led);
+    let _status_led = status_led::StatusLed::new(led);
 
     // create a button monitor
     let mut button_monitor = ButtonMonitor::new(button);
