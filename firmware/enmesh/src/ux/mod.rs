@@ -10,6 +10,7 @@ pub async fn run<DISPLAY>(
 where
     DISPLAY: BufferedDisplay,
     <DISPLAY as embedded_graphics::draw_target::DrawTarget>::Color: From<embedded_graphics::pixelcolor::Rgb888>
+    + themes::ThemeForColor,
 {
     // create the status led
     let status_led = status_led::StatusLed::new(led);
@@ -18,8 +19,9 @@ where
     let mut button_monitor = ButtonMonitor::new(button);
 
     // create the theme
-    // FIXME choose theme by display COLOR
-    let theme = themes::binary_color::new(display.bounding_box().size);
+    let theme =
+        <<DISPLAY as embedded_graphics::draw_target::DrawTarget>::Color as themes::ThemeForColor>
+            ::new(display.bounding_box().size);
 
     // create the page controller
     let mut page_controller = pages::PageController::new();

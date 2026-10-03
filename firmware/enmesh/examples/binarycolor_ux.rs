@@ -55,8 +55,9 @@ fn run(
     mut display: embedded_graphics_simulator::SimulatorDisplay<BinaryColor>,
 ) {
     // create theme for pages
-    use common::embedded_graphics::geometry::OriginDimensions;
-    let theme = enmesh_firmware::ux::themes::binary_color::new(display.size());
+    use common::embedded_graphics::geometry::OriginDimensions;  // trait for size()
+    let theme = <BinaryColor as enmesh_firmware::ux::themes::ThemeForColor>::new(display.size());
+
     // create the page controller
     let mut page_controller = pages::PageController::new();
 

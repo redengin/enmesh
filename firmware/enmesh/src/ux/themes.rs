@@ -1,6 +1,11 @@
 // provide the Page primitives
 use super::pages::prelude::*;
 
+
+pub trait ThemeForColor {
+    fn new(screen_size: Size) -> Theme<'static>;
+}
+
 pub struct Theme<'a> {
     /// default color for text and mono-icons
     pub color: Rgb888,
@@ -16,11 +21,8 @@ pub struct Theme<'a> {
 }
 
 /// provide monochrome support
-pub mod binary_color {
-    // provide the Page primitives
-    use super::super::pages::prelude::*;
-
-    pub fn new<'a>(screen_size: Size) -> super::Theme<'a>
+impl ThemeForColor for BinaryColor {
+    fn new(screen_size: Size) -> Theme<'static>
     {
         // default theme WHITE text on BLACK background
         let color = Rgb888::WHITE;
@@ -28,7 +30,7 @@ pub mod binary_color {
 
         // choose font based on display size
         return if screen_size.height <= 64 {
-            super::Theme {
+            Theme {
                 color,
                 background,
                 text_style: MonoTextStyle::new(&mono_font::ascii::FONT_8X13_BOLD, color),
@@ -37,7 +39,7 @@ pub mod binary_color {
                 small_style: MonoTextStyle::new(&mono_font::ascii::FONT_5X8, color),
             }
         } else {
-            super::Theme {
+            Theme {
                 color,
                 background,
                 text_style: MonoTextStyle::new(&mono_font::ascii::FONT_9X18_BOLD, color),
@@ -49,12 +51,9 @@ pub mod binary_color {
     }
 }
 
-/// provide full color support
-pub mod color {
-    // provide the Page primitives
-    use super::super::pages::prelude::*;
-
-    pub fn new<'a>(screen_size: Size) -> super::Theme<'a>
+/// provide monochrome support
+impl ThemeForColor for Rgb888 {
+    fn new(screen_size: Size) -> Theme<'static>
     {
         // default theme WHITE text on BLACK background
         let color = Rgb888::WHITE;
@@ -62,7 +61,7 @@ pub mod color {
 
         // choose font based on display size
         return if screen_size.height <= 64 {
-            super::Theme {
+            Theme {
                 color,
                 background,
                 text_style: MonoTextStyle::new(&mono_font::ascii::FONT_8X13_BOLD, color),
@@ -71,7 +70,7 @@ pub mod color {
                 small_style: MonoTextStyle::new(&mono_font::ascii::FONT_5X8, color),
             }
         } else {
-            super::Theme {
+            Theme {
                 color,
                 background,
                 text_style: MonoTextStyle::new(&mono_font::ascii::FONT_9X18_BOLD, color),
@@ -82,4 +81,3 @@ pub mod color {
         };
     }
 }
-
