@@ -5,6 +5,11 @@ license = "MIT"
 edition = "2024"
 publish = false
 
+[lib]
+name = "generated"
+path = "generated/lib.rs"
+
+
 [dependencies]
 common = { path = "../common" }
 meshcore = { path = "../../MeshCore" }
