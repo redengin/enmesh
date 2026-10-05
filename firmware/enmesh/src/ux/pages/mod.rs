@@ -16,6 +16,7 @@ pub mod prelude {
     pub use embedded_graphics::primitives::*;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
+    pub use embedded_graphics::image::Image;
 
     /// provide additional fonts
     pub use common::profont;

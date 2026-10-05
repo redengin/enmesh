@@ -796,6 +796,7 @@ version = "0.1.0"
 dependencies = [
  "common",
  "embedded-graphics-simulator",
+ "generated",
  "meshcore",
  "meshtastic",
  "postcard",
@@ -964,6 +965,13 @@ dependencies = [
  "futures-task",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "generated"
+version = "0.0.0"
+dependencies = [
+ "common",
 ]
 
 [[package]]

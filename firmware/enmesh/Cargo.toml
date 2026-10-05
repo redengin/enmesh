@@ -5,11 +5,6 @@ license = "MIT"
 edition = "2024"
 publish = false
 
-[lib]
-name = "generated"
-path = "generated/lib.rs"
-
-
 [dependencies]
 common = { path = "../common" }
 meshcore = { path = "../../MeshCore" }
@@ -20,6 +15,9 @@ meshtastic = { path = "../../Meshtastic" }
 serde = { version = "*", default-features = false, features = ["derive"] }
 postcard = "*"
 #-------------------------------------------------------------------------------
+
+# generated assets
+generated = { path = "generated" }
 
 [dev-dependencies]
 # ux example support
