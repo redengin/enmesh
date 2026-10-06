@@ -28,7 +28,7 @@ pub fn svg_generate(svg_file: &std::path::Path, dir: &std::path::Path, mod_rs: &
         let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
         resvg::render(
             &svg_tree,
-            resvg::usvg::Transform::default().pre_scale(scaling, scaling),
+            resvg::usvg::Transform::default().post_scale(scaling, scaling),
             &mut pixmap.as_mut(),
         );
 

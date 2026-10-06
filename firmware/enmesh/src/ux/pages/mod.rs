@@ -1,7 +1,7 @@
 /// shared Page primitives
 pub mod prelude {
     /// provide the shared crates via re-export
-    use common::*;
+    pub use common::*;
 
     /// provide View trait
     pub use super::View;
@@ -9,10 +9,10 @@ pub mod prelude {
     /// provide string creation
     pub use crate::alloc::string::ToString;
 
-    pub use embedded_graphics::mono_font::{self, MonoTextStyle};
-    pub use embedded_graphics::pixelcolor::*;
     /// provide embedded graphics primitives
     pub use embedded_graphics::prelude::*;
+    pub use embedded_graphics::mono_font::{self, MonoTextStyle};
+    pub use embedded_graphics::pixelcolor::*;
     pub use embedded_graphics::primitives::*;
     pub use embedded_graphics::text::Text;
     pub use embedded_graphics::text::renderer::TextRenderer;
@@ -21,12 +21,12 @@ pub mod prelude {
     /// provide additional fonts
     pub use common::profont;
 
+    /// provide embedded layout primitives
+    pub use embedded_layout::prelude::*;
     pub use embedded_layout::layout::linear::FixedMargin;
     pub use embedded_layout::layout::linear::LinearLayout;
     pub use embedded_layout::layout::linear::spacing::DistributeFill;
     pub use embedded_layout::object_chain::Chain;
-    /// provide embedded layout primitives
-    pub use embedded_layout::prelude::*;
     pub use embedded_layout::View as LayoutView;
 }
 

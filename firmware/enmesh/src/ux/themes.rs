@@ -13,6 +13,9 @@ pub struct Theme<'a> {
     pub h1_style: MonoTextStyle<'a, Rgb888>,
     /// small text font
     pub small_style: MonoTextStyle<'a, Rgb888>,
+
+    // image assets
+    pub enmesh_logo: tinyqoi::Qoi<'static>,
 }
 
 /// provide theme creator using display size and Color
@@ -38,6 +41,7 @@ impl ThemeForColor for BinaryColor {
                 label_style: MonoTextStyle::new(&mono_font::ascii::FONT_6X10, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
                 small_style: MonoTextStyle::new(&mono_font::ascii::FONT_5X8, color),
+                enmesh_logo: generated::images::enmesh_logo_20x20(),
             }
         } else {
             Theme {
@@ -47,6 +51,7 @@ impl ThemeForColor for BinaryColor {
                 label_style: MonoTextStyle::new(&mono_font::ascii::FONT_9X18, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_24_POINT, color),
                 small_style: MonoTextStyle::new(&profont::PROFONT_9_POINT, color),
+                enmesh_logo: generated::images::enmesh_logo_36x36(),
             }
         };
     }
@@ -69,6 +74,7 @@ impl ThemeForColor for Rgb888 {
                 label_style: MonoTextStyle::new(&mono_font::ascii::FONT_8X13, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_14_POINT, color),
                 small_style: MonoTextStyle::new(&mono_font::ascii::FONT_5X8, color),
+                enmesh_logo: generated::images::enmesh_logo_20x20(),
             }
         } else {
             Theme {
@@ -78,6 +84,7 @@ impl ThemeForColor for Rgb888 {
                 label_style: MonoTextStyle::new(&mono_font::ascii::FONT_9X18, color),
                 h1_style: MonoTextStyle::new(&profont::PROFONT_24_POINT, color),
                 small_style: MonoTextStyle::new(&profont::PROFONT_9_POINT, color),
+                enmesh_logo: generated::images::enmesh_logo_36x36(),
             }
         };
     }
