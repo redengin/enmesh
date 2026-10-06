@@ -52,9 +52,10 @@ pub struct PageController {
     tab_bar: TabBar<PAGE_COUNT>,
     battery_widget: BatteryWidget,
     needs_refresh: bool,
-    // dialog_active: bool,
     // pages
     home: home::Home,
+    // dialogs
+    ble_pairing_dialog: bool,
 }
 impl PageController {
     pub fn new() -> Self {
@@ -62,9 +63,10 @@ impl PageController {
             tab_bar: TabBar::<PAGE_COUNT>::new(),
             battery_widget: BatteryWidget::new(),
             needs_refresh: true,
-            // dialog_active: false,
             // pages
             home: home::Home::new(),
+            // dialogs
+            ble_pairing_dialog: false,
         }
     }
 
@@ -75,29 +77,27 @@ impl PageController {
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
     ) -> bool {
-        // refresh will always result in changes
         let mut has_changed = self.needs_refresh;
 
-        // // provide BLE pairing dialog overlay
-        // use crate::state::BleStatus;
-        // match model.ble_status {
-        //     BleStatus::Pairing { passkey: _ } => {
-        //         if !self.dialog_active {
-        //             self.dialog_active = true;
-        //             has_changed = true;
-        //         }
-        //         // TODO use BlePairingDialog widget
-
-        //         // while the dialog is active don't update the page
-        //         return has_changed;
-        //     }
-        //     _ => {
-        //         if self.dialog_active {
-        //             self.needs_refresh = true;
-        //         }
-        //         self.dialog_active = false;
-        //     }
-        // }
+        // show BLE pairing dialog overlay upon Pairing
+        use crate::state::BleStatus;
+        match model.ble_status {
+            BleStatus::Pairing { passkey } => {
+                if !self.ble_pairing_dialog {
+                    BlePairingDialog{passkey}.draw(display).ok();
+                    self.ble_pairing_dialog = true;
+                    has_changed = true;
+                }
+                // while the dialog is active don't update the page
+                return has_changed;
+            }
+            _ => {
+                if self.ble_pairing_dialog {
+                    self.ble_pairing_dialog = false;
+                    has_changed = true;
+                }
+            }
+        }
 
         // provide space for drawer
         let drawer_height = theme.text_style.line_height();

@@ -2,26 +2,25 @@
 use common::*;
 
 // use embedded_graphics::pixelcolor::{PixelColor, Rgb888};
+use embedded_graphics::draw_target::DrawTargetExt;
 /// UX designed for RGB888
 /// * uses embedded_graphics::draw_target::ColorCoverted to support all screens
 // use embedded_graphics::prelude::*; // provide common traits
 use embedded_graphics::pixelcolor::BinaryColor;
-use embedded_graphics::draw_target::DrawTargetExt;
 use enmesh_firmware::ux::pages;
 // use enmesh_firmware::ux::ButtonMonitor;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 fn main() -> Result<(), std::convert::Infallible> {
     use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay};
+
+    const TITLE: &str = "(SPACEBAR as button, B toggles BLE Pairing)";
 
     // create a simulated screen per the hardware
     if cfg!(feature = "example_ux-large") {
         // create a native window for the simulation
         let output_settings = OutputSettingsBuilder::new().scale(2).build();
-        let window = embedded_graphics_simulator::Window::new(
-            "Large Display (SPACEBAR as button)",
-            &output_settings,
-        );
+        let window = embedded_graphics_simulator::Window::new(TITLE, &output_settings);
 
         // create a simulation display
         let display_size = embedded_graphics::geometry::Size::new(250, 122);
@@ -34,10 +33,7 @@ fn main() -> Result<(), std::convert::Infallible> {
         let output_settings = OutputSettingsBuilder::new()
             .theme(embedded_graphics_simulator::BinaryColorTheme::OledBlue)
             .build();
-        let window = embedded_graphics_simulator::Window::new(
-            "Small Display (SPACEBAR as button)",
-            &output_settings,
-        );
+        let window = embedded_graphics_simulator::Window::new(TITLE, &output_settings);
 
         // create a simulation screen
         let display_size = embedded_graphics::geometry::Size::new(128, 64);
@@ -55,15 +51,15 @@ fn run(
     mut display: embedded_graphics_simulator::SimulatorDisplay<BinaryColor>,
 ) {
     // create theme for pages
-    use common::embedded_graphics::geometry::OriginDimensions;  // trait for size()
+    use common::embedded_graphics::geometry::OriginDimensions; // trait for size()
     let theme = <BinaryColor as enmesh_firmware::ux::themes::ThemeForColor>::theme(display.size());
 
     // create the page controller
     let mut page_controller = pages::PageController::new();
 
     // create the enmesh State (used as MVC model)
-    let state = enmesh_firmware::State::new();
- 
+    let mut state = enmesh_firmware::State::new();
+
     // create a simulated button
     use embedded_graphics_simulator::sdl2::Keycode;
     const SIMULATED_BUTTON: Keycode = Keycode::SPACE; // use spacebar as button
@@ -79,7 +75,7 @@ fn run(
         window.update(&display);
 
         // handle Simulator events
-        use embedded_graphics_simulator::SimulatorEvent;  // provide trait access
+        use embedded_graphics_simulator::SimulatorEvent; // provide trait access
         for event in window.events() {
             match event {
                 // stop running upon Quit
@@ -110,12 +106,9 @@ fn run(
                             let duration = Instant::now() - start;
                             simulated_button_down_start = None;
 
-                            if duration > Duration::from_millis(300)
-                            {
+                            if duration > Duration::from_millis(300) {
                                 page_controller.handle_event(&HidEvent::Select);
-                            }
-                            else if duration > Duration::from_millis(10)
-                            {
+                            } else if duration > Duration::from_millis(10) {
                                 page_controller.handle_event(&HidEvent::Next);
                             }
                         }
@@ -130,18 +123,23 @@ fn run(
                         }
                     } else if (keycode == Keycode::RETURN) || (keycode == Keycode::RETURN2) {
                         page_controller.handle_event(&HidEvent::Select);
+                    } else if keycode == Keycode::B {
+                        // toggle between Pairing and Connected
+                        use enmesh_firmware::state::BleStatus;
+                        state.ble_status = match state.ble_status {
+                            BleStatus::Pairing { .. } => BleStatus::Connected,
+                            _ => BleStatus::Pairing { passkey: 1234 },
+                        }
                     }
                 }
 
                 // handle touch/mouse-click events
-                SimulatorEvent::MouseButtonDown {
-                    mouse_btn,
-                    point,
-                } => {
+                SimulatorEvent::MouseButtonDown { mouse_btn, point } => {
                     use embedded_graphics_simulator::sdl2::MouseButton;
                     if mouse_btn == MouseButton::Left {
                         page_controller.handle_event(&HidEvent::Touch {
-                            x: point.x as u32, y: point.y as u32, 
+                            x: point.x as u32,
+                            y: point.y as u32,
                         });
                     }
                 }

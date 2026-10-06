@@ -11,7 +11,7 @@ pub mod prelude {
 
 /// globally shared state for firmware
 /// settings, status, etc.
-mod state;
+pub mod state;
 pub use state::{STATE, State};
 
 /// persistable settings

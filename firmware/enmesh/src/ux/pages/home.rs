@@ -41,7 +41,7 @@ impl View for Home {
         .draw(draw_target).ok();
 
         // draw the info
-        LinearLayout::horizontal(
+        LinearLayout::vertical(
         Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("WiFi:", Point::zero(), theme.text_style)).append(
