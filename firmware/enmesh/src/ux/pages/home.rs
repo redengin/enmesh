@@ -1,3 +1,5 @@
+use common::embedded_graphics::{draw_target, image::ImageRaw};
+
 /// provide the page primitives
 use crate::ux::pages::prelude::*;
 
@@ -24,10 +26,10 @@ impl View for Home {
         draw_target.clear(theme.background).ok();
 
         // show the information
-        Image::new(&generated::images::enmesh_logo_20x20(), Point::zero())
+        Image::new(&generated::images::enmesh_logo_20x20(), Point::new(30, 30))
         .draw(draw_target).ok();
 
-        // let _ = LinearLayout::vertical(
+        // LinearLayout::vertical(
         //     Chain::new(
         //         LinearLayout::horizontal(
         //             Chain::new(Text::new("enmesh", Point::zero(), theme.text_style)).append(
@@ -65,7 +67,7 @@ impl View for Home {
         //     )),
         // )
         // .arrange()
-        // .draw(draw_target);
+        // .draw(draw_target).ok();
     }
 
     fn update(

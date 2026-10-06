@@ -1,6 +1,8 @@
 /// provide write trait for File I/O
 use std::io::Write;
 
+use resvg::tiny_skia::Color;
+
 pub fn ttf_generate(
     _ttf_file: &std::path::Path,
     _dir: &std::path::Path,
@@ -23,14 +25,15 @@ pub fn svg_generate(svg_file: &std::path::Path, dir: &std::path::Path, mod_rs: &
     // create the qoi data and rust interfaces
     for height in [20, 36] {
         // render svg into sized pixmap (scaled to height)
-        let scaling = (height as f32) / svg_tree.size().height().ceil();
-        let width = (svg_tree.size().width() * scaling) as u32;
+        let scaling = (height as f32) / svg_tree.size().height();
+        let width = (svg_tree.size().width() * scaling).ceil() as u32;
         let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
         resvg::render(
             &svg_tree,
-            resvg::usvg::Transform::default(),
+            resvg::usvg::Transform::default().pre_scale(scaling, scaling),
             &mut pixmap.as_mut(),
         );
+
 
         // encode pixmap to QOI
         let qoi_data = qoi::encode_to_vec(pixmap.data(), width, height).unwrap();
