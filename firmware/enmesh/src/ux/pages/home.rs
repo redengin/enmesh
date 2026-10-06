@@ -24,6 +24,7 @@ impl View for Home {
         draw_target.clear(theme.background).ok();
 
         // show the information
+        let logo_width = generated::images::enmesh_logo_20x20().bounding_box().size.width;
         Image::new(&generated::images::enmesh_logo_20x20(), Point::zero())
         .draw(draw_target).ok();
 
@@ -34,6 +35,7 @@ impl View for Home {
         )
         .with_spacing(FixedMargin(theme.text_style.line_height().div_ceil(2) as i32))
         .arrange()
+        .translate_mut(Point::new(logo_width as i32, 0))
         .draw(draw_target).ok();
 
 

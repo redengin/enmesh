@@ -27,6 +27,7 @@ pub mod prelude {
     pub use embedded_layout::object_chain::Chain;
     /// provide embedded layout primitives
     pub use embedded_layout::prelude::*;
+    pub use embedded_layout::View as LayoutView;
 }
 
 /// provide the shared crates via re-export
