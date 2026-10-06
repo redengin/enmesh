@@ -1,8 +1,6 @@
 /// provide write trait for File I/O
 use std::io::Write;
 
-use resvg::tiny_skia::Color;
-
 pub fn ttf_generate(
     _ttf_file: &std::path::Path,
     _dir: &std::path::Path,
@@ -33,7 +31,6 @@ pub fn svg_generate(svg_file: &std::path::Path, dir: &std::path::Path, mod_rs: &
             resvg::usvg::Transform::default().pre_scale(scaling, scaling),
             &mut pixmap.as_mut(),
         );
-
 
         // encode pixmap to QOI
         let qoi_data = qoi::encode_to_vec(pixmap.data(), width, height).unwrap();
