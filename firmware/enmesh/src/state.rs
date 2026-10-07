@@ -34,8 +34,7 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         Self {
-            // FIXME bind to actual firmware version
-            firmware_version: "0.0.1",
+            firmware_version: env!("CARGO_PKG_VERSION"),
             ..Default::default()
         }
     }
@@ -98,7 +97,7 @@ impl core::fmt::Display for LoRaProtocol {
     }
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, PartialEq)]
 pub enum WiFiStatus {
     #[default]
     NotAvailable,
@@ -117,7 +116,7 @@ impl core::fmt::Display for WiFiStatus {
     }
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, PartialEq)]
 pub enum BleStatus {
     #[default]
     NotAvailable,
@@ -138,11 +137,12 @@ impl core::fmt::Display for BleStatus {
 
 #[derive(Default, Copy, Clone)]
 pub struct StorageStatus {
-    pub meshtastic: ProtocolStorageStatus,
-    pub meshcore: ProtocolStorageStatus,
-}
-#[derive(Default, Copy, Clone)]
-pub struct ProtocolStorageStatus {
     pub size: usize,
     pub used: usize,
+}
+impl StorageStatus {
+    pub fn free_percent(&self) -> usize
+    {
+        (100 * (self.size - self.used)) / (1 + self.size)
+    }
 }
