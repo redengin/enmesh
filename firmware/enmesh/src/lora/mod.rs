@@ -133,10 +133,6 @@ pub trait LoRaRf {
                     if is_clear {
                         // transmit packets
                         let mut global_state_lock = global_state.write().await;
-                        global_state_lock.current_radio_mode =
-                            crate::state::LoRaRadioMode::Transmit;
-                        drop(global_state_lock);
-
                         self.do_tx(lora_radio, lora_config).await;
                     }
                 }
@@ -148,15 +144,8 @@ pub trait LoRaRf {
         }
 
         // receive packets
-        let mut global_state_lock = global_state.write().await;
-        global_state_lock.current_radio_mode = crate::state::LoRaRadioMode::Receive;
-        drop(global_state_lock);
         self.do_rx(lora_radio, &packet_params).await;
 
-        // radio ends in standby mode
-        let mut global_state_lock = global_state.write().await;
-        global_state_lock.current_radio_mode = crate::state::LoRaRadioMode::Standby;
-        drop(global_state_lock);
     }
 
     /// default implementation should be sufficient

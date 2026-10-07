@@ -20,11 +20,6 @@ pub struct State {
 
     pub battery_state: BatteryState,
 
-    /// used by UX for display, set by lora thread
-    pub current_protocol: Option<LoRaProtocol>,
-    /// used by UX for display and LEDs, set by lora thread
-    pub current_radio_mode: LoRaRadioMode,
-
     pub wifi_status: WiFiStatus,
     pub ble_status: BleStatus,
 
