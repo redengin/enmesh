@@ -128,7 +128,7 @@ fn run(
                         use enmesh_firmware::state::BleStatus;
                         state.ble_status = match state.ble_status {
                             BleStatus::Pairing { .. } => BleStatus::Connected,
-                            _ => BleStatus::Pairing { passkey: 1234 },
+                            _ => BleStatus::Pairing { passkey: 123456 },
                         }
                     }
                 }

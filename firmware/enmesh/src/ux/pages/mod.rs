@@ -82,9 +82,9 @@ impl PageController {
         // show BLE pairing dialog overlay upon Pairing
         use crate::state::BleStatus;
         match model.ble_status {
-            BleStatus::Pairing { passkey } => {
+            BleStatus::Pairing {..} => {
                 if !self.ble_pairing_dialog {
-                    BlePairingDialog{passkey}.draw(display).ok();
+                    BlePairingDialog.refresh(display, theme, model);
                     self.ble_pairing_dialog = true;
                     has_changed = true;
                 }
@@ -170,8 +170,13 @@ impl PageController {
 
     pub fn handle_event(&mut self, event: &crate::ux::HidEvent) {
         let mut handled = false;
-        // pass the unhandled event to dialog
-        // TODO
+
+        // TODO remove dialog if active
+        // if self.ble_pairing_dialog {
+        //     self.ble_pairing_dialog = false;
+        //     self.needs_refresh = true;
+        //     handled = true;
+        // }
 
         // pass the unhandled event to the page
         if !handled {
