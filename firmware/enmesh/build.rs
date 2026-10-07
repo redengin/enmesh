@@ -5,6 +5,7 @@ use std::io::Write;
 
 fn main() {
     println!("Generating bitmaps for assets...");
+    println!("cargo:rerun-if-changed=ALWAYS");
 
     /// folder for assets
     const ASSETS_PATH: &str = "assets";
