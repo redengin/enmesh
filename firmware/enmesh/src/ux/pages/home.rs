@@ -33,21 +33,25 @@ impl View for Home {
 
         // draw the header
         Image::new(&theme.enmesh_logo, Point::zero())
-        .draw(draw_target).ok();
-        let enmesh_logo_size= theme.enmesh_logo.bounding_box().size();
+            .draw(draw_target)
+            .ok();
+        let enmesh_logo_size = theme.enmesh_logo.bounding_box().size();
         LinearLayout::horizontal(
-            Chain::new(Text::new("enmesh", Point::zero(), theme.text_style)).append(
-                Text::new(model.firmware_version, Point::zero(), theme.text_style),
-            )
+            Chain::new(Text::new("enmesh", Point::zero(), theme.text_style)).append(Text::new(
+                model.firmware_version,
+                Point::zero(),
+                theme.text_style,
+            )),
         )
         .with_spacing(FixedMargin(left_margin))
         .arrange()
         .translate_mut(Point::new(enmesh_logo_size.width as i32 + left_margin, 0))
-        .draw(draw_target).ok();
+        .draw(draw_target)
+        .ok();
 
         // draw the info
         LinearLayout::vertical(
-        Chain::new(
+            Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("WiFi:", Point::zero(), theme.label_style)).append(
                         Text::new(
@@ -77,7 +81,9 @@ impl View for Home {
                 LinearLayout::horizontal(
                     Chain::new(Text::new("Storage:", Point::zero(), theme.label_style)).append(
                         Text::new(
-                            heapless::format!(20;"{}% Free", model.storage_status.free_percent()).unwrap().as_str(),
+                            heapless::format!(20;"{}% Free", model.storage_status.free_percent())
+                                .unwrap()
+                                .as_str(),
                             Point::zero(),
                             theme.text_style,
                         ),
@@ -85,16 +91,18 @@ impl View for Home {
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
-            ))
+            )),
         )
         .arrange()
         .translate_mut(Point::new(0, enmesh_logo_size.height as i32))
-        .draw(draw_target).ok();
+        .draw(draw_target)
+        .ok();
 
         // memo the current state
         self.last_wifi_status = model.wifi_status;
         self.last_ble_status = model.ble_status;
         self.last_storage_free = model.storage_status.free_percent();
+        self.needs_refresh = false;
     }
 
     fn update(
@@ -107,16 +115,16 @@ impl View for Home {
             self.refresh(draw_target, theme, model);
             return true;
         }
-
         // refresh if model data has changed
-        if (model.wifi_status != self.last_wifi_status)
-         ||(model.ble_status != self.last_ble_status)
-         ||(model.storage_status.free_percent() != self.last_storage_free)
+        else if (model.wifi_status != self.last_wifi_status)
+            || (model.ble_status != self.last_ble_status)
+            || (model.storage_status.free_percent() != self.last_storage_free)
         {
             self.refresh(draw_target, theme, model);
             return true;
         }
-
-        return false;
+        else {
+            return false;
+        }
     }
 }

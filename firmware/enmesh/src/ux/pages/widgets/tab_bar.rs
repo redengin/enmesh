@@ -52,7 +52,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
             .align_to(
                 &draw_target.bounding_box(),
                 horizontal::Center,
-                vertical::Center,
+                vertical::Top,
             )
             .draw(draw_target)
             .ok();

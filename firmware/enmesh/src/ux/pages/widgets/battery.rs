@@ -1,15 +1,17 @@
 /// provide Page primitives
 use crate::ux::pages::prelude::*;
 
+use crate::state::BatteryState;
+
 pub struct BatteryWidget {
     needs_refresh: bool,
-    last_battery_state: crate::state::BatteryState,
+    last_battery_state: BatteryState,
 }
 impl BatteryWidget {
     pub fn new() -> Self {
         Self {
             needs_refresh: true,
-            last_battery_state: crate::state::BatteryState::NotAvailable,
+            last_battery_state: BatteryState::NotAvailable,
         }
     }
 }
@@ -20,17 +22,16 @@ impl crate::ux::pages::View for BatteryWidget {
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
     ) {
+        // clear the area
+        draw_target.clear(theme.background).ok();
+
         // draw the main part of battery icon
-        let main_width = (draw_target.bounding_box().size.width as f32 * 0.98) as u32;
-        RoundedRectangle::with_equal_corners(
-            Rectangle {
-                top_left: Point::zero(),
-                size: Size::new(main_width, draw_target.bounding_box().size.height),
-            },
-            Size::new(3, 2),
-        )
-        .draw_styled(
-            // &PrimitiveStyleBuilder::new().fill_color(theme.color).build(),
+        let body_width = (draw_target.bounding_box().size.width * 92).div_ceil(100); // 92%
+        let body = Rectangle {
+            top_left: Point::zero(),
+            size: Size::new(body_width, draw_target.bounding_box().size.height),
+        };
+        body.draw_styled(
             &PrimitiveStyleBuilder::new()
                 .stroke_width(1)
                 .stroke_color(theme.color)
@@ -39,37 +40,38 @@ impl crate::ux::pages::View for BatteryWidget {
         )
         .ok();
 
-        // draw the tip of the battery
-        Rectangle {
-            top_left: Point::new(main_width as i32, 0),
-            size: Size {
-                width: (draw_target.bounding_box().size.width - main_width),
-                height: (draw_target.bounding_box().size.height as f32 * 0.4) as u32,
-            },
-        }
-        .align_to(
-            &draw_target.bounding_box(),
-            horizontal::Right,
-            vertical::Center,
+        // draw the battery state inside the body
+        Text::new(
+            &model.battery_state.to_string(),
+            Point::zero(),
+            theme.small_style,
         )
-        .draw_styled(
-            &PrimitiveStyleBuilder::new()
-                .stroke_color(theme.background)
-                .fill_color(theme.color)
-                .build(),
-            draw_target,
-        )
-        .ok();
-
-        // draw the battery state
-        Text::new(&model.battery_state.to_string(), Point::zero(), theme.small_style)
         .align_to(
-            &draw_target.bounding_box(),
+            &body,
             horizontal::Center,
             vertical::Center,
         )
         .draw(draw_target)
         .ok();
+
+        // draw the tip of the battery
+        Rectangle {
+            top_left: Point::zero(),
+            size: Size {
+                width: (draw_target.bounding_box().size.width - body_width),
+                height: (draw_target.bounding_box().size.height * 55).div_ceil(100), // 55%
+            },
+        }
+        .align_to(&body, horizontal::LeftToRight, vertical::Center)
+        .draw_styled(
+            &PrimitiveStyleBuilder::new().fill_color(theme.color).build(),
+            draw_target,
+        )
+        .ok();
+
+        // memo state and mark as refreshed
+        self.last_battery_state = model.battery_state;
+        self.needs_refresh = false;
     }
 
     fn update(
@@ -80,9 +82,9 @@ impl crate::ux::pages::View for BatteryWidget {
     ) -> bool {
         if self.needs_refresh || (model.battery_state != self.last_battery_state) {
             self.refresh(draw_target, theme, model);
-            self.needs_refresh = false;
             return true;
         }
+
         return false;
     }
 }

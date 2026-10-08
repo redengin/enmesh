@@ -79,6 +79,10 @@ impl PageController {
     ) -> bool {
         let mut has_changed = self.needs_refresh;
 
+        if self.needs_refresh {
+            display.clear(theme.background).ok();
+        }
+
         // show BLE pairing dialog overlay upon Pairing
         use crate::state::BleStatus;
         match model.ble_status {

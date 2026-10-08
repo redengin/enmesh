@@ -1,3 +1,4 @@
+use common::embassy_time::Duration;
 // provide the common crates via re-export
 use common::*;
 
@@ -34,12 +35,12 @@ pub async fn run(
     }
 
     // create our protocol handlers
-    let mut meshtastic_handler = meshtastic::MeshtasticLoraRf {};
-    let mut meshcore_handler = meshcore::MeshCoreLoraRf {};
+    // let mut meshtastic_handler = meshtastic::MeshtasticLoraRf {};
+    // let mut meshcore_handler = meshcore::MeshCoreLoraRf {};
 
     // round robin switch between enabled protocols
-    let mut last_frequency_hz: u32 = 0;
-    loop {
+    // let mut last_frequency_hz: u32 = 0;
+    // loop {
         // let global_state_lock = global_state.read().await;
         // let meshtastic_enabled = global_state_lock.settings.meshtastic_settings.enabled;
         // let meshcore_enabled = global_state_lock.settings.meshtastic_settings.enabled;
@@ -137,5 +138,8 @@ pub async fn run(
         //     }
         //     None => unreachable!(),
         // }
+    // }
+    loop {
+        Timer::after(Duration::from_secs(1)).await;
     }
 }
