@@ -23,7 +23,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
         theme: &crate::ux::themes::Theme,
         _model: &crate::State,
     ) {
-        // clear the region
+        // clear the area
         draw_target.clear(theme.background).ok();
 
         // draw the tab bar
@@ -52,7 +52,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
             .align_to(
                 &draw_target.bounding_box(),
                 horizontal::Center,
-                vertical::Top,
+                vertical::Center,
             )
             .draw(draw_target)
             .ok();
@@ -86,7 +86,6 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
             crate::ux::HidEvent::Previous => {
                 if self.current_tab > 0 {
                     self.current_tab -= 1;
-                    self.current_tab %= TAB_COUNT;
                 }
                 else {
                     self.current_tab = TAB_COUNT - 1;

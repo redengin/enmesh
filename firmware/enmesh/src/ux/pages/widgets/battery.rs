@@ -26,7 +26,7 @@ impl crate::ux::pages::View for BatteryWidget {
         draw_target.clear(theme.background).ok();
 
         // draw the main part of battery icon
-        let body_width = (draw_target.bounding_box().size.width * 92).div_ceil(100); // 92%
+        let body_width = (draw_target.bounding_box().size.width * 90).div_ceil(100); // 90%
         let body = Rectangle {
             top_left: Point::zero(),
             size: Size::new(body_width, draw_target.bounding_box().size.height),
@@ -56,16 +56,19 @@ impl crate::ux::pages::View for BatteryWidget {
 
         // draw the tip of the battery
         Rectangle {
-            top_left: Point::zero(),
+            top_left: Point::new(-1, 0),
             size: Size {
-                width: (draw_target.bounding_box().size.width - body_width),
-                height: (draw_target.bounding_box().size.height * 55).div_ceil(100), // 55%
+                width: 1,
+                height: (body.bounding_box().size.height * 50).div_ceil(100), // 50%
             },
         }
         .align_to(&body, horizontal::LeftToRight, vertical::Center)
         .draw_styled(
-            &PrimitiveStyleBuilder::new().fill_color(theme.color).build(),
-            draw_target,
+            &PrimitiveStyleBuilder::new()
+                .stroke_width(1)
+                .stroke_color(theme.color)
+                .build(),
+             draw_target,
         )
         .ok();
 
