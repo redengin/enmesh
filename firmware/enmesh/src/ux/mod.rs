@@ -106,9 +106,9 @@ where
         }
     }
 
-    const SCAN_PERIOD_MILLIS: u64 = 33;
+    const SCAN_PERIOD_MILLIS: u64 = 10;
     const SHORT_PRESS_DURATION: Duration = Duration::from_millis(2 * Self::SCAN_PERIOD_MILLIS);
-    const LONG_PRESS_DURATION: Duration = Duration::from_millis(10 * Self::SCAN_PERIOD_MILLIS);
+    const LONG_PRESS_DURATION: Duration = Duration::from_millis(30 * Self::SCAN_PERIOD_MILLIS);
     fn scan_button(&mut self) -> Option<HidEvent>
     {
         if let Ok(is_active) = self.button.is_active() {
