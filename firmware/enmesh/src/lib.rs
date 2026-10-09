@@ -11,7 +11,7 @@ pub mod prelude {
 
 /// globally shared state for firmware
 /// settings, status, etc.
-mod state;
+pub mod state;
 pub use state::{STATE, State};
 
 /// persistable settings
@@ -34,10 +34,16 @@ pub mod ble;
 
 /// support boards that allow turning off peripherals (i.e. save power)
 pub trait PowerControl {
+    /// returns true if power enabled
+    fn is_powered(&self) -> bool
+    {
+        true
+    }
+
     fn power_off(&mut self);
 
     #[allow(async_fn_in_trait)] // usage should never use Send()
     /// must reinitialize the hardware as necessary
     async fn power_on(&mut self);
-}
 
+}

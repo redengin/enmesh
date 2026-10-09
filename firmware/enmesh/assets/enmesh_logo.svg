@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="640"
+   height="640"
+   viewBox="0 0 169.33333 169.33333"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   sodipodi:docname="enmesh_logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.35327722"
+     inkscape:cx="1017.6144"
+     inkscape:cy="556.22041"
+     inkscape:window-width="1920"
+     inkscape:window-height="1170"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 1">
+    <path
+       sodipodi:type="spiral"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:6.065;stroke-dasharray:none;stroke-opacity:1"
+       id="path8"
+       sodipodi:cx="260.02393"
+       sodipodi:cy="-30.71566"
+       sodipodi:expansion="0.80000001"
+       sodipodi:revolution="2.0688195"
+       sodipodi:radius="23.518532"
+       sodipodi:argument="-16.914782"
+       sodipodi:t0="0.10962309"
+       d="m 256.10727,-31.583885 c -1.01855,-3.371127 2.44343,-6.098328 5.48989,-6.228817 5.01301,-0.214722 8.58124,4.588569 8.37035,9.301288 -0.29011,6.482662 -6.52186,10.944017 -12.73596,10.392446 -7.86954,-0.69851 -13.2019,-8.324499 -12.32344,-15.947496 1.05992,-9.197706 10.03558,-15.37465 19.00258,-14.182772 10.47985,1.392964 17.47728,11.677233 15.98366,21.938358 -1.7066,11.7242 -13.26346,19.5209521 -24.77839,17.7355385 -4.41983,-0.6853046 -8.58786,-2.6968855 -11.90383,-5.6939005"
+       transform="matrix(-3.978941,0,0,3.5367056,1129.8088,184.90539)" />
+    <ellipse
+       style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:11.0159;stroke-dasharray:none;stroke-opacity:1"
+       id="path9"
+       cx="111.47064"
+       cy="63.266586"
+       rx="13.400259"
+       ry="12.428062" />
+  </g>
+</svg>

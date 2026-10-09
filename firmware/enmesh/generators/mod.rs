@@ -1,0 +1,61 @@
+/// provide write trait for File I/O
+use std::io::Write;
+
+pub fn ttf_generate(
+    _ttf_file: &std::path::Path,
+    _dir: &std::path::Path,
+    _mod_rs: &mut std::fs::File,
+) {
+    todo!();
+    // println!("\tGenerating font assets for {:?}", ttf_file);
+}
+
+pub fn svg_generate(svg_file: &std::path::Path, dir: &std::path::Path, mod_rs: &mut std::fs::File) {
+    println!("\tGenerating image assets for {:?}", svg_file);
+
+    let svg_data = std::fs::read(svg_file).unwrap();
+    let usvg_opt = resvg::usvg::Options::default();
+    let svg_tree = resvg::usvg::Tree::from_data(&svg_data, &usvg_opt).unwrap();
+
+    // add a new-line 
+    mod_rs.write_all(b"\n").unwrap();
+
+    // create the qoi data and rust interfaces
+    for height in [20, 36] {
+        // render svg into sized pixmap (scaled to height)
+        let scaling = (height as f32) / svg_tree.size().height();
+        let width = (svg_tree.size().width() * scaling).ceil() as u32;
+        let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
+        resvg::render(
+            &svg_tree,
+            resvg::usvg::Transform::default().post_scale(scaling, scaling),
+            &mut pixmap.as_mut(),
+        );
+
+        // encode pixmap to QOI
+        let qoi_data = qoi::encode_to_vec(pixmap.data(), width, height).unwrap();
+
+        // ensure the output dir exists
+        std::fs::create_dir_all(dir).unwrap();
+
+        // create the QOI file
+        let basename = svg_file
+            .file_stem()
+            .expect("files should always have a stem")
+            .to_str()
+            .expect("file names should be convertible to str");
+        let qoi_filename = format!("{basename}_{width}x{height}.qoi");
+        println!("\t\tGenerating {:?} for {:?}", qoi_filename, svg_file);
+        let qoi_path = dir.join(&qoi_filename);
+        let mut qoi_file = std::fs::File::create(qoi_path).unwrap();
+        qoi_file.write_all(&qoi_data).unwrap();
+
+        // provide rust method to create the embedded_graphics::Image
+        let fn_name = format!("{basename}_{width}x{height}");
+        mod_rs.write_all(format!("\
+            pub fn {fn_name}() -> tinyqoi::Qoi<'static> {{\n\
+            \ttinyqoi::Qoi::new(include_bytes!(\"{qoi_filename}\")).unwrap()\n\
+            }}\n\
+            ").as_bytes()).unwrap();
+    }
+}

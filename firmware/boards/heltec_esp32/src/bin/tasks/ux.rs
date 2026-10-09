@@ -76,7 +76,7 @@ pub async fn task_ux(
     .unwrap();
 
     // run UX handler
-    enmesh_firmware::ux::binary_color::run(global_state, display, button, led).await;
+    enmesh_firmware::ux::run(global_state, display, button, led).await;
 
     error!("UX task ended");
 }
@@ -109,6 +109,7 @@ mod display {
             DisplaySize128x64,
             ssd1306::mode::BufferedGraphicsModeAsync<DisplaySize128x64>,
         >,
+        is_powered: bool,
     }
     impl Display {
         pub fn new(
@@ -141,17 +142,24 @@ mod display {
                 n_vext_control,
                 n_reset,
                 display,
+                is_powered: false,
             }
         }
     }
 
     impl enmesh_firmware::PowerControl for Display {
+        fn is_powered(&self) -> bool
+        {
+            self.is_powered
+        }
+
         fn power_off(&mut self) {
             trace!("{TAG} powering off...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
             self.n_reset.set_low();
+            self.is_powered = false;
         }
 
         async fn power_on(&mut self) {
@@ -173,6 +181,8 @@ mod display {
                 .init()
                 .await
                 .map_err(|e| error!("{TAG} failed to initialize display: {:?}", e));
+
+            self.is_powered = true;
         }
     }
 
@@ -265,6 +275,7 @@ mod display {
                 >,
             >,
         >,
+        is_powered: bool,
     }
     impl Display {
         pub async fn new(
@@ -307,16 +318,22 @@ mod display {
             Ok(Self {
                 n_vext_control,
                 display,
+                is_powered: false,
             })
         }
     }
 
     impl enmesh_firmware::PowerControl for Display {
+        fn is_powered(&self) -> bool {
+            self.is_powered
+        }
+
         fn power_off(&mut self) {
             trace!("{TAG} powering off...");
             if let Some(pin) = &mut self.n_vext_control {
                 pin.set_high();
             }
+            self.is_powered = false;
         }
 
         #[allow(async_fn_in_trait)] // usage should never use Send()
@@ -332,6 +349,8 @@ mod display {
             // perform hardware reset and chip initialization
             let _ = self.display.init().await
                 .map_err(|e| error!("{TAG} failed ot intialized display: {:?}", e));
+
+            self.is_powered = true;
         }
     }
 

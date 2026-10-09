@@ -13,7 +13,10 @@ pub struct EnmeshStorage {
 impl EnmeshStorage {
     pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
-        let mut flash_storage = esp_storage::FlashStorage::new(flash);
+        let mut flash_storage = esp_hal::flash::Flash::new(
+            flash,
+            esp_hal::flash::Config::default(),
+        ).unwrap();
         let mut buffer = [0u8; esp_bootloader_esp_idf::partitions::PARTITION_TABLE_MAX_LEN];
         let partition_table = esp_bootloader_esp_idf::partitions::read_partition_table(
             &mut flash_storage,

@@ -18,12 +18,7 @@ pub struct State {
     /// settings (persisted in non-volatile memory)
     pub settings: crate::Settings,
 
-    pub battery_percent: u8,
-
-    /// used by UX for display, set by lora thread
-    pub current_protocol: Option<LoRaProtocol>,
-    /// used by UX for display and LEDs, set by lora thread
-    pub current_radio_mode: LoRaRadioMode,
+    pub battery_state: BatteryState,
 
     pub wifi_status: WiFiStatus,
     pub ble_status: BleStatus,
@@ -34,9 +29,23 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         Self {
-            // FIXME bind to actual firmware version
-            firmware_version: "0.0.1",
+            firmware_version: env!("CARGO_PKG_VERSION"),
             ..Default::default()
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone, PartialEq)]
+pub enum BatteryState {
+    #[default]
+    NotAvailable,
+    Available{percent_charged: u8},
+}
+impl core::fmt::Display for BatteryState {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::NotAvailable => f.write_str("N/A"),
+            Self::Available { percent_charged} => f.write_fmt(format_args!("{}", percent_charged)),
         }
     }
 }
@@ -83,7 +92,7 @@ impl core::fmt::Display for LoRaProtocol {
     }
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, PartialEq)]
 pub enum WiFiStatus {
     #[default]
     NotAvailable,
@@ -102,7 +111,7 @@ impl core::fmt::Display for WiFiStatus {
     }
 }
 
-#[derive(Default, Copy, Clone)]
+#[derive(Default, Copy, Clone, PartialEq)]
 pub enum BleStatus {
     #[default]
     NotAvailable,
@@ -123,11 +132,12 @@ impl core::fmt::Display for BleStatus {
 
 #[derive(Default, Copy, Clone)]
 pub struct StorageStatus {
-    pub meshtastic: ProtocolStorageStatus,
-    pub meshcore: ProtocolStorageStatus,
-}
-#[derive(Default, Copy, Clone)]
-pub struct ProtocolStorageStatus {
     pub size: usize,
     pub used: usize,
+}
+impl StorageStatus {
+    pub fn free_percent(&self) -> usize
+    {
+        (100 * (self.size - self.used)) / (1 + self.size)
+    }
 }

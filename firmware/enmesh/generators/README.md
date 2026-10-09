@@ -1,0 +1,1 @@
+library used by build.rs to generate bitmaps of assets

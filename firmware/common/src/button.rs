@@ -8,7 +8,6 @@ pub struct Button<PIN> {
     pin: PIN,
     active_high: bool,
 }
-
 impl<PIN: embedded_hal::digital::InputPin> Button<PIN>
 {
     pub fn active_high(pin: PIN) -> Self {
