@@ -11,15 +11,15 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::rwlock::RwLock;
 use embassy_time::{Delay, Timer};
 
-use crate::lora::LoRaRf;
-use crate::state::LoRaProtocol;
+// use crate::lora::LoRaRf;
+// use crate::state::LoRaProtocol;
 
-mod meshtastic;
-mod meshcore;
+// mod meshtastic;
+// mod meshcore;
 
 
 pub async fn run(
-    global_state: &'static RwLock<NoopRawMutex, crate::State>,
+    _global_state: &'static RwLock<NoopRawMutex, crate::State>,
     mut lora_radio: impl lora_phy::mod_traits::RadioKind,
 ) {
     debug!("{TAG} initializing radio...");

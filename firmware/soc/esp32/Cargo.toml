@@ -76,6 +76,7 @@ features = [
 # support reclaiming bootloader RAM for esp-alloc
 [dependencies.esp-bootloader-esp-idf]
 git = "https://github.com/esp-rs/esp-hal"
+features = ["embedded-storage"]
 
 [features]
 

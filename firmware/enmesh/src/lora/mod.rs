@@ -88,7 +88,7 @@ pub trait LoRaRf {
     async fn cycle(
         &mut self,
         lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
-        global_state: &'static RwLock<NoopRawMutex, crate::State>,
+        _global_state: &'static RwLock<NoopRawMutex, crate::State>,
         lora_config: &EnmeshLoRaConfig,
     ) {
         // prepare radio
@@ -132,7 +132,7 @@ pub trait LoRaRf {
                 Ok(is_clear) => {
                     if is_clear {
                         // transmit packets
-                        let mut global_state_lock = global_state.write().await;
+                        // let mut global_state_lock = global_state.write().await;
                         self.do_tx(lora_radio, lora_config).await;
                     }
                 }
