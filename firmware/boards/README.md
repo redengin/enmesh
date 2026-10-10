@@ -1,15 +1,20 @@
 Board Support
 ================================================================================
+To build and flash, the user needs to be inside the board support folder.
+```sh
+cd enmesh/firmware/boards/<board>
+```
+And then follow the instructions per the links below.
 
 [Heltec](https://heltec.org/product-category/lora)
 --------------------------------------------------------------------------------
 ### ESP32 based boards
-Board support provided at [hetltec_esp32](./heltec_esp32)
-* [WiFi LoRa 32 v3](https://heltec.org/project/wifi-lora-32-v3/) - has screen
-* [WiFi LoRa 32 v4](https://heltec.org/project/wifi-lora-32-v4/) - has screen
-* [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v2/)
-* [Wireless Tracker](https://heltec.org/project/wireless-tracker/) - has screen, GPS
-* [Wireless Paper](https://heltec.org/project/wireless-paper/) - has screen
+folder: [enmesh/firmware/boards/hetltec_esp32](./heltec_esp32/README.md)
+* Supports [WiFi LoRa 32 v3](https://heltec.org/project/wifi-lora-32-v3/),
+ [WiFi LoRa 32 v4](https://heltec.org/project/wifi-lora-32-v4/),
+ [Wireless Stick Lite](https://heltec.org/project/wireless-stick-lite-v2/),
+ [Wireless Tracker](https://heltec.org/project/wireless-tracker/),
+ [Wireless Paper](https://heltec.org/project/wireless-paper/)
 
 <!--
 ### nRF52 based boards

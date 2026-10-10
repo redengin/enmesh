@@ -1,24 +1,22 @@
-Meshcore firmware for Heltec LoRa 32
+Enmesh firmware for Heltec ESP32 platforms
 ================================================================================
-Powered by the ESP32S3 MCU and SX1262 LoRa Node chips. Integrated three wireless
-communication ways (LoRa, BLE, and Wi-Fi)， along with an on-board OLED display,
-it presents a robust, all-in-one solution.
 
-* [Heltec LoRa 32 (v3)](https://heltec.org/project/wifi-lora-32-v3/)
-* [Heltec LoRa 32 (v4)](https://heltec.org/project/wifi-lora-32-v4/)
+### Prerequisites
+* Espressif Rust (esp-rs) - see [Espressif Rust](https://github.com/esp-rs/awesome-esp-rust) documentation.
+    * [Toolchain Installation](https://docs.espressif.com/projects/rust/book/getting-started/tooling/index.html) - required to build
+    * [ESP-FLASH](https://docs.espressif.com/projects/rust/book/getting-started/tooling/espflash.html) - required to flash (i.e. cargo run)
 
 ## Usage
+see [Cargo.toml](Cargo.toml) "features" for platform names
+
+### Flash the release version
+The release version reboots the board upon panic!
 ```sh
-# flash repeater firmware
-cargo run --release
+cargo run --release --features="<platform name>"
 ```
-For debugging, don't specify "--release" - so a chip reset will not be issued
-upon a panic!.
 
-Espressif Rust (esp-rs)
-================================================================================
-see [Espressif Rust](https://github.com/esp-rs/awesome-esp-rust) documentation.
-
-#### Prerequisites
-* [Toolchain Installation](https://docs.espressif.com/projects/rust/book/getting-started/tooling/index.html) - required to build
-* [ESP-FLASH](https://docs.espressif.com/projects/rust/book/getting-started/tooling/espflash.html) - required to flash (i.e. cargo run)
+### Flash the debug version
+```sh
+ESP_LOG=debug cargo run --features="<platform name>"
+```
+ESP_LOG should follow [RUST_LOG conventions](https://docs.rs/env_logger/latest/env_logger/#enabling-logging).
