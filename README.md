@@ -3,6 +3,9 @@ What is Enmesh?
 Enmesh is a Rust implementation of LoRa mesh protocols
 (supporting Meshtatstic and Meshcore).
 
+### What does Enmesh firmware look like?
+You can run a demonstration - [see enmesh demo](./firmware/enmesh/README.md).
+
 ### Suported Boards ([see flashing instructions](./firmware/boards/README.md))
 <table>
 <thead>
@@ -86,7 +89,7 @@ over [WiFi](https://en.wikipedia.org/wiki/Wi-Fi) - supporting services like
 Repository Overview
 ================================================================================
 * firmware - board support for common hardware
-  - boards - full flashable binaries of Enmesh
+  - boards - flashable implementations of Enmesh
   - soc/* - Rust HALs for LoRa platforms
   - common - shared Rust cargo used by Enmesh
   - enmesh - board agnostic implementation of Enmesh
