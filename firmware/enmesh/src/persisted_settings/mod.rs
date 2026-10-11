@@ -9,56 +9,39 @@ const TAG: &str = "[PersistedSettings]";
 use crate::prelude::*;
 
 pub struct PersistedSettingsManager {
-    // FIXME
-    // settings_partition_a: Option<&'static mut impl crate::storage::Storage>,
-    // settings_partition_b: Option<&'static mut impl crate::storage::Storage>,
-    id: u8,
-    current_settings: Option<crate::Settings>,
+    persisted_settings: Option<PersistedSettings>,
 }
 impl PersistedSettingsManager {
     /// loads the persisted settings and updates the global settings
     pub async fn init(
         global_state: &'static RwLock<NoopRawMutex, crate::State>,
-        mut settings_partition_a: Option<&mut impl crate::storage::Storage>,
-        mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
+        settings_partition_a: Option<&mut impl crate::storage::Storage>,
+        settings_partition_b: Option<&mut impl crate::storage::Storage>,
     ) -> Self {
-        // load the persisted settings
-        let mut id: u8 = 0;
-        let mut current_settings: Option<crate::Settings> = None;
-        {
-            use core::ops::DerefMut;
+        // try loading settings from parition A
+        let persisted_settings_a = match settings_partition_a {
+            Some(partition) => PersistedSettings::load(partition),
+            None => None,
+        };
 
-            let persisted_settings_a: Option<PersistedSettings> = match settings_partition_a {
-                Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
-                None => None,
-            };
-            let persisted_settings_b: Option<PersistedSettings> = match settings_partition_b {
-                Some(ref mut p) => PersistedSettings::load(p.deref_mut()),
-                None => None,
-            };
+        // try loading settings from parition B
+        let persisted_settings_b = match settings_partition_b {
+            Some(partition) => PersistedSettings::load(partition),
+            None => None,
+        };
 
-            // choose most recent settings
-            if let Some(latest) =
-                choose_latest_settings(&persisted_settings_a, &persisted_settings_b)
-            {
-                // use the returned tuple to update our state
-                id = latest.0;
-                current_settings = Some(latest.1);
+        // choose latest persisted settings
+        let persisted_settings =
+            choose_latest_settings(&persisted_settings_a, &persisted_settings_b);
 
-                // update the global state
-                let mut global_state_lock = global_state.write().await;
-                global_state_lock.settings = current_settings.clone().unwrap();
-                drop(global_state_lock);
-            }
+        // update global state with settings
+        if let Some(ref persistant_settings) = persisted_settings {
+            let mut global_state_lock = global_state.write().await;
+            global_state_lock.settings = persistant_settings.settings.clone();
+            drop(global_state_lock);
         }
 
-        Self {
-            // FIXME
-            // settings_partition_a,
-            // settings_partition_b,
-            id,
-            current_settings,
-        }
+        Self { persisted_settings }
     }
 
     /// periodically persists updated settings
@@ -72,43 +55,40 @@ impl PersistedSettingsManager {
         // * allows settings changes to coalesce over a short duration
         const PERSISTED_SETTINGS_UPDATE_PERIOD: Duration = Duration::from_secs(10);
         loop {
-            // compare the "active"
+            // grab a copy of the current state
             let global_state_lock = global_state.read().await;
             let active_settings = global_state_lock.settings.clone();
             drop(global_state_lock);
-            if self.current_settings.is_none()
-                || (self.current_settings.clone().unwrap() != active_settings)
-            {
-                // update the persisted settings
-                self.id += 1;
-                self.current_settings = Some(active_settings.clone());
 
-                // store the persisted settings
-                use core::ops::DerefMut;
-                const PERSISTED_SIZE: usize =
-                    PERSISTED_SETTINGS_HEADER_BUFFER_SZ + PERSISTED_SETTINGS_BUFFER_SZ;
-                match settings_partition_a {
-                    Some(ref mut p) => {
-                        // erase the storage
-                        let sector_count =
-                            crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
-                        let _ = p.erase_sectors(0, sector_count);
-                        // write the settings
-                        let _ = PersistedSettings::store(p.deref_mut(), self.id, &active_settings);
+            // persist changed settings
+            match &self.persisted_settings {
+                Some(persisted_settings) => {
+                    // store settings if changed
+                    if persisted_settings.settings != active_settings {
+                        // persist the new settings under the next id
+                        let id = persisted_settings.id + 1;
+
+                        // store the new settings on partition A
+                        if let Some(ref mut partition) = settings_partition_a {
+                            PersistedSettings::store(*partition, id, &active_settings);
+                        }
+                        // store the new settings on partition B
+                        if let Some(ref mut partition) = settings_partition_b {
+                            PersistedSettings::store(*partition, id, &active_settings);
+                        }
                     }
-                    None => {}
-                };
-                match settings_partition_b {
-                    Some(ref mut p) => {
-                        // erase the storage
-                        let sector_count =
-                            crate::storage::utils::sector_count(PERSISTED_SIZE, p.sector_size());
-                        let _ = p.erase_sectors(0, sector_count);
-                        // write the settings
-                        let _ = PersistedSettings::store(p.deref_mut(), self.id, &active_settings);
+                }
+                None => {
+                    let id = 0;
+                    // store the settings on partition A
+                    if let Some(ref mut partition) = settings_partition_a {
+                        PersistedSettings::store(*partition, id, &active_settings);
                     }
-                    None => {}
-                };
+                    // store the settings on partition B
+                    if let Some(ref mut partition) = settings_partition_b {
+                        PersistedSettings::store(*partition, id, &active_settings);
+                    }
+                }
             }
 
             // wait for the next period
@@ -117,32 +97,31 @@ impl PersistedSettingsManager {
     }
 }
 
-/// returns tuple (id, settings)
-/// * id - latest id from either of the persisted settings
+/// returns latest version of persisted settings or None
 fn choose_latest_settings(
     settings_a: &Option<PersistedSettings>,
     settings_b: &Option<PersistedSettings>,
-) -> Option<(u8, crate::Settings)> {
+) -> Option<PersistedSettings> {
     if let Some(a) = settings_a {
         if let Some(b) = settings_b {
             // support wrapping max id
             if (a.id == u8::MIN) && (b.id == u8::MAX) {
-                return Some((a.id, a.settings.clone()));
+                return Some(a.clone());
             } else if (b.id == u8::MIN) && (a.id == u8::MAX) {
-                return Some((b.id, b.settings.clone()));
+                return Some(b.clone());
             }
             // support max id
             else if a.id > b.id {
-                return Some((a.id, a.settings.clone()));
+                return Some(a.clone());
             } else {
-                return Some((b.id, b.settings.clone()));
+                return Some(b.clone());
             }
         }
         // only A so return A
-        return Some((a.id, a.settings.clone()));
+        return Some(a.clone());
     } else if let Some(b) = settings_b {
         // only B so return B
-        return Some((b.id, b.settings.clone()));
+        return Some(b.clone());
     }
 
     // no persisted settings
@@ -157,12 +136,12 @@ const PERSISTED_SETTINGS_SZ: usize = 100;
 /// size (in bytes) of the buffer (padded for generic alignment)
 const PERSISTED_SETTINGS_BUFFER_SZ: usize =
     crate::storage::utils::buffer_size(PERSISTED_SETTINGS_SZ, crate::storage::WordSize::max());
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize, Clone)]
 struct PersistedSettings {
     /// The id is used to find the most recent copy of the settings</summary>
     /// * This implementation uses sequential ids (i.e. increment by one with wrap-around support)
-    id: u8,
-    settings: crate::Settings,
+    pub id: u8,
+    pub settings: crate::Settings,
 }
 
 // provide support for converting older versions of persisted settings
@@ -231,13 +210,9 @@ impl PersistedSettings {
         settings_partition: &mut impl crate::storage::Storage,
         next_id: u8,
         settings: &crate::Settings,
-    ) -> Result<(), ()> {
-        // write the header to storage
-        let header = PersistedSettingsHeader::store(settings_partition);
-        if header.is_err() {
-            // header write failed
-            return Err(());
-        }
+    ) {
+        // erase the partition to prepare for writing
+        settings_partition.erase().ok();
 
         // serialize the data
         let settings = PersistedSettings {
@@ -250,27 +225,30 @@ impl PersistedSettings {
                 debug!("{TAG} serialization successful");
                 if PERSISTED_SETTINGS_SZ < bytes.len() {
                     // (see test validate_PERSISTED_SETTINGS_SZ to find correct value)
-                    warn!("{TAG} incorrect PERSISTED_SETTINGS_SZ \
-                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})", bytes.len());
+                    warn!(
+                        "{TAG} incorrect PERSISTED_SETTINGS_SZ \
+                           (is: {PERSISTED_SETTINGS_SZ}, should be at least: {})",
+                        bytes.len()
+                    );
                 }
             }
             Err(e) => {
                 error!(
                     "{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_BUFFER_SZ}]: {e}"
                 );
-                return Err(());
             }
         }
+        
+        // write the header to storage
+        PersistedSettingsHeader::store(settings_partition);
 
         // write the data to storage
-        return match settings_partition.write(PERSISTED_SETTINGS_HEADER_BUFFER_SZ, &buffer) {
+        match settings_partition.write(PERSISTED_SETTINGS_HEADER_BUFFER_SZ, &buffer) {
             Ok(()) => {
                 debug!("{TAG} wrote to storage");
-                Ok(())
             }
             Err(e) => {
                 error!("{TAG} failed write to storage: {:?}", e);
-                Err(())
             }
         };
     }

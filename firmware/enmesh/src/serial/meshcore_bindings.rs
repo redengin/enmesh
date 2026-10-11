@@ -128,13 +128,8 @@ pub(crate) async fn handle<'a>(
         }
 
         CliCommands::GetHardwareName => {
-            let global_state_lock = global_state.read().await;
-            let hardware_name = global_state_lock.hardware_name;
-            drop(global_state_lock);
-
-            let mut message: heapless::String<STRING_MAX> = heapless::String::new();
-            message.push_str(hardware_name).unwrap();
-            Ok(Some(message))
+            // TODO
+            Err("not implemented")
         }
 
         CliCommands::GetRadioConfig => {

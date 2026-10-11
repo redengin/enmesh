@@ -1,5 +1,3 @@
-mod server;
-
 // provide the common crates via re-export
 use common::*;
 
@@ -17,6 +15,9 @@ use trouble_host::prelude::*;
 // provide additional sync primitives
 use embassy_futures::join::join;
 
+/// BLE server impelementation
+mod server;
+
 pub async fn run(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     ble_controller: impl trouble_host::Controller,
@@ -26,7 +27,7 @@ pub async fn run(
 
     // create the stack
     const CONNECTIONS_MAX: usize = 1;
-    const L2CAP_CHANNELS_MAX: usize = 1; // FIXME
+    const L2CAP_CHANNELS_MAX: usize = 1; // FIXME what does this do?
     let mut resources: trouble_host::HostResources<
         DefaultPacketPool,
         CONNECTIONS_MAX,
@@ -102,7 +103,7 @@ pub async fn run(
 async fn ble_task<C: Controller, P: PacketPool>(mut runner: Runner<'_, C, P>) {
     loop {
         if let Err(e) = runner.run().await {
-            panic!("{TAG} error: {:?}", e);
+            error!("{TAG} error: {:?}", e);
         }
     }
 }

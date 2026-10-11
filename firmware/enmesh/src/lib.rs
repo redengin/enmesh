@@ -45,5 +45,4 @@ pub trait PowerControl {
     #[allow(async_fn_in_trait)] // usage should never use Send()
     /// must reinitialize the hardware as necessary
     async fn power_on(&mut self);
-
 }

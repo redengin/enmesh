@@ -1,6 +1,7 @@
 // provide the shared crates via re-export
 use common::*;
 
+use enmesh_firmware::storage::utils::sector_count;
 // provide logging primitives
 use log::*;
 const TAG: &str = "[enmesh_storage]";
@@ -13,10 +14,8 @@ pub struct EnmeshStorage {
 impl EnmeshStorage {
     pub fn open(flash: esp_hal::peripherals::FLASH<'static>) -> Self {
         // get the partition table
-        let mut flash_storage = esp_hal::flash::Flash::new(
-            flash,
-            esp_hal::flash::Config::default(),
-        ).unwrap();
+        let mut flash_storage =
+            esp_hal::flash::Flash::new(flash, esp_hal::flash::Config::default()).unwrap();
         let mut buffer = [0u8; esp_bootloader_esp_idf::partitions::PARTITION_TABLE_MAX_LEN];
         let partition_table = esp_bootloader_esp_idf::partitions::read_partition_table(
             &mut flash_storage,
@@ -75,7 +74,6 @@ impl EnmeshStorage {
     }
 }
 
-// #[derive(Copy, Clone)]
 pub struct Partition {
     pub address: usize,
     pub capacity: usize,
@@ -152,6 +150,11 @@ impl enmesh_firmware::storage::Storage for Partition {
             });
         }
         Ok(())
+    }
+
+    fn erase(&mut self) -> Result<(), Self::StorageError> {
+        let sector_count = self.capacity / self.sector_size();
+        self.erase_sectors(0, sector_count)
     }
 
     fn erase_sectors(

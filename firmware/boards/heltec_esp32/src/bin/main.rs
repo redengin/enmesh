@@ -44,12 +44,7 @@ async fn main(spawner: embassy_executor::Spawner) {
     // intialize global state
     debug!("initializing global state...");
     // create globally shared state
-    let state = enmesh_firmware::State {
-        firmware_version: env!("CARGO_PKG_VERSION"),
-        hardware_name: "Heltec", // FIXME provide a more descriptive string
-        ..Default::default()
-    };
-    let global_state = enmesh_firmware::STATE.init(RwLock::new(state));
+    let global_state = enmesh_firmware::STATE.init(RwLock::new(enmesh_firmware::State::new()));
 
     // Map the LoRa hardware interfaces to peripherals
     //--------------------------------------------------------------------------------

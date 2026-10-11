@@ -13,7 +13,6 @@ pub static STATE: static_cell::StaticCell<RwLock<NoopRawMutex, State>> =
 #[derive(Default, Clone)]
 pub struct State {
     pub firmware_version: &'static str,
-    pub hardware_name: &'static str,
 
     /// settings (persisted in non-volatile memory)
     pub settings: crate::Settings,
@@ -39,13 +38,15 @@ impl State {
 pub enum BatteryState {
     #[default]
     NotAvailable,
-    Available{percent_charged: u8},
+    Available {
+        percent_charged: u8,
+    },
 }
 impl core::fmt::Display for BatteryState {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::NotAvailable => f.write_str("N/A"),
-            Self::Available { percent_charged} => f.write_fmt(format_args!("{}", percent_charged)),
+            Self::Available { percent_charged } => f.write_fmt(format_args!("{}", percent_charged)),
         }
     }
 }
@@ -80,7 +81,7 @@ impl LoRaProtocol {
         return match self {
             LoRaProtocol::Meshtastic => LoRaProtocol::MeshCore,
             LoRaProtocol::MeshCore => LoRaProtocol::Meshtastic,
-        }
+        };
     }
 }
 impl core::fmt::Display for LoRaProtocol {
@@ -116,7 +117,9 @@ pub enum BleStatus {
     #[default]
     NotAvailable,
     Advertising,
-    Pairing{passkey: u32},
+    Pairing {
+        passkey: u32,
+    },
     Connected,
 }
 impl core::fmt::Display for BleStatus {
@@ -124,7 +127,7 @@ impl core::fmt::Display for BleStatus {
         match self {
             Self::NotAvailable => f.write_str("N/A"),
             Self::Advertising => f.write_str("advertising"),
-            Self::Pairing { passkey: _ }=> f.write_str("pairing"),
+            Self::Pairing { passkey: _ } => f.write_str("pairing"),
             Self::Connected => f.write_str("connected"),
         }
     }
@@ -132,12 +135,11 @@ impl core::fmt::Display for BleStatus {
 
 #[derive(Default, Copy, Clone)]
 pub struct StorageStatus {
-    pub size: usize,
+    pub capacity: usize,
     pub used: usize,
 }
 impl StorageStatus {
-    pub fn free_percent(&self) -> usize
-    {
-        (100 * (self.size - self.used)) / (1 + self.size)
+    pub fn free_percent(&self) -> usize {
+        (100 * (self.capacity - self.used)) / (1 + self.capacity)
     }
 }

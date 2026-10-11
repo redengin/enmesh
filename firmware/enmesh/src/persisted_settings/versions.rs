@@ -76,7 +76,7 @@ impl PersistedSettingsHeader {
 
     /// Write the persisted settings header to storage
     /// * assumes destination is erased
-    pub fn store(settings_partition: &mut impl crate::storage::Storage) -> Result<(), ()> {
+    pub fn store(settings_partition: &mut impl crate::storage::Storage) {
         // serialize the data
         let mut buffer = [0u8; PERSISTED_SETTINGS_HEADER_BUFFER_SZ];
         let header = PersistedSettingsHeader::new();
@@ -93,7 +93,6 @@ impl PersistedSettingsHeader {
             }
             Err(e) => {
                 error!("{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_HEADER_BUFFER_SZ}]: {e}");
-                return Err(());
             }
         }
 
@@ -101,11 +100,9 @@ impl PersistedSettingsHeader {
         return match settings_partition.write(0, &buffer) {
             Ok(()) => {
                 debug!("{TAG} wrote to storage");
-                Ok(())
             }
             Err(e) => {
                 error!("{TAG} failed write to storage: {:?}", e);
-                Err(())
             }
         };
     }

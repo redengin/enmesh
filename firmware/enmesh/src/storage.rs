@@ -1,4 +1,6 @@
 pub trait Storage {
+    type StorageError: core::fmt::Debug;
+
     /// size in bytes of the storage region
     fn capacity(&self) -> usize;
 
@@ -10,8 +12,6 @@ pub trait Storage {
     /// * read/write buffers must sized to this granularity
     fn word_size(&self) -> WordSize;
 
-    type StorageError: core::fmt::Debug;
-
     /// * offset - must be aligned to word_size()
     /// * buffer - must be sized to N*word_size()
     fn read(&mut self, offset: usize, buffer: &mut [u8]) -> Result<(), Self::StorageError>;
@@ -20,12 +20,14 @@ pub trait Storage {
     /// * buffer - must be sized to N*word_size()
     fn write(&mut self, offset: usize, buffer: &[u8]) -> Result<(), Self::StorageError>;
 
+    /// erase the whole partition
+    fn erase(&mut self) -> Result<(), Self::StorageError>;
+
     fn erase_sectors(
         &mut self,
         start_sector: usize,
         sector_count: usize,
     ) -> Result<(), Self::StorageError>;
-
 }
 
 #[derive(Clone, Copy)]
@@ -86,40 +88,3 @@ mod tests {
         }
     }
 }
-
-// pub trait AsyncStorage {
-//     type StorageError: core::fmt::Debug;
-
-//     fn read_async(&mut self, offset: usize, buffer: &mut[u8])
-//         -> impl core::future::Future<Output=Result<(), Self::Error>> + Send;
-
-//     fn write_async(&mut self, offset: usize, buffer: &[u8])
-//         -> impl core::future::Future<Output=Result<(), Self::Error>> + Send;
-
-//     fn erase_async(&mut self, sector_start: usize, sector_count: usize)
-//         -> impl core::future::Future<Output=Result<(), Self::Error>> + Send;
-
-//     fn capacity(&self) -> usize;
-
-//     fn sector_size(&self) -> usize;
-// }
-
-// /// generic trait for persistables
-// ///
-// /// Persitables have no need to support functionality like roll-back.
-// /// * implementations **shall**
-// ///     * be able to verify the integrity of the persitable
-// ///         - e.g. CRC, ECC, etc.
-// ///     * be able to identify the version of the persistable
-// ///     * convert the persistable to the current version
-// ///         - invoking a store() upon conversion
-// /// * implementations *should*
-// ///     * manage multiple persisted copies for robustness
-// pub trait Persistable {
-//     type Item;
-
-//     fn load() -> Option<Self::Item>;
-
-//     /// update all persistable's copies
-//     fn store(settings: &Self::Item) -> Result<(), crate::storage::StorageError>;
-// }

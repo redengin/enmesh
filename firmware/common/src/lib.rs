@@ -7,27 +7,34 @@ pub use log;
 
 // embedded utils
 //------------------------------------------------------------------------------
-pub use static_cell;
-pub use heapless;
 pub use embedded_hal;
 pub use embedded_hal_async;
 pub use embedded_hal_bus;
+pub use static_cell;
+pub use heapless;
+pub use embedded_graphics;
+pub use embedded_layout;
 //------------------------------------------------------------------------------
 
 // embassy RTOS support
 //------------------------------------------------------------------------------
-pub use embassy_embedded_hal;
 pub use embassy_executor;
 pub use embassy_time;
+pub use embassy_embedded_hal;
 pub use embassy_sync;
 pub use embassy_futures;
 pub use embassy_usb;
 //------------------------------------------------------------------------------
 
-// graphics utils
+// LoRa support
+//..............................................................................
+pub use lora_modulation;
+pub use lora_phy;
+//..............................................................................
+
+// graphics support
 //------------------------------------------------------------------------------
-pub use embedded_graphics;
-pub use embedded_layout;
+pub use display_interface;
 pub use profont;
 pub use tinyqoi;
 //------------------------------------------------------------------------------
@@ -37,17 +44,6 @@ pub use tinyqoi;
 pub mod button;
 pub mod led;
 //..............................................................................
-
-// LoRa hardware 
-//..............................................................................
-pub use lora_modulation;
-pub use lora_phy;
-//..............................................................................
-
-// Display hardware
-//..............................................................................
-pub use display_interface;
-//------------------------------------------------------------------------------
 
 // BLE Host
 //------------------------------------------------------------------------------
