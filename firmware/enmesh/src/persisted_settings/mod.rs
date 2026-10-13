@@ -1,11 +1,12 @@
-// provide the shared crates via re-export
+/// provide the shared crates via re-export
 use common::*;
 
-// provide logging primitives
+/// provide logging primitives
+#[allow(unused_imports)]
 use log::*;
 const TAG: &str = "[PersistedSettings]";
 
-// provide enmesh firmware primitives
+/// provide enmesh firmware primitives
 use crate::prelude::*;
 
 pub struct PersistedSettingsManager {
@@ -45,14 +46,14 @@ impl PersistedSettingsManager {
     }
 
     /// periodically persists updated settings
+    /// * allows settings changes to coalesce over a short duration
     pub async fn run(
         &mut self,
         global_state: &'static RwLock<NoopRawMutex, crate::State>,
         mut settings_partition_a: Option<&mut impl crate::storage::Storage>,
         mut settings_partition_b: Option<&mut impl crate::storage::Storage>,
     ) {
-        // update the persisted settings periodically
-        // * allows settings changes to coalesce over a short duration
+        // update rate
         const PERSISTED_SETTINGS_UPDATE_PERIOD: Duration = Duration::from_secs(10);
         loop {
             // grab a copy of the current state
@@ -61,34 +62,33 @@ impl PersistedSettingsManager {
             drop(global_state_lock);
 
             // persist changed settings
-            match &self.persisted_settings {
-                Some(persisted_settings) => {
-                    // store settings if changed
-                    if persisted_settings.settings != active_settings {
-                        // persist the new settings under the next id
-                        let id = persisted_settings.id + 1;
+            let needs_update =
+                if let Some(persisted_settings) = &self.persisted_settings
+                {
+                    persisted_settings.settings != active_settings
+                }
+                else {
+                    true
+                };
 
-                        // store the new settings on partition A
-                        if let Some(ref mut partition) = settings_partition_a {
-                            PersistedSettings::store(*partition, id, &active_settings);
-                        }
-                        // store the new settings on partition B
-                        if let Some(ref mut partition) = settings_partition_b {
-                            PersistedSettings::store(*partition, id, &active_settings);
-                        }
-                    }
+            if needs_update {
+                // persist the new settings under the next id
+                let id = if let Some(persisted_settings) = &self.persisted_settings {
+                    persisted_settings.id + 1
                 }
-                None => {
-                    let id = 0;
-                    // store the settings on partition A
-                    if let Some(ref mut partition) = settings_partition_a {
-                        PersistedSettings::store(*partition, id, &active_settings);
-                    }
-                    // store the settings on partition B
-                    if let Some(ref mut partition) = settings_partition_b {
-                        PersistedSettings::store(*partition, id, &active_settings);
-                    }
+                else { 0 };
+
+                // store the new settings on partition A
+                if let Some(ref mut partition) = settings_partition_a {
+                    PersistedSettings::store(*partition, id, &active_settings);
                 }
+                // store the new settings on partition B
+                if let Some(ref mut partition) = settings_partition_b {
+                    PersistedSettings::store(*partition, id, &active_settings);
+                }
+
+                // memo our new persisted settings
+                self.persisted_settings = Some(PersistedSettings{id, settings: active_settings});
             }
 
             // wait for the next period
@@ -159,7 +159,7 @@ impl PersistedSettings {
                         debug!("{TAG} header found using current version");
                     }
                     _ => {
-                        error!("{TAG} support for other versions not implemented");
+                        error!("{TAG} support for backward compatabilty not implemented");
                         // TODO versions::PersistedSettings_v1::load(settings_partition) -> Option<PersistedSettings>
                         // implement just like below but convert previous PersistedSettings version to current
                         return None;
@@ -260,26 +260,6 @@ impl PersistedSettings {
 mod tests {
     use super::*;
 
-    // impl crate::Settings {
-    //     // FIXME postcard appears to use some level of compression
-    //     // replace all Option<> with Some()
-    //     fn default_full() -> Self {
-    //         use crate::settings::BleSettings;
-
-    //         // fill the ble settings
-    //         const DUMMY_BOND: crate::settings::BleLongTermKey = u128::MAX;
-    //         let ble_settings = BleSettings {
-    //             oldest_bond_index: 1,
-    //             bonds: [Some(DUMMY_BOND); crate::settings::MAX_BLE_BONDS as usize],
-    //         };
-
-    //         Self {
-    //             ble_settings,
-    //             ..Default::default()
-    //         }
-    //     }
-    // }
-
     #[test]
     #[allow(non_snake_case)]
     fn validate_PERSISTED_SETTINGS_SZ() {
@@ -346,7 +326,7 @@ mod tests {
             let chosen = choose_latest_settings(&Some(settings_a), &Some(settings_b));
             assert!(chosen.is_some(), "no choice made for choose(Some, Some)");
             if let Some(choice) = chosen {
-                assert_eq!(core::cmp::max(ID_A, ID_B), choice.0);
+                assert_eq!(core::cmp::max(ID_A, ID_B), choice.id);
             }
         }
         // choose(Some, Some) wrapping sequential id
@@ -365,7 +345,7 @@ mod tests {
             let chosen = choose_latest_settings(&Some(settings_a), &Some(settings_b));
             assert!(chosen.is_some(), "no choice made for choose(Some, Some)");
             if let Some(choice) = chosen {
-                assert_eq!(ID_A, choice.0);
+                assert_eq!(ID_A, choice.id);
             }
         }
     }

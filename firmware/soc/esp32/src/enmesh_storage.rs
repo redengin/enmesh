@@ -1,7 +1,6 @@
 // provide the shared crates via re-export
 use common::*;
 
-use enmesh_firmware::storage::utils::sector_count;
 // provide logging primitives
 use log::*;
 const TAG: &str = "[enmesh_storage]";
