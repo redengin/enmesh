@@ -1,26 +1,29 @@
-// provide the page common crates
+/// provide the page primitives
 use crate::ux::pages::prelude::*;
 
-use alloc::string::ToString;
-
-pub(crate) struct MeshCore{}
-
+#[derive(Default)]
+pub struct MeshCore {
+    needs_refresh: bool,
+    // memo'd model state
+}
 impl MeshCore {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            needs_refresh: true,
+            ..Default::default()
+        }
     }
 }
 
-impl crate::ux::View for MeshCore {
-    /// repaint the whole display
+impl View for MeshCore {
     fn refresh(
         &mut self,
-        display: &mut impl DrawTargetExt<Color = Rgb888>,
+        draw_target: &mut impl DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
+        theme: &crate::ux::themes::Theme,
         model: &crate::State,
-        theme: &Theme,
     ) {
-        // clear the display
-        let _ = display.clear(theme.background.into());
+        // clear the area
+        draw_target.clear(theme.background).ok();
 
         // show the information
         let _ = LinearLayout::vertical(
@@ -59,12 +62,37 @@ impl crate::ux::View for MeshCore {
             ))
         )
         .arrange()
-        .draw(display);
+        .draw(draw_target);
+
+
+        // memo the current state
+        // self.last_wifi_status = model.wifi_status;
+        // self.last_ble_status = model.ble_status;
+        // self.last_storage_free = model.storage_status.free_percent();
+        self.needs_refresh = false;
     }
 
-    /// handle HidEvent
-    fn handle_event(&mut self, _event: &HidEvent) -> bool {
-        // no events handled
-        false
+    fn update(
+        &mut self,
+        draw_target: &mut impl DrawTarget<Color = common::embedded_graphics::pixelcolor::Rgb888>,
+        theme: &crate::ux::themes::Theme,
+        model: &crate::State,
+    ) -> bool {
+        if self.needs_refresh {
+            self.refresh(draw_target, theme, model);
+            return true;
+        }
+        // // refresh if model data has changed
+        // else if (model.wifi_status != self.last_wifi_status)
+        //     || (model.ble_status != self.last_ble_status)
+        //     || (model.storage_status.free_percent() != self.last_storage_free)
+        // {
+        //     self.refresh(draw_target, theme, model);
+        //     return true;
+        // }
+        else {
+            return false;
+        }
     }
 }
+

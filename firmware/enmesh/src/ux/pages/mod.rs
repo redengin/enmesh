@@ -47,14 +47,18 @@ use crate::ux::pages::widgets::prelude::*;
 
 /// provide pages
 mod home;
+mod meshcore;
+mod meshtastic;
 
-const PAGE_COUNT: usize = 4;
+const PAGE_COUNT: usize = 3;
 pub struct PageController {
     tab_bar: TabBar<PAGE_COUNT>,
     battery_widget: BatteryWidget,
     needs_refresh: bool,
     // pages
     home: home::Home,
+    meshcore: meshcore::MeshCore,
+    meshtastic: meshtastic::Meshtastic,
     // dialogs
     ble_pairing_dialog: bool,
 }
@@ -66,6 +70,8 @@ impl PageController {
             needs_refresh: true,
             // pages
             home: home::Home::new(),
+            meshcore: meshcore::MeshCore::new(),
+            meshtastic: meshtastic::Meshtastic::new(),
             // dialogs
             ble_pairing_dialog: false,
         }
@@ -116,6 +122,20 @@ impl PageController {
             ),
         });
         match self.tab_bar.current_tab {
+            1 => {
+                if self.needs_refresh {
+                    self.meshcore.refresh(&mut page_area, theme, model);
+                } else {
+                    has_changed |= self.meshcore.update(&mut page_area, theme, model);
+                }
+            }
+            2 => {
+                if self.needs_refresh {
+                    self.meshtastic.refresh(&mut page_area, theme, model);
+                } else {
+                    has_changed |= self.meshtastic.update(&mut page_area, theme, model);
+                }
+            }
             _ => {
                 if self.needs_refresh {
                     self.home.refresh(&mut page_area, theme, model);
@@ -193,6 +213,7 @@ impl PageController {
         // pass the unhandled event to the tab_bar
         if !handled {
             handled = self.tab_bar.handle_event(event);
+            self.needs_refresh = handled;
         }
 
         if !handled {
