@@ -2,6 +2,7 @@
 use common::*;
 
 // provide logging primitives
+#[allow(unused_imports)]
 use log::*;
 use serde::{Deserialize, Serialize};
 const TAG: &str = "[BLE Host]";

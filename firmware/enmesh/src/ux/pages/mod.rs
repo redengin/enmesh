@@ -31,6 +31,7 @@ pub mod prelude {
 }
 
 /// provide the shared crates via re-export
+#[allow(unused_imports)]
 use common::*;
 
 /// provide logging primitives
