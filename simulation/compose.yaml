@@ -1,0 +1,16 @@
+# Docker compose for web simulation
+
+services:
+  local-web:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM node:20-alpine AS base
+        WORKDIR /opt/enmesh-simulation
+        COPY package*.json ./
+        FROM base AS app
+        RUN npm install
+        COPY . .
+        CMD ["npm","run","dev","--","--host","0.0.0.0"]
+    ports:
+      - "5173:5173"

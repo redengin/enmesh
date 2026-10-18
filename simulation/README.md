@@ -8,16 +8,10 @@ LoRa physical-layer airtime.
 ## Run locally
 
 ```sh
-npm install
-npm run dev
+docker compose up
 ```
+Open the local URL printed by Vite (i.e. [localhost:5173](http://localhost:5173)).
 
-Open the local URL printed by Vite. To verify the app:
-
-```sh
-npm test
-npm run build
-```
 
 ## Try it
 
