@@ -5,6 +5,9 @@ using node distance and a configurable range. It does not model terrain,
 interference beyond same-slot collisions, fading, regional regulations, or
 LoRa physical-layer airtime.
 
+Simulation node positions use `GeoPoint` with `latitude` and `longitude` in
+decimal degrees. Radio range is measured in meters using geographic distance.
+
 ## Run locally
 
 ```sh

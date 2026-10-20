@@ -1,11 +1,13 @@
-export interface Point {
-  x: number;
-  y: number;
+export interface GeoPoint {
+  /** Latitude in decimal degrees. */
+  latitude: number;
+  /** Longitude in decimal degrees. */
+  longitude: number;
 }
 
 export interface MeshNode {
   id: string;
-  position: Point;
+  position: GeoPoint;
 }
 
 export interface SimulationConfig {
@@ -73,6 +75,7 @@ export interface SimulationResult {
 const DEFAULT_MAX_TRANSMISSIONS = 1_000;
 const MAX_ALLOWED_TRANSMISSIONS = 10_000;
 const PACKET_ID = "broadcast-1";
+const EARTH_RADIUS_METERS = 6_371_000;
 
 export function seededRandom(seed: number): () => number {
   let state = seed >>> 0;
@@ -85,8 +88,19 @@ export function seededRandom(seed: number): () => number {
   };
 }
 
-function distance(a: Point, b: Point): number {
-  return Math.hypot(a.x - b.x, a.y - b.y);
+function distance(a: GeoPoint, b: GeoPoint): number {
+  const latitudeA = (a.latitude * Math.PI) / 180;
+  const latitudeB = (b.latitude * Math.PI) / 180;
+  const latitudeDelta = latitudeB - latitudeA;
+  const longitudeDelta = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const haversine = Math.min(
+    1,
+    Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(latitudeA) *
+        Math.cos(latitudeB) *
+        Math.sin(longitudeDelta / 2) ** 2,
+  );
+  return 2 * EARTH_RADIUS_METERS * Math.asin(Math.sqrt(haversine));
 }
 
 function validateConfig(config: SimulationConfig): void {
@@ -102,10 +116,16 @@ function validateConfig(config: SimulationConfig): void {
       throw new Error("Node IDs must be non-empty and unique.");
     }
     if (
-      !Number.isFinite(node.position.x) ||
-      !Number.isFinite(node.position.y)
+      !Number.isFinite(node.position.latitude) ||
+      !Number.isFinite(node.position.longitude) ||
+      node.position.latitude < -90 ||
+      node.position.latitude > 90 ||
+      node.position.longitude < -180 ||
+      node.position.longitude > 180
     ) {
-      throw new Error(`Node ${node.id} must have finite coordinates.`);
+      throw new Error(
+        `Node ${node.id} must have valid latitude and longitude coordinates.`,
+      );
     }
     ids.add(node.id);
   }

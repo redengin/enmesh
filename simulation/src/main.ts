@@ -3,14 +3,15 @@ import { floodingStrategy } from "./flood";
 import {
   runSimulation,
   seededRandom,
+  type GeoPoint,
   type MeshNode,
-  type Point,
   type SimulationFrame,
   type SimulationResult,
 } from "./simulation";
 
 const BASE_WIDTH = 1_000;
 const BASE_HEIGHT = 600;
+const METERS_PER_DEGREE = (Math.PI * 6_371_000) / 180;
 function requiredApp(): HTMLDivElement {
   const element = document.querySelector<HTMLDivElement>("#app");
   if (!element) throw new Error("App root element #app was not found.");
@@ -195,6 +196,25 @@ let runTimer: number | undefined;
 let hasRun = false;
 let placingNode = false;
 
+interface CanvasPoint {
+  x: number;
+  y: number;
+}
+
+function toGeoPoint(point: CanvasPoint): GeoPoint {
+  return {
+    latitude: (point.x - BASE_WIDTH / 2) / METERS_PER_DEGREE,
+    longitude: (point.y - BASE_HEIGHT / 2) / METERS_PER_DEGREE,
+  };
+}
+
+function toCanvasPoint(point: GeoPoint): CanvasPoint {
+  return {
+    x: point.latitude * METERS_PER_DEGREE + BASE_WIDTH / 2,
+    y: point.longitude * METERS_PER_DEGREE + BASE_HEIGHT / 2,
+  };
+}
+
 function parseInteger(input: HTMLInputElement, label: string, min: number, max: number): number {
   const value = Number(input.value);
   if (!Number.isInteger(value) || value < min || value > max) {
@@ -213,10 +233,10 @@ function generateNodes(count: number, seed: number): MeshNode[] {
   for (let i = 0; i < count; i += 1) {
     result.push({
       id: `N${i + 1}`,
-      position: {
+      position: toGeoPoint({
         x: 55 + random() * (BASE_WIDTH - 110),
         y: 48 + random() * (BASE_HEIGHT - 96),
-      },
+      }),
     });
   }
   return result;
@@ -426,16 +446,16 @@ function addNode(): void {
     : "Node placement canceled.";
 }
 
-function placeNode(point: Point): void {
+function placeNode(point: CanvasPoint): void {
   const nextId = `N${Math.max(0, ...nodes.map((node) => Number(node.id.slice(1)) || 0)) + 1}`;
   nodes = [
     ...nodes,
     {
       id: nextId,
-      position: {
+      position: toGeoPoint({
         x: Math.min(BASE_WIDTH - 24, Math.max(24, point.x)),
         y: Math.min(BASE_HEIGHT - 24, Math.max(24, point.y)),
-      },
+      }),
     },
   ];
   setPlacementMode(false);
@@ -445,7 +465,7 @@ function placeNode(point: Point): void {
   render();
 }
 
-function canvasPoint(event: PointerEvent): Point {
+function canvasPoint(event: PointerEvent): CanvasPoint {
   const bounds = canvas.getBoundingClientRect();
   return {
     x: ((event.clientX - bounds.left) / bounds.width) * BASE_WIDTH,
@@ -453,10 +473,13 @@ function canvasPoint(event: PointerEvent): Point {
   };
 }
 
-function nodeAt(point: Point): MeshNode | undefined {
+function nodeAt(point: CanvasPoint): MeshNode | undefined {
   return [...nodes]
     .reverse()
-    .find((node) => Math.hypot(node.position.x - point.x, node.position.y - point.y) < 28);
+    .find((node) => {
+      const nodePoint = toCanvasPoint(node.position);
+      return Math.hypot(nodePoint.x - point.x, nodePoint.y - point.y) < 28;
+    });
 }
 
 function setCanvasScale(): void {
@@ -498,8 +521,9 @@ function render(): void {
 
   const source = nodes.find((node) => node.id === sourceId);
   if (source) {
+    const sourcePoint = toCanvasPoint(source.position);
     context.beginPath();
-    context.arc(source.position.x, source.position.y, range, 0, Math.PI * 2);
+    context.arc(sourcePoint.x, sourcePoint.y, range, 0, Math.PI * 2);
     context.fillStyle = "rgba(95, 213, 171, 0.045)";
     context.fill();
     context.strokeStyle = "rgba(95, 213, 171, 0.24)";
@@ -513,10 +537,13 @@ function render(): void {
     if (!a) continue;
     for (let j = i + 1; j < nodes.length; j += 1) {
       const b = nodes[j];
-      if (!b || Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y) > range) continue;
+      if (!b) continue;
+      const aPoint = toCanvasPoint(a.position);
+      const bPoint = toCanvasPoint(b.position);
+      if (Math.hypot(aPoint.x - bPoint.x, aPoint.y - bPoint.y) > range) continue;
       context.beginPath();
-      context.moveTo(a.position.x, a.position.y);
-      context.lineTo(b.position.x, b.position.y);
+      context.moveTo(aPoint.x, aPoint.y);
+      context.lineTo(bPoint.x, bPoint.y);
       context.strokeStyle = "rgba(125, 159, 145, 0.25)";
       context.lineWidth = 1;
       context.setLineDash([3, 6]);
@@ -528,13 +555,15 @@ function render(): void {
   for (const id of activeTransmissions) {
     const node = nodes.find((item) => item.id === id);
     if (!node) continue;
+    const nodePoint = toCanvasPoint(node.position);
     context.beginPath();
-    context.arc(node.position.x, node.position.y, range, 0, Math.PI * 2);
+    context.arc(nodePoint.x, nodePoint.y, range, 0, Math.PI * 2);
     context.fillStyle = "rgba(95, 213, 171, 0.09)";
     context.fill();
   }
 
   for (const node of nodes) {
+    const nodePoint = toCanvasPoint(node.position);
     const isSource = node.id === sourceId;
     const isTx = activeTransmissions.has(node.id);
     const isCollision = collidedReceivers.has(node.id);
@@ -550,7 +579,7 @@ function render(): void {
     const radius = isTx ? 12 : isSource ? 9 : 7;
 
     context.beginPath();
-    context.arc(node.position.x, node.position.y, radius + 6, 0, Math.PI * 2);
+    context.arc(nodePoint.x, nodePoint.y, radius + 6, 0, Math.PI * 2);
     context.fillStyle = isTx
       ? "rgba(95, 213, 171, 0.18)"
       : isSource
@@ -558,7 +587,7 @@ function render(): void {
         : "rgba(115, 141, 130, 0.10)";
     context.fill();
     context.beginPath();
-    context.arc(node.position.x, node.position.y, radius, 0, Math.PI * 2);
+    context.arc(nodePoint.x, nodePoint.y, radius, 0, Math.PI * 2);
     context.fillStyle = fill;
     context.fill();
     context.strokeStyle = "#15211e";
@@ -567,11 +596,11 @@ function render(): void {
     context.fillStyle = "#dce7df";
     context.font = "600 12px 'IBM Plex Mono', monospace";
     context.textAlign = "center";
-    context.fillText(node.id, node.position.x, node.position.y - radius - 11);
+    context.fillText(node.id, nodePoint.x, nodePoint.y - radius - 11);
     if (isCollision) {
       context.fillStyle = "#f4b65b";
       context.font = "700 13px sans-serif";
-      context.fillText("!", node.position.x, node.position.y + 4);
+      context.fillText("!", nodePoint.x, nodePoint.y + 4);
     }
   }
 
@@ -595,8 +624,10 @@ canvas.addEventListener("pointermove", (event) => {
   const point = canvasPoint(event);
   const node = nodes.find((item) => item.id === dragNodeId);
   if (!node) return;
-  node.position.x = Math.min(BASE_WIDTH - 24, Math.max(24, point.x));
-  node.position.y = Math.min(BASE_HEIGHT - 24, Math.max(24, point.y));
+  node.position = toGeoPoint({
+    x: Math.min(BASE_WIDTH - 24, Math.max(24, point.x)),
+    y: Math.min(BASE_HEIGHT - 24, Math.max(24, point.y)),
+  });
   if (hasRun) clearRun();
   render();
 });

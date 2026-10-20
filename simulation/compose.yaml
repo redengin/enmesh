@@ -6,11 +6,16 @@ services:
       context: .
       dockerfile_inline: |
         FROM node:20-alpine AS base
-        WORKDIR /opt/enmesh-simulation
-        COPY package*.json ./
+        RUN npm install -g vite
         FROM base AS app
+        WORKDIR /opt/enmesh-simulation
+        # NOTE changes to package*.json will require a rebuild of the image
+        COPY package*.json ./
         RUN npm install
-        COPY . .
         CMD ["npm","run","dev","--","--host","0.0.0.0"]
     ports:
       - "5173:5173"
+    volumes:
+      # mount the app live - so that vite can force update on changes
+      - ./index.html:/opt/enmesh-simulation/index.html:ro
+      - ./src:/opt/enmesh-simulation/src:ro

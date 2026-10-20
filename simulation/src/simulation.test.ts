@@ -7,9 +7,9 @@ import {
 } from "./simulation";
 
 const line: MeshNode[] = [
-  { id: "a", position: { x: 0, y: 0 } },
-  { id: "b", position: { x: 10, y: 0 } },
-  { id: "c", position: { x: 20, y: 0 } },
+  { id: "a", position: { latitude: 0, longitude: 0 } },
+  { id: "b", position: { latitude: 0.0000898315, longitude: 0 } },
+  { id: "c", position: { latitude: 0.000179663, longitude: 0 } },
 ];
 
 function run(
@@ -24,6 +24,41 @@ function run(
 }
 
 describe("runSimulation", () => {
+  it("uses latitude and longitude in decimal degrees for meter-based range checks", () => {
+    const result = runSimulation(
+      {
+        nodes: [
+          { id: "a", position: { latitude: 47.6, longitude: -122.3 } },
+          { id: "near", position: { latitude: 47.60005, longitude: -122.3 } },
+          { id: "far", position: { latitude: 47.601, longitude: -122.3 } },
+        ],
+        sourceId: "a",
+        range: 10,
+        seed: 1,
+      },
+      floodingStrategy(0),
+    );
+
+    expect(result.reachedNodeIds).toEqual(new Set(["near"]));
+  });
+
+  it("rejects coordinates outside geographic latitude and longitude bounds", () => {
+    expect(() =>
+      runSimulation(
+        {
+          nodes: [
+            { id: "a", position: { latitude: 91, longitude: 0 } },
+            { id: "b", position: { latitude: 0, longitude: 0 } },
+          ],
+          sourceId: "a",
+          range: 10,
+          seed: 1,
+        },
+        floodingStrategy(0),
+      ),
+    ).toThrow("valid latitude and longitude");
+  });
+
   it("propagates over range-limited links and terminates when all nodes have forwarded", () => {
     const result = run(line);
 
@@ -37,7 +72,7 @@ describe("runSimulation", () => {
   it("does not deliver to nodes outside radio range", () => {
     const result = run([
       line[0]!,
-      { id: "far", position: { x: 25, y: 0 } },
+      { id: "far", position: { latitude: 0.000224579, longitude: 0 } },
     ]);
 
     expect(result.reachedNodeIds.size).toBe(0);
@@ -46,10 +81,13 @@ describe("runSimulation", () => {
 
   it("counts simultaneous arrivals as a receiver collision", () => {
     const nodes: MeshNode[] = [
-      { id: "a", position: { x: 0, y: 0 } },
-      { id: "b", position: { x: 10, y: 0 } },
-      { id: "c", position: { x: 0, y: 10 } },
-      { id: "d", position: { x: 10, y: 10 } },
+      { id: "a", position: { latitude: 0, longitude: 0 } },
+      { id: "b", position: { latitude: 0.0000898315, longitude: 0 } },
+      { id: "c", position: { latitude: 0, longitude: 0.0000898315 } },
+      {
+        id: "d",
+        position: { latitude: 0.0000898315, longitude: 0.0000898315 },
+      },
     ];
     const strategy: PropagationStrategy = {
       name: "simultaneous",
@@ -79,7 +117,10 @@ describe("runSimulation", () => {
     const nodes: MeshNode[] = [
       line[0]!,
       line[1]!,
-      { id: "d", position: { x: 10, y: 8 } },
+      {
+        id: "d",
+        position: { latitude: 0.0000898315, longitude: 0.0000718652 },
+      },
     ];
     const first = run(nodes, floodingStrategy(5), 123);
     const second = run(nodes, floodingStrategy(5), 123);
