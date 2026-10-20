@@ -34,15 +34,6 @@ app.innerHTML = `
       <a class="github-link" href="https://github.com/redengin/enmesh" target="_blank" rel="noreferrer">PROJECT <span aria-hidden="true">↗</span></a>
     </header>
 
-    <section class="intro">
-      <div>
-        <p class="eyebrow"><span>01</span> PROPAGATION STUDY</p>
-        <h1>LoRa propagation <span>lab.</span></h1>
-        <p class="intro-copy">Shape a mesh. Send a broadcast. See what makes it through.</p>
-      </div>
-      <div class="model-note"><span class="note-icon" aria-hidden="true">i</span><span>Range-based model <b>·</b> discrete airtime slots</span></div>
-    </section>
-
     <section class="workspace" aria-label="Mesh simulation workspace">
       <aside class="control-panel">
         <div class="panel-heading">
@@ -69,7 +60,7 @@ app.innerHTML = `
               <span>NODES</span>
             </div>
           </div>
-          <button id="add-node-button" class="quiet-button" type="button" aria-pressed="false"><span aria-hidden="true">＋</span> Add node</button>
+          <!-- <button id="add-node-button" class="quiet-button" type="button" aria-pressed="false"><span aria-hidden="true">＋</span> Add node</button> -->
           <div id="node-list" class="node-list" aria-label="Network nodes"></div>
         </div>
 
@@ -115,7 +106,6 @@ app.innerHTML = `
         </div>
         <div class="canvas-wrap">
           <canvas id="network-canvas" aria-label="Network topology. Drag nodes to reposition them."></canvas>
-          <div id="empty-hint" class="empty-hint" hidden>Use <b>Add node</b> to begin building your network.</div>
           <div class="map-coordinates" aria-hidden="true"><span>LOCAL FIELD · 1.0 × 0.6 KM</span><span>SIMULATION VIEW</span></div>
         </div>
         <div class="map-legend">
@@ -178,12 +168,10 @@ const rangeValue = requiredElement<HTMLOutputElement>("#range-value");
 const sourceSelect = requiredElement<HTMLSelectElement>("#source-select");
 const backoffInput = requiredElement<HTMLInputElement>("#backoff-input");
 const nodeList = requiredElement<HTMLDivElement>("#node-list");
-const addNodeButton = requiredElement<HTMLButtonElement>("#add-node-button");
 const statusMessage = requiredElement<HTMLParagraphElement>("#status-message");
 const runButton = requiredElement<HTMLButtonElement>("#run-button");
 const resultState = requiredElement<HTMLSpanElement>("#result-state");
 const eventList = requiredElement<HTMLDivElement>("#event-list");
-const emptyHint = requiredElement<HTMLDivElement>("#empty-hint");
 
 let nodes: MeshNode[] = [];
 let sourceId = "";
@@ -397,8 +385,6 @@ function renderNodeControls(): void {
   }
   sourceSelect.value = sourceId;
   app.querySelector("#map-node-count")!.textContent = `${nodes.length} NODES`;
-  addNodeButton.disabled = nodes.length >= 60;
-  emptyHint.hidden = nodes.length !== 0;
 }
 
 function removeNode(nodeId: string): void {
@@ -428,11 +414,6 @@ function randomize(): void {
 function setPlacementMode(enabled: boolean): void {
   placingNode = enabled;
   canvas.classList.toggle("is-placing", enabled);
-  addNodeButton.classList.toggle("is-active", enabled);
-  addNodeButton.setAttribute("aria-pressed", String(enabled));
-  addNodeButton.innerHTML = enabled
-    ? '<span aria-hidden="true">⌖</span> Click map to place node'
-    : '<span aria-hidden="true">＋</span> Add node';
 }
 
 function addNode(): void {
@@ -643,7 +624,6 @@ canvas.addEventListener("pointercancel", () => {
 });
 
 app.querySelector<HTMLButtonElement>("#randomize-button")!.addEventListener("click", randomize);
-addNodeButton.addEventListener("click", addNode);
 app.querySelector<HTMLButtonElement>("#reset-run-button")!.addEventListener("click", clearRun);
 runButton.addEventListener("click", runBroadcast);
 rangeInput.addEventListener("input", () => {
