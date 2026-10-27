@@ -137,8 +137,7 @@ pub(crate) async fn handle<'a>(
             let modulation_config = global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config
-                .modulation_config;
+                .lora_config;
             drop(global_state_lock);
 
             let message = heapless::format!(STRING_MAX;
@@ -199,25 +198,21 @@ pub(crate) async fn handle<'a>(
                 .settings
                 .meshcore_settings
                 .lora_config
-                .modulation_config
                 .frequency_hz = freq_hz;
             global_state_lock
                 .settings
                 .meshcore_settings
                 .lora_config
-                .modulation_config
                 .bandwidth = bandwidth;
             global_state_lock
                 .settings
                 .meshcore_settings
                 .lora_config
-                .modulation_config
                 .spreading_factor = spreading_factor;
             global_state_lock
                 .settings
                 .meshcore_settings
                 .lora_config
-                .modulation_config
                 .coding_rate = coding_rate;
             drop(global_state_lock);
 
@@ -225,32 +220,34 @@ pub(crate) async fn handle<'a>(
         }
 
         CliCommands::GetTxPower => {
-            let global_state_lock = global_state.read().await;
-            let tx_power = global_state_lock
-                .settings
-                .meshcore_settings
-                .lora_config
-                .modulation_config
-                .tx_power_dbm;
-            drop(global_state_lock);
+            // let global_state_lock = global_state.read().await;
+            // let tx_power = global_state_lock
+            //     .settings
+            //     .meshcore_settings
+            //     .lora_config
+            //     .modulation_config
+            //     .tx_power_dbm;
+            // drop(global_state_lock);
 
-            let message = heapless::format!(STRING_MAX;
-                "{tx_power}")
-            .unwrap();
-            Ok(Some(message))
+            // let message = heapless::format!(STRING_MAX;
+            //     "{tx_power}")
+            // .unwrap();
+            // Ok(Some(message))
+            Err("not implemented")
         }
 
-        CliCommands::SetTxPower(tx_power_dbm) => {
-            let mut global_state_lock = global_state.write().await;
-            global_state_lock
-                .settings
-                .meshcore_settings
-                .lora_config
-                .modulation_config
-                .tx_power_dbm = tx_power_dbm as i32;
-            drop(global_state_lock);
+        CliCommands::SetTxPower(_tx_power_dbm) => {
+            // let mut global_state_lock = global_state.write().await;
+            // global_state_lock
+            //     .settings
+            //     .meshcore_settings
+            //     .lora_config
+            //     .modulation_config
+            //     .tx_power_dbm = tx_power_dbm as i32;
+            // drop(global_state_lock);
 
-            Ok(None)
+            // Ok(None)
+            Err("not implemented")
         }
 
         // CliCommands::SetTempRadioConfig { freq, bw, sf, cr, duration_minutes } =>
@@ -262,7 +259,6 @@ pub(crate) async fn handle<'a>(
                 .settings
                 .meshcore_settings
                 .lora_config
-                .modulation_config
                 .frequency_hz;
             drop(global_state_lock);
 
