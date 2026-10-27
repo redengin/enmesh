@@ -40,6 +40,25 @@ impl crate::ux::pages::View for BatteryWidget {
         )
         .ok();
 
+        // draw the tip of the battery
+        Rectangle {
+            top_left: Point::new((body_width - 1) as i32, 0),
+            size: Size {
+                width: 3,
+                height: (body.bounding_box().size.height * 40).div_ceil(100), // 40%
+            },
+        }
+        .align_to(&body, horizontal::NoAlignment, vertical::Center)
+        .draw_styled(
+            &PrimitiveStyleBuilder::new()
+                .stroke_width(1)
+                .stroke_color(theme.color)
+                .fill_color(theme.background)
+                .build(),
+             draw_target,
+        )
+        .ok();
+
         // draw the battery state inside the body
         Text::new(
             &model.battery_state.to_string(),
@@ -52,24 +71,6 @@ impl crate::ux::pages::View for BatteryWidget {
             vertical::Center,
         )
         .draw(draw_target)
-        .ok();
-
-        // draw the tip of the battery
-        Rectangle {
-            top_left: Point::new(-1, 0),
-            size: Size {
-                width: 1,
-                height: (body.bounding_box().size.height * 50).div_ceil(100), // 50%
-            },
-        }
-        .align_to(&body, horizontal::LeftToRight, vertical::Center)
-        .draw_styled(
-            &PrimitiveStyleBuilder::new()
-                .stroke_width(1)
-                .stroke_color(theme.color)
-                .build(),
-             draw_target,
-        )
         .ok();
 
         // memo state and mark as refreshed
