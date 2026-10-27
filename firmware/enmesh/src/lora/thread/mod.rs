@@ -1,22 +1,15 @@
-use common::embassy_time::Duration;
-// provide the common crates via re-export
+/// provide the common crates via re-export
 use common::*;
 
-// provide logging primitives
+/// provide logging primitives
 use log::*;
 const TAG: &str = "[LoRa Task]";
 
 /// provide scheduling primitives
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::rwlock::RwLock;
-use embassy_time::{Delay, Timer};
-
-// use crate::lora::LoRaRf;
-// use crate::state::LoRaProtocol;
+use crate::prelude::*;
 
 // mod meshtastic;
 // mod meshcore;
-
 
 pub async fn run(
     _global_state: &'static RwLock<NoopRawMutex, crate::State>,
@@ -38,9 +31,9 @@ pub async fn run(
     // let mut meshtastic_handler = meshtastic::MeshtasticLoraRf {};
     // let mut meshcore_handler = meshcore::MeshCoreLoraRf {};
 
-    // round robin switch between enabled protocols
+    // round robin service enabled protocols
     // let mut last_frequency_hz: u32 = 0;
-    // loop {
+    loop {
         // let global_state_lock = global_state.read().await;
         // let meshtastic_enabled = global_state_lock.settings.meshtastic_settings.enabled;
         // let meshcore_enabled = global_state_lock.settings.meshtastic_settings.enabled;
@@ -138,8 +131,8 @@ pub async fn run(
         //     }
         //     None => unreachable!(),
         // }
-    // }
-    loop {
+
+        // FIXME place-holder to yield
         Timer::after(Duration::from_secs(1)).await;
     }
 }

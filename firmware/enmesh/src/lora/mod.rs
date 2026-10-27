@@ -1,21 +1,20 @@
-// provide the shared crates via re-export
+/// provide the shared crates via re-export
 use common::*;
 
-// provide logging primitives
-use log::*;
-
-// provide the serialization traits
+/// provide the serialization traits
 use serde::{Deserialize, Serialize};
 
-/// publish rx-tx thread
+/// provide logging primitives
+use log::*;
+
+/// provide LoRa task runner
 pub mod thread;
 
 /// used to configure the LoRa radio modulation
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
-pub struct EnmeshLoRaConfig {
+pub struct LoRaChannel {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
     pub frequency_hz: u32,
-
     /// see [Link Budget](https://meshtastic.org/docs/overview/radio-settings/#presets)
     /// for how the bandwidth impacts the range
     pub bandwidth: lora_modulation::Bandwidth,
@@ -26,14 +25,13 @@ pub struct EnmeshLoRaConfig {
     /// for how the coding rate impacts the range
     pub coding_rate: lora_modulation::CodingRate,
 }
-impl Default for EnmeshLoRaConfig {
+impl Default for LoRaChannel {
     fn default() -> Self {
         Self {
             frequency_hz: 0,
-            bandwidth: lora_modulation::Bandwidth::_250KHz,
-            spreading_factor: lora_modulation::SpreadingFactor::_6,
+            bandwidth: lora_modulation::Bandwidth::_62KHz,
+            spreading_factor: lora_modulation::SpreadingFactor::_7,
             coding_rate: lora_modulation::CodingRate::_4_5,
-            // tx_power_dbm: 0,
         }
     }
 }
@@ -76,7 +74,7 @@ pub trait LoRaRf {
         &mut self,
         _lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
         _global_state: &'static RwLock<NoopRawMutex, crate::State>,
-        _lora_config: &EnmeshLoRaConfig,
+        _lora_config: &LoRaChannel,
     ) {
         // // prepare radio
         // let modulation_params = lora_radio
@@ -139,7 +137,7 @@ pub trait LoRaRf {
     async fn do_tx(
         &mut self,
         _lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
-        _lora_config: &EnmeshLoRaConfig,
+        _lora_config: &LoRaChannel,
     ) {
         // // transmit packets until airtime expires
         // let tx_stop_time = embassy_time::Instant::now() +

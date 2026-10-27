@@ -137,7 +137,7 @@ pub(crate) async fn handle<'a>(
             let modulation_config = global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config;
+                .lora_channel;
             drop(global_state_lock);
 
             let message = heapless::format!(STRING_MAX;
@@ -197,22 +197,22 @@ pub(crate) async fn handle<'a>(
             global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config
+                .lora_channel
                 .frequency_hz = freq_hz;
             global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config
+                .lora_channel
                 .bandwidth = bandwidth;
             global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config
+                .lora_channel
                 .spreading_factor = spreading_factor;
             global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config
+                .lora_channel
                 .coding_rate = coding_rate;
             drop(global_state_lock);
 
@@ -258,7 +258,7 @@ pub(crate) async fn handle<'a>(
             let frequency_hz = global_state_lock
                 .settings
                 .meshcore_settings
-                .lora_config
+                .lora_channel
                 .frequency_hz;
             drop(global_state_lock);
 

@@ -57,7 +57,8 @@ impl BleSettings {
 pub struct MeshtasticSettings {
     /// if enabled, the LoRa task will handle Meshtastic
     pub enabled: bool,
-    pub lora_config: crate::lora::EnmeshLoRaConfig,
+    pub lora_channel: crate::lora::LoRaChannel,
+
     /// determines how non-volatile storage to allocate to Meshtastic packets
     /// 0 - none, 100 - maximum storage
     pub storage_weight: u8,
@@ -67,7 +68,7 @@ pub struct MeshtasticSettings {
 pub struct MeshCoreSettings {
     /// if enabled, the LoRa task will handle MeshCore
     pub enabled: bool,
-    pub lora_config: crate::lora::EnmeshLoRaConfig,
+    pub lora_channel: crate::lora::LoRaChannel,
 
     /// determines how non-volatile storage to allocate to Meshtastic packets
     /// 0 - none, 100 - maximum storage
