@@ -22,6 +22,8 @@ pub struct State {
     pub wifi_status: WiFiStatus,
     pub ble_status: BleStatus,
 
+    pub current_radio_mode: LoRaRadioMode,
+
     /// used by UX for display, set by storage thread
     pub storage_status: StorageStatus,
 }
@@ -66,29 +68,6 @@ impl core::fmt::Display for LoRaRadioMode {
             LoRaRadioMode::Standby => f.write_str("Standby"),
             LoRaRadioMode::Transmit => f.write_str("Transmit"),
             LoRaRadioMode::Receive => f.write_str("Receive"),
-        }
-    }
-}
-
-#[derive(Default, Copy, Clone, PartialEq)]
-pub enum LoRaProtocol {
-    #[default]
-    Meshtastic,
-    MeshCore,
-}
-impl LoRaProtocol {
-    pub fn next(&self) -> LoRaProtocol {
-        return match self {
-            LoRaProtocol::Meshtastic => LoRaProtocol::MeshCore,
-            LoRaProtocol::MeshCore => LoRaProtocol::Meshtastic,
-        };
-    }
-}
-impl core::fmt::Display for LoRaProtocol {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            LoRaProtocol::Meshtastic => f.write_str("Meshtastic"),
-            LoRaProtocol::MeshCore => f.write_str("MeshCore"),
         }
     }
 }
