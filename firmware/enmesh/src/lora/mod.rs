@@ -7,57 +7,19 @@ use serde::{Deserialize, Serialize};
 /// provide LoRa task runner
 pub mod thread;
 
-/// provide enmesh firmware primitives
-use crate::prelude::*;
+// /// provide enmesh firmware primitives
+// use crate::prelude::*;
 
 pub trait LoRaRf {
     #![allow(async_fn_in_trait)]
 
-    /// perform a Tx/Rx cycle for a protocol
-    async fn do_cycle(
-        &mut self,
-        global_state: &'static RwLock<NoopRawMutex, crate::State>,
-        lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
-        lora_channel: &LoRaChannel,
-    ) -> Result<(), lora_phy::mod_params::RadioError>;
 }
-
-pub async fn prepare_radio(
-        lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
-        lora_channel: &crate::lora::LoRaChannel,
-        packet_config: &crate::lora::LoRaPacketConfig,
-) -> Result<(), lora_phy::mod_params::RadioError> {
-    // configure modulation parameters
-    let modulation_params = lora_radio.create_modulation_params(
-        lora_channel.spreading_factor,
-        lora_channel.bandwidth,
-        lora_channel.coding_rate,
-        lora_channel.frequency_hz
-    )?;
-    lora_radio.set_modulation_params(&modulation_params).await?;
-
-    // configure packet parameters
-    let packet_params = lora_radio.create_packet_params(
-        packet_config.preamble_length,
-        packet_config.implicit_header,
-        packet_config.max_payload_length,
-        packet_config.crc,
-        packet_config.iq_inverted,
-        &modulation_params
-    )?;
-    lora_radio.set_packet_params(&packet_params).await?;
-
-    Ok(())
-}
-
-
-
 
 /// used to configure the LoRa radio modulation
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoRaChannel {
     /// [legal frequencies](https://meshtastic.org/docs/configuration/radio/lora/#region)
-    pub frequency_hz: u32,
+    pub frequency_in_hz: u32,
     /// see [Link Budget](https://meshtastic.org/docs/overview/radio-settings/#presets)
     /// for how the bandwidth impacts the range
     pub bandwidth: lora_modulation::Bandwidth,
@@ -71,26 +33,13 @@ pub struct LoRaChannel {
 impl Default for LoRaChannel {
     fn default() -> Self {
         Self {
-            frequency_hz: 0,
+            frequency_in_hz: 0,
             bandwidth: lora_modulation::Bandwidth::_62KHz,
             spreading_factor: lora_modulation::SpreadingFactor::_7,
             coding_rate: lora_modulation::CodingRate::_4_5,
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /// used to configure the LoRa packet recognition
 // #[derive(Default, Copy, Clone, PartialEq, Serialize, Deserialize)]
@@ -101,7 +50,7 @@ pub struct LoRaPacketConfig {
     pub implicit_header: bool,
     pub max_payload_length: u8,
     /// packet CRC will be appended/checked by the radio
-    pub crc: bool,
+    pub crc_on: bool,
     /// packet will only be recognized by a receiver using the same iq mode
     /// * doesn't mitigate congestion
     pub iq_inverted: bool,

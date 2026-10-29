@@ -142,7 +142,7 @@ pub(crate) async fn handle<'a>(
 
             let message = heapless::format!(STRING_MAX;
                 "{:3.3}, {}, {}, {}",
-                ((modulation_config.frequency_hz as f32) / 1E6),
+                ((modulation_config.frequency_in_hz as f32) / 1E6),
                 modulation_config.bandwidth.hz(),
                 modulation_config.spreading_factor.factor(),
                 modulation_config.coding_rate.denom()
@@ -198,7 +198,7 @@ pub(crate) async fn handle<'a>(
                 .settings
                 .meshcore_settings
                 .lora_channel
-                .frequency_hz = freq_hz;
+                .frequency_in_hz = freq_hz;
             global_state_lock
                 .settings
                 .meshcore_settings
@@ -259,7 +259,7 @@ pub(crate) async fn handle<'a>(
                 .settings
                 .meshcore_settings
                 .lora_channel
-                .frequency_hz;
+                .frequency_in_hz;
             drop(global_state_lock);
 
             let message = heapless::format!(STRING_MAX;

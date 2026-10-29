@@ -31,7 +31,7 @@ impl View for Meshtastic {
             .append(Chain::new(
                 LinearLayout::horizontal(
                     Chain::new(Text::new("Freq:", Point::zero(), theme.text_style))
-                    .append(Text::new(model.settings.meshtastic_settings.lora_channel.frequency_hz.to_string().as_str(), Point::zero(), theme.text_style))
+                    .append(Text::new(model.settings.meshtastic_settings.lora_channel.frequency_in_hz.to_string().as_str(), Point::zero(), theme.text_style))
                 )
                 .with_spacing(FixedMargin(5))
                 .arrange(),
