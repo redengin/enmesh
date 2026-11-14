@@ -5,3 +5,8 @@ publish = false
 
 [dependencies]
 common = { path = "../../common" }
+
+[build-dependencies]
+# used to generate fonts and bitmaps from assets (see generators/)
+resvg = "*"
+qoi = "*"

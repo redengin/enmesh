@@ -54,7 +54,7 @@ pub fn svg_generate(svg_file: &std::path::Path, dir: &std::path::Path, mod_rs: &
         let fn_name = format!("{basename}_{width}x{height}");
         mod_rs.write_all(format!("\
             pub fn {fn_name}() -> tinyqoi::Qoi<'static> {{\n\
-            \ttinyqoi::Qoi::new(include_bytes!(\"{qoi_filename}\")).unwrap()\n\
+            \ttinyqoi::Qoi::new(include_bytes!(concat!(env!(\"OUT_DIR\"), \"/{qoi_filename}\"))).unwrap()\n\
             }}\n\
             ").as_bytes()).unwrap();
     }

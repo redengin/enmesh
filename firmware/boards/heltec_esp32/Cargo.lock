@@ -1073,8 +1073,6 @@ dependencies = [
  "meshcore",
  "meshtastic",
  "postcard",
- "qoi",
- "resvg",
  "serde",
 ]
 
@@ -1764,6 +1762,8 @@ name = "generated"
 version = "0.0.0"
 dependencies = [
  "common",
+ "qoi",
+ "resvg",
 ]
 
 [[package]]
