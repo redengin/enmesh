@@ -168,11 +168,10 @@ impl Destination<PrivateIdentity, Input, Single> {
 
         let random_hash = Hash::new_from_rand(rng);
         let timestamp = announce_timestamp_bytes();
-        let rand_hash = [
-            &random_hash.as_slice()[..RAND_HASH_LENGTH / 2],
-            &timestamp[3..],
-        ]
-        .concat();
+        let mut rand_hash = [0u8; RAND_HASH_LENGTH];
+        let (rand_part, time_part) = rand_hash.split_at_mut(RAND_HASH_LENGTH / 2);
+        rand_part.copy_from_slice(&random_hash.as_slice()[..RAND_HASH_LENGTH / 2]);
+        time_part.copy_from_slice(&timestamp[3..]);
 
         let pub_key = self.identity.as_identity().public_key_bytes();
         let verifying_key = self.identity.as_identity().verifying_key_bytes();
