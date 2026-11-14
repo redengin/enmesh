@@ -34,6 +34,7 @@ impl Default for EnmeshLoRaModulationConfig {
             bandwidth: lora_modulation::Bandwidth::_250KHz,
             spreading_factor: lora_modulation::SpreadingFactor::_6,
             coding_rate: lora_modulation::CodingRate::_4_5,
+            tx_power_dbm: 0,
             air_time: embassy_time::Duration::from_millis(100),
         } 
     }
@@ -109,6 +110,7 @@ where
         bandwidth: lora_modulation::Bandwidth::_62KHz,
         spreading_factor: lora_modulation::SpreadingFactor::_7,
         coding_rate: lora_modulation::CodingRate::_4_5,
+        tx_power_dbm: 0,
         // this is an enmesh extension
         air_time: embassy_time::Duration::from_millis(100),
     };

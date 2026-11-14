@@ -19,8 +19,8 @@ lora-phy = "*"
 # embedded support
 # embedded-graphics = "*"
 # embedded-layout = "*"
-# embassy-time = "*"
-# heapless = "*"
+embassy-time = "*"
+heapless = "0.9"
 
 # additional enmesh dependencies
 # TODO do we want iso3166
