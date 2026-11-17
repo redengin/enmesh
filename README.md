@@ -74,12 +74,16 @@ You can run a demonstration - [see enmesh demo](./firmware/enmesh/README.md).
 The architecture requires a minimal BSP layer to be implemeneted to support
 other platforms (nrf52 and others).
 
-### Alternative LoRa RF management
-Current protocols (Meshtastic, MeshCore) are struggling to guarantee transmit
-access for mesh participants in dense environments. Enmesh provides an
-alternative design for the use of LoRa RF while still supporting both
-Meshtastic and MeshCore.
-([see RFC status](https://github.com/redengin/enmesh/wiki/RFC-Process))
+### How does Enmesh work?
+Mesh LoRa decouples the progagation of data from the semantics of the data -
+providing equal or better timeliness of propogation of current LoRa mesh
+implementations.
+
+(See a visualiztion of Enmesh)[https://redengin.github.io/enmesh/].
+
+Enmesh ensures transmit access to the mesh, while supporting Meshtastic
+and MeshCore protocols.
+
 
 ### Support for WiFi Bridges
 EnMesh firmware supports [MQTT](https://en.wikipedia.org/wiki/MQTT) as a bridge
