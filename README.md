@@ -79,11 +79,15 @@ Mesh LoRa decouples the progagation of data from the semantics of the data -
 providing equal or better timeliness of propogation of current LoRa mesh
 implementations.
 
-(See a visualiztion of Enmesh)[https://redengin.github.io/enmesh/].
+([See a visualiztion of Enmesh](https://redengin.github.io/enmesh/))
 
 Enmesh ensures transmit access to the mesh, while supporting Meshtastic
 and MeshCore protocols.
 
+[Read more about Mesh Lora](https://github.com/redengin/enmesh/wiki/RFC-Process)
+* [Mesh LoRa Anonymity](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Anonymity)
+* [Mesh LoRa Network Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Network-Protocol)
+* [Mesh LoRa RF Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-RF-Protocol)
 
 ### Support for WiFi Bridges
 EnMesh firmware supports [MQTT](https://en.wikipedia.org/wiki/MQTT) as a bridge
