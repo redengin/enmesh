@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="An interactive, conceptual simulation of Mesh LoRa congestion and shard formation."
+    />
+    <title>Enmesh — Mesh LoRa simulation</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <script type="module" src="./src/main.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Enmesh simulation home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M16 4.5 26 10v12L16 27.5 6 22V10L16 4.5Z" />
+              <path d="m6.5 10.4 9.5 5.5 9.5-5.5M16 16v11" />
+              <circle cx="16" cy="16" r="2.1" />
+            </svg>
+          </span>
+          <span class="brand-name">enmesh<span class="brand-dot">.</span></span>
+          <span class="brand-divider"></span>
+          <span class="brand-product">network lab</span>
+        </a>
+        <div class="topbar-meta">
+          <span class="model-badge"><span></span> CONCEPTUAL MODEL</span>
+          <a class="docs-link" href="./README.md" target="_blank" rel="noreferrer">About this simulation <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro">
+          <div class="intro-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> MESH LORA / RF PLAYGROUND</p>
+            <h1>Demonstration of Mesh LoRa Propogation</h1>
+            <p class="intro-description">
+              Mesh LoRa nodes self organize toward `shards` to maximize access to the mesh,
+              while also maximizing access to local content.
+              Watch a crowded channel find its rhythm. Nodes observe contention,
+              advertise local shards, and adapt their transmit range.
+            </p>
+          </div>
+          <div class="intro-aside">
+            <div class="round-chip"><span>ROUND</span><strong id="round-number">000</strong></div>
+            <div class="live-indicator" id="run-status"><span class="status-pip"></span><span>READY TO SIMULATE</span></div>
+          </div>
+        </section>
+
+        <section class="dashboard" aria-label="Mesh LoRa simulation">
+          <div class="main-column">
+            <section class="panel map-panel">
+              <div class="panel-heading map-heading">
+                <div>
+                  <p class="section-kicker">01 / TOPOLOGY</p>
+                </div>
+                <div class="map-heading-actions">
+                  <div class="map-legend" aria-label="Map legend">
+                    <span><i class="legend-dot primary-dot"></i>Primary layer</span>
+                  </div>
+                  <button class="camera-reset" id="reset-camera" type="button">RESET VIEW</button>
+                </div>
+              </div>
+              <div class="map-wrap">
+                <svg id="network-map" role="img" aria-label="Live visualization of mesh nodes, links, packets, and local shards"></svg>
+                <div class="map-overlay" id="map-hint">DRAG TO ORBIT / TILT · WHEEL TO ZOOM · SELECT NODE</div>
+              </div>
+              <div class="map-footer">
+                <span><span class="footer-pip"></span> SYNTHETIC TOPOGRAPHY / STACKED CHANNEL PLANES</span>
+                <span id="map-node-count">24 NODES</span>
+              </div>
+            </section>
+
+            <section class="panel channels-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">02 / AIRTIME</p>
+                  <h2>Channel activity</h2>
+                </div>
+                <div class="capacity-note"><span class="capacity-dash"></span> SIMULATED CAPACITY / ROUND</div>
+              </div>
+              <div class="channel-list" id="channel-list"></div>
+            </section>
+          </div>
+
+          <aside class="side-column">
+            <section class="panel controls-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">03 / SCENARIO</p>
+                  <h2>Set the conditions</h2>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <div class="control-label">
+                  <label for="node-count">Participating nodes</label>
+                  <output id="node-count-value" for="node-count">24</output>
+                </div>
+                <input id="node-count" type="range" min="8" max="48" step="4" value="24" />
+                <div class="range-scale"><span>8 nodes</span><span>48 nodes</span></div>
+              </div>
+
+              <div class="control-group traffic-control">
+                <div class="control-label">
+                  <label for="traffic-level">Traffic intensity</label>
+                  <output id="traffic-value" for="traffic-level">82%</output>
+                </div>
+                <input id="traffic-level" type="range" min="20" max="100" step="5" value="80" />
+                <div class="range-scale"><span>QUIET</span><span>BUSY</span></div>
+              </div>
+
+              <div class="transport-controls">
+                <button class="button button-primary" id="play-button" type="button">
+                  <svg class="play-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m5 3.5 7 4.5-7 4.5v-9Z" /></svg>
+                  <svg class="pause-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 3.5h2.5v9H4.5zM9 3.5h2.5v9H9z" /></svg>
+                  <span>Start simulation</span>
+                </button>
+                <button class="button button-secondary" id="step-button" type="button" aria-label="Advance one round">
+                  <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 3.5 11 9l-7 5.5v-11ZM12.5 3.5h1.5v11h-1.5z" /></svg>
+                </button>
+                <button class="button button-secondary reset-button" id="reset-button" type="button" aria-label="Reset simulation">
+                  <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3.3 7A6 6 0 1 1 3 10.5M3 3.5V7h3.5" /></svg>
+                </button>
+              </div>
+              <p class="control-caption">Each round represents one shared airtime window.</p>
+            </section>
+
+            <section class="panel node-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">04 / NODE INSPECTOR</p>
+                  <h2 id="selected-node-title">Node N01</h2>
+                </div>
+                <span class="node-state-tag" id="node-state-tag">PRIMARY</span>
+              </div>
+              <div class="node-visual">
+                <div class="node-icon" id="node-icon">
+                  <span class="node-orbit orbit-one"></span>
+                  <span class="node-orbit orbit-two"></span>
+                  <span class="node-core"></span>
+                </div>
+                <div class="node-summary">
+                  <span>LOCAL PEERS IN RANGE</span>
+                  <strong id="peer-count">7</strong>
+                </div>
+              </div>
+              <div class="inspector-stats">
+                <div><span>Transmit range</span><strong id="range-value">104 <small>units</small></strong></div>
+                <div><span>Nearest-peer limit</span><strong id="minimum-range-value">27 <small>units</small></strong></div>
+              </div>
+              <div class="range-meter"><span id="range-meter-fill"></span></div>
+              <p class="inspector-note" id="inspector-note">Range will adjust after joining a shard, while preserving a reachable peer.</p>
+            </section>
+
+            <section class="panel events-panel">
+              <div class="panel-heading event-heading">
+                <div>
+                  <p class="section-kicker">05 / FIELD NOTES</p>
+                  <h2>Recent events</h2>
+                </div>
+                <span class="event-count" id="event-count">01</span>
+              </div>
+              <ol class="event-list" id="event-list"></ol>
+            </section>
+          </aside>
+        </section>
+
+        <footer class="page-footer">
+          <span>ENMESH / MESH LORA LAB</span>
+          <span>This is an illustrative model, not an RF propagation forecast.</span>
+          <span id="seed-label">SEED 43117</span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
