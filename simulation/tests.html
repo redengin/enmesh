@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulation model tests — Enmesh</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <style>
+      .test-page { max-width: 760px; margin: 48px auto; }
+      .test-header { margin-bottom: 22px; }
+      .test-header p { color: #929aaa; font-size: 13px; }
+      .test-results { padding: 0 20px; }
+      .test-results li { padding: 12px 0; border-top: 1px solid var(--line-soft); color: #c5cad4; font-size: 12px; }
+      .test-results .pass { color: var(--shard); }
+      .test-results .fail { color: var(--danger); }
+      .test-summary { padding: 14px 20px; border-top: 1px solid var(--line); color: var(--text); font-family: "DM Mono", monospace; font-size: 11px; }
+    </style>
+    <script type="module" src="./tests/run.js"></script>
+  </head>
+  <body>
+    <main class="test-page">
+      <div class="test-header">
+        <p class="eyebrow"><span class="eyebrow-line"></span> ENMESH / MODEL CHECKS</p>
+        <h1>Simulation tests</h1>
+        <p>Browser-based checks for layout reachability, deterministic rounds, and shard/range behavior.</p>
+      </div>
+      <section class="panel">
+        <ol class="test-results" id="test-results" aria-live="polite"></ol>
+        <div class="test-summary" id="test-summary">Running checks…</div>
+      </section>
+    </main>
+  </body>
+</html>
