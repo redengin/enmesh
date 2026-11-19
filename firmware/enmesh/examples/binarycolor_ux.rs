@@ -89,11 +89,10 @@ fn run(
                     keymod: _,
                     repeat,
                 } => {
-                    if (keycode == SIMULATED_BUTTON) && !repeat {
-                        if simulated_button_down_start.is_none() {
+                    if (keycode == SIMULATED_BUTTON) && !repeat
+                        && simulated_button_down_start.is_none() {
                             simulated_button_down_start = Some(Instant::now());
                         }
-                    }
                 }
                 // handle simulated button UP, and standard keyboard ux
                 SimulatorEvent::KeyUp {

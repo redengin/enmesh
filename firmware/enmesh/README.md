@@ -6,6 +6,19 @@ The Enmesh architecture requires a minimal BSP support layer to run.
 You can run a demonstration of the Enmesh UX from the 'enmesh/firmware/enmesh'
 folder.
 
+#### Prerequisites
+The demonstration draws the display in a desktop window. It needs the SDL2
+development library.
+
+Debian and Ubuntu:
+```sh
+sudo apt install libsdl2-dev
+```
+
+Without this library, the build fails with `unable to find library -lSDL2`.
+See the [simulator setup](https://github.com/embedded-graphics/simulator#setup)
+for other platforms.
+
 #### Small Mono Display (128x64)
 ```sh
 cargo run --example binarycolor_ux

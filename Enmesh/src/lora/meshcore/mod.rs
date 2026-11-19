@@ -5,6 +5,8 @@ const MAX_PACKETS: usize = 255;
 const MAX_PACKET_SIZE: usize = 255;
 pub struct LoRaPacket {
     pub len : u8,
+    // The transmit path does not read this field yet.
+    #[allow(dead_code)]
     buffer: [u8; MAX_PACKET_SIZE],
 }
 
@@ -111,7 +113,7 @@ impl LoRaProtocol for MeshCoreLora {
                 lora_radio.set_irq_params(Some(lora_phy::mod_params::RadioMode::Transmit)).await.unwrap();
 
 
-                while self.tx_queue.len() > 0 {
+                while !self.tx_queue.is_empty() {
                     let packet = self.tx_queue.get(0).unwrap();
                     // prepare for transmit
                     lora_radio.create_packet_params(

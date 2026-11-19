@@ -20,12 +20,12 @@ pub async fn run(
 
     loop {
         let mut buffer = [0u8; 1];
-        if let Ok(read) = serial.read_async(&mut buffer).await {
-            if read > 0 {
+        if let Ok(read) = serial.read_async(&mut buffer).await
+            && read > 0 {
                 match buffer[0] {
                     b'\r' => {
                         // upon 'carriage return' submit the command
-                        const NEWLINE: [u8; 1] = [b'\n'];
+                        const NEWLINE: [u8; 1] = *b"\n";
                         let _ = serial.write_async(&NEWLINE).await;
                         match handle_command(&mut mode, global_state, command.as_str()).await {
                             Ok(s) => {
@@ -48,7 +48,7 @@ pub async fn run(
                         // upon backspace drop the last char
                         if command.pop().is_some() {
                             // clear the character from the serial console
-                            const BACKSPACE_SEQUENCE: [u8; 3] = [b'\x08', b' ', b'\x08'];
+                            const BACKSPACE_SEQUENCE: [u8; 3] = *b"\x08 \x08";
                             let _ = serial.write_async(&BACKSPACE_SEQUENCE).await;
                         }
                     }
@@ -72,7 +72,6 @@ pub async fn run(
                     }
                 }
             }
-        }
     }
 }
 
@@ -145,11 +144,11 @@ enum SessionMode {
 }
 impl SessionMode {
     pub fn prompt(&self) -> &'static [u8] {
-        return match self {
+        match self {
             Self::Enmesh => "\n\nenmesh> ".as_bytes(),
             Self::MeshCore => "\n\nmeshcore> ".as_bytes(),
             Self::Meshtastic => "\n\nmeshtastic> ".as_bytes(),
-        };
+        }
     }
 }
 

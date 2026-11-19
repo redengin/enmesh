@@ -13,10 +13,10 @@ pub enum MeshCoreBleCommands<'a> {
     },
     /// FIXME - this command is insecure and inefficient
     /// * places private secrets onto remote devices, allowing those secrets to be
-    ///     exposed by a malicious actor
+    ///   exposed by a malicious actor
     /// * begets implementations that require the remote device to encrypt/decrypt
     ///     * this is inefficient as the companion sender has greater compute
-    ///         resources available to perform the encryption/decryption
+    ///       resources available to perform the encryption/decryption
     /// 
     SetChannel {
         channel_index: &'a u8,
@@ -42,7 +42,7 @@ pub enum MeshCoreBleCommands<'a> {
 }
 impl<'a> MeshCoreBleCommands<'a> {
     pub fn from_buffer(buffer: &'a [u8]) -> Option<Self> {
-        return match buffer[0] {
+        match buffer[0] {
             0x01 => Some(Self::AppStart {
                 reserved: &buffer[1..8],
                 application_name: &buffer[8..buffer.len()],
@@ -63,11 +63,11 @@ impl<'a> MeshCoreBleCommands<'a> {
             }),
 
             _ => None,
-        };
+        }
     }
 
     pub fn to_buffer(&self, buffer: &mut [u8]) -> Result<usize, &str> {
-        return match self {
+        match self {
             MeshCoreBleCommands::AppStart {
                 reserved,
                 application_name,
@@ -101,7 +101,7 @@ impl<'a> MeshCoreBleCommands<'a> {
                 buffer[34..50].copy_from_slice(secret);
                 Ok(50)
             }
-        };
+        }
     }
 }
 

@@ -10,7 +10,6 @@ impl Meshtastic {
     pub fn new() -> Self {
         Self {
             needs_refresh: true,
-            ..Default::default()
         }
     }
 }
@@ -80,7 +79,7 @@ impl View for Meshtastic {
     ) -> bool {
         if self.needs_refresh {
             self.refresh(draw_target, theme, model);
-            return true;
+            true
         }
         // // refresh if model data has changed
         // else if (model.wifi_status != self.last_wifi_status)
@@ -91,7 +90,7 @@ impl View for Meshtastic {
         //     return true;
         // }
         else {
-            return false;
+            false
         }
     }
 }

@@ -1,4 +1,4 @@
-# This workflow runs the tests of the host workspace.
+# This workflow runs the tests and clippy on the host workspace.
 # The ESP32 firmware is not in this workflow.
 name: tests
 
@@ -17,8 +17,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
 
       - name: Install Rust
-        run: rustup toolchain install stable --profile minimal && rustup default stable
+        run: rustup toolchain install stable --profile minimal --component clippy && rustup default stable
 
       # The Reticulum tests use the std feature.
       - name: Run the tests
         run: cargo test --locked --workspace --features reticulum/std
+
+      # Clippy warnings fail the job.
+      - name: Run clippy
+        run: cargo clippy --locked --workspace --all-targets --features reticulum/std -- -D warnings

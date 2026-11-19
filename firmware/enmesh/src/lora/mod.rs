@@ -119,7 +119,7 @@ pub trait LoRaRf {
         // prioritize sending
         if self.has_transmit_packets() {
             // allow implemenations to dynamically scale tx power
-            crate::lora::set_tx_power(lora_radio, self.get_tx_power(&lora_config))
+            crate::lora::set_tx_power(lora_radio, self.get_tx_power(lora_config))
                 .await
                 .unwrap();
             // prepare radio for transmit
@@ -233,7 +233,7 @@ pub trait LoRaRf {
                                                 };
                                             // get the payload
                                             match lora_radio
-                                                .get_rx_payload(&packet_params, &mut packet.buffer)
+                                                .get_rx_payload(packet_params, &mut packet.buffer)
                                                 .await
                                             {
                                                 Ok(buffer_length) => {
@@ -301,7 +301,7 @@ pub async fn is_channel_clear(
     lora_radio: &mut impl lora_phy::mod_traits::RadioKind,
     modulation_parameters: &lora_phy::mod_params::ModulationParams,
 ) -> Result<bool, lora_phy::mod_params::RadioError> {
-    return match lora_radio.do_cad(&modulation_parameters).await {
+    return match lora_radio.do_cad(modulation_parameters).await {
         Ok(_) => {
             // this is a gargabe API
             let mut is_active: bool = false;

@@ -33,7 +33,7 @@ impl ThemeForColor for BinaryColor {
         let background = Rgb888::BLACK;
 
         // choose font based on display size
-        return if screen_size.height <= 64 {
+        if screen_size.height <= 64 {
             Theme {
                 color,
                 background,
@@ -53,7 +53,7 @@ impl ThemeForColor for BinaryColor {
                 small_style: MonoTextStyle::new(&profont::PROFONT_9_POINT, color),
                 enmesh_logo: generated::images::enmesh_logo_36x36(),
             }
-        };
+        }
     }
 }
 
@@ -66,7 +66,7 @@ impl ThemeForColor for Rgb888 {
         let background = Rgb888::BLACK;
 
         // choose font based on display size
-        return if screen_size.height <= 64 {
+        if screen_size.height <= 64 {
             Theme {
                 color,
                 background,
@@ -86,6 +86,6 @@ impl ThemeForColor for Rgb888 {
                 small_style: MonoTextStyle::new(&profont::PROFONT_9_POINT, color),
                 enmesh_logo: generated::images::enmesh_logo_36x36(),
             }
-        };
+        }
     }
 }

@@ -75,7 +75,7 @@ pub trait LoRaProtocol
     ///     * create a sequence of packets to transmit
     ///         * ordered by repeater based priority
     ///             * generally, repeater-to-repeater traffic should be lower
-    ///                 priority than user traffic
+    ///               priority than user traffic
     /// * TX
     ///     * transmit packets by priority
     #[allow(async_fn_in_trait)]

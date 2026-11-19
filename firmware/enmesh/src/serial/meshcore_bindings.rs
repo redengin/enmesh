@@ -16,7 +16,7 @@ pub(crate) async fn handle<'a>(
     global_state: &'static RwLock<NoopRawMutex, crate::State>,
     cli_command: meshcore::cli::CliCommands<'a>,
 ) -> Result<Option<heapless::String<STRING_MAX>>, &'a str> {
-    return match cli_command {
+    match cli_command {
         CliCommands::Reboot => {
             // TODO
             Err("not implemented")
@@ -292,5 +292,5 @@ pub(crate) async fn handle<'a>(
 
 
         _ => Err("not implemented"),
-    };
+    }
 }

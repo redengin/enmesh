@@ -49,12 +49,12 @@ pub mod utils {
     /// determine the size of the buffer based upon word_size
     pub const fn buffer_size(atleast_size: usize, word_size: WordSize) -> usize {
         let word_count = atleast_size.div_ceil(word_size as usize);
-        return word_count * (word_size as usize);
+        word_count * (word_size as usize)
     }
 
     /// determine the number of sectors based up sector size
     pub const fn sector_count(atleast_size: usize, sector_size: usize) -> usize {
-        return atleast_size.div_ceil(sector_size);
+        atleast_size.div_ceil(sector_size)
     }
 }
 

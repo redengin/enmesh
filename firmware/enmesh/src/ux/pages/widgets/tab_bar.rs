@@ -72,7 +72,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
             return true;
         }
 
-        return false;
+        false
     }
 
     fn handle_event(&mut self, event: &crate::ux::HidEvent) -> bool {
@@ -81,7 +81,7 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
                 self.current_tab += 1;
                 self.current_tab %= TAB_COUNT;
                 self.needs_refresh = true;
-                return true;
+                true
             }
             crate::ux::HidEvent::Previous => {
                 if self.current_tab > 0 {
@@ -91,9 +91,9 @@ impl<const TAB_COUNT: usize> crate::ux::pages::View for TabBar<TAB_COUNT> {
                     self.current_tab = TAB_COUNT - 1;
                 }
                 self.needs_refresh = true;
-                return true;
+                true
             }
-            _ => return false,
-        };
+            _ => false,
+        }
     }
 }
