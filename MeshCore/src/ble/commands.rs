@@ -73,7 +73,7 @@ impl<'a> MeshCoreBleCommands<'a> {
                 application_name,
             } => {
                 buffer[0] = 0x01;
-                buffer[1..7].copy_from_slice(reserved);
+                buffer[1..8].copy_from_slice(reserved);
                 buffer[8..(8 + application_name.len())].copy_from_slice(application_name);
                 Ok(8 + application_name.len())
             }
@@ -112,6 +112,23 @@ mod tests {
 
     use super::*;
 
+    /// A deserialized APP_START must serialize back to the same bytes.
+    #[test]
+    #[allow(non_snake_case)]
+    fn roundtrip_MeshCoreBleCommands_AppStart() {
+        const EXAMPLE_DATA: [u8; 13] = [
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x6d, 0x63, 0x63, 0x6c, 0x69,
+        ];
+
+        let command = MeshCoreBleCommands::from_buffer(&EXAMPLE_DATA)
+            .expect("example APP_START must parse");
+        let mut buffer = [0u8; 50];
+        let used_bytes = command
+            .to_buffer(&mut buffer)
+            .expect("parsed APP_START must serialize");
+        assert_eq!(EXAMPLE_DATA, buffer[..used_bytes]);
+    }
+
     #[test]
     #[allow(non_snake_case)]
     fn serde_MeshCoreBleCommands() {
@@ -142,7 +159,7 @@ mod tests {
 
             // test serialization
             let app_start = MeshCoreBleCommands::AppStart {
-                reserved: &EXAMPLE_DATA[1..7],
+                reserved: &EXAMPLE_DATA[1..8],
                 application_name: &EXAMPLE_DATA[8..],
             };
             let mut buffer = [0u8; MAX_PACKET_SIZE];
