@@ -1,7 +1,29 @@
 What is Enmesh?
 ================================================================================
-Enmesh is a Rust implementation of LoRa mesh protocols
-(supporting Meshtatstic and Meshcore).
+Enmesh is an all Rust implementation for Mesh LoRa.
+
+### What is Mesh LoRa?
+Current LoRa mesh implementations ([Meshtastic][1], [MeshCore][2]) using a
+single LoRa Channel are susceptible to denial-of-service by congestion of the
+LoRa Channel. Congestion can occur by **density** (many nearby particpants) or
+**malicisouly** (a node overly transmits to deny service locally).
+
+Mesh LoRa mitigates the congestion of LoRa channels by constantly evolving LoRa
+channels to support access by the mesh participants.
+
+Mesh LoRa's only concern is propagation of data, supporting all mesh content
+semantics ([Meshtastic][1], [MeshCore][2], and others).
+
+
+#### Mesh LoRa is being designed per our [RFC Process](https://github.com/redengin/enmesh/wiki/RFC-Process).
+* [RFC Mesh LoRa Anonymity](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Anonymity)
+* [RFC Mesh LoRa Network Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Network-Protocol)
+* [RFC Mesh LoRa RF Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-RF-Protocol)
+
+#### Visualiztion of Enmesh - https://redengin.github.io/enmesh/
+<iframe src="https://redengin.github.io/enmesh" title="Enmesh Simulation"
+ width="95%" height="500px">
+</iframe>
 
 ### What does Enmesh firmware look like?
 You can run a demonstration - [see enmesh demo](./firmware/enmesh/README.md).
@@ -74,20 +96,6 @@ You can run a demonstration - [see enmesh demo](./firmware/enmesh/README.md).
 The architecture requires a minimal BSP layer to be implemeneted to support
 other platforms (nrf52 and others).
 
-### How does Enmesh work?
-Mesh LoRa decouples the progagation of data from the semantics of the data -
-providing equal or better timeliness of propogation of current LoRa mesh
-implementations.
-
-([See a visualiztion of Enmesh](https://redengin.github.io/enmesh/))
-
-Enmesh ensures transmit access to the mesh, while supporting Meshtastic
-and MeshCore protocols.
-
-[Read more about Mesh Lora](https://github.com/redengin/enmesh/wiki/RFC-Process)
-* [Mesh LoRa Anonymity](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Anonymity)
-* [Mesh LoRa Network Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Network-Protocol)
-* [Mesh LoRa RF Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-RF-Protocol)
 
 ### Support for WiFi Bridges
 EnMesh firmware supports [MQTT](https://en.wikipedia.org/wiki/MQTT) as a bridge
@@ -136,3 +144,8 @@ Enmesh BLE is implemented to support mobile apps that use Meshtastic or
 MeshCore defined BLE services. To further the usage of Enmesh, an
 Enmesh Mobile App will be created to support further control per the
 Enmesh design using an Enmesh BLE service.
+
+
+<!-- REFERENCES -->
+[1]: https://meshtastic.org/
+[2]: https://meshcore.io
