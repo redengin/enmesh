@@ -20,10 +20,9 @@ semantics ([Meshtastic][1], [MeshCore][2], and others).
 * [RFC Mesh LoRa Network Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-Network-Protocol)
 * [RFC Mesh LoRa RF Protocol](https://github.com/redengin/enmesh/wiki/RFC-%E2%80%90-Mesh-LoRa-RF-Protocol)
 
-#### Visualiztion of Enmesh - https://redengin.github.io/enmesh/
-<iframe src="https://redengin.github.io/enmesh" title="Enmesh Simulation"
- width="95%" height="500px">
-</iframe>
+#### Visualiztion of Mesh LoRa - https://redengin.github.io/enmesh/
+The visualization was produced per the RFCs to demonstrate how the
+Mesh LoRa design evolves `shards` toward universal mesh communication.
 
 ### What does Enmesh firmware look like?
 You can run a demonstration - [see enmesh demo](./firmware/enmesh/README.md).
