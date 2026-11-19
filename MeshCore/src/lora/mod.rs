@@ -300,7 +300,7 @@ pub enum MeshCoreHashSize {
     /// 2 byte hashes
     _2 = 0x01,
     /// 3 byte hashes
-    _3 = 0x10,
+    _3 = 0x02,
 }
 impl MeshCoreHashSize {
     /// * if Ok, returns path hash size object
@@ -431,5 +431,41 @@ mod tests {
         };
 
         serde_harness(&PACKET);
+    }
+
+    /// A packet with 3 byte path hashes must survive a round trip.
+    #[test]
+    #[allow(non_snake_case)]
+    fn serde_MeshCorePacket_Path_3ByteHash() {
+        const PACKET: MeshCoreLoraPacket = MeshCoreLoraPacket {
+            header: MeshCoreHeader {
+                version: MeshCoreVersion::_1,
+                payload_type: MeshCorePayloadType::ACK,
+                route_type: MeshCoreRouteType::DIRECT,
+            },
+            transport_codes: None,
+            path: MeshCorePath {
+                hop_count: 1,
+                hash_size: MeshCoreHashSize::_3,
+                path_data: &[u8::MAX; MeshCoreHashSize::_3.len()],
+            },
+            payload: &[1u8; 100],
+        };
+
+        serde_harness(&PACKET);
+    }
+
+    /// Path length byte 0b10_000001 means 3 byte hashes and 1 hop.
+    #[test]
+    #[allow(non_snake_case)]
+    fn deserialize_MeshCorePacket_Path_3ByteHash() {
+        // header: version 0, ACK (3), DIRECT (2)
+        const BUFFER: [u8; 6] = [0x0E, 0b1000_0001, 0xAA, 0xBB, 0xCC, 0x01];
+
+        let packet = MeshCoreLoraPacket::from_buffer(&BUFFER)
+            .expect("3 byte path hashes must parse");
+        assert_eq!(packet.path.hash_size, MeshCoreHashSize::_3);
+        assert_eq!(packet.path.hop_count, 1);
+        assert_eq!(packet.payload, &[0x01]);
     }
 }
