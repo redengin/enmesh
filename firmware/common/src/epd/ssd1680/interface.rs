@@ -1,12 +1,11 @@
-/// use standard Display Errors
-use display_interface::DisplayError;
 
 // provide embedded_hal abstractions
 use embedded_hal::digital::{InputPin, OutputPin};
 use embedded_hal::spi::SpiDevice;
-use embedded_hal::delay::DelayNs;
 
 
+// The driver does not read these fields yet.
+#[allow(dead_code)]
 pub struct DisplayInterface<SPI, BSY, DC, RST>
 {
     /// SPI device

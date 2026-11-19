@@ -111,20 +111,16 @@ impl View for Home {
         theme: &crate::ux::themes::Theme,
         model: &crate::State,
     ) -> bool {
-        if self.needs_refresh {
-            self.refresh(draw_target, theme, model);
-            return true;
-        }
-        // refresh if model data has changed
-        else if (model.wifi_status != self.last_wifi_status)
+        // refresh if requested or if model data has changed
+        if self.needs_refresh
+            || (model.wifi_status != self.last_wifi_status)
             || (model.ble_status != self.last_ble_status)
             || (model.storage_status.free_percent() != self.last_storage_free)
         {
             self.refresh(draw_target, theme, model);
-            return true;
-        }
-        else {
-            return false;
+            true
+        } else {
+            false
         }
     }
 }

@@ -190,7 +190,7 @@ impl PageController {
 
         // everything has been refreshed
         self.needs_refresh = false;
-        return has_changed;
+        has_changed
     }
 
     pub fn handle_event(&mut self, event: &crate::ux::HidEvent) {
@@ -205,9 +205,7 @@ impl PageController {
 
         // pass the unhandled event to the page
         if !handled {
-            handled = match self.tab_bar.current_tab {
-                _ => self.home.handle_event(event),
-            };
+            handled = self.home.handle_event(event);
         };
 
         // pass the unhandled event to the tab_bar
@@ -222,6 +220,12 @@ impl PageController {
     }
 }
 
+impl Default for PageController {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub trait View {
     /// repaint the whole view
     fn refresh(
@@ -233,7 +237,7 @@ pub trait View {
 
     /// update the view
     /// * only needs to update changes
-    /// returns true if display changed
+    /// * returns true if display changed
     fn update(
         &mut self,
         draw_target: &mut impl DrawTarget<Color = embedded_graphics::pixelcolor::Rgb888>,

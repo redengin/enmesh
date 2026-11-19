@@ -2,7 +2,7 @@
 
 /// provide logging
 /// - devices use the serial communications for console configuration
-///     therefore they must support string logging (e.g. can't support defmt)
+///   therefore they must support string logging (e.g. can't support defmt)
 pub use log;
 
 // embedded utils

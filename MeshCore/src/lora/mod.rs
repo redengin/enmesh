@@ -1,4 +1,4 @@
-/// https://docs.meshcore.io/packet_format/
+// https://docs.meshcore.io/packet_format/
 
 /// max size in bytes of path data
 /// * v1.12.0 firmware and older only handled legacy 1-byte path hashes and
@@ -24,46 +24,42 @@ impl<'a> MeshCoreLoraPacket<'a> {
         let mut used: usize = 0;
 
         // deserialize the header
-        if let Some(header) = MeshCoreHeader::from_header(&buffer[0]) {
-            used += 1;
+        let header = MeshCoreHeader::from_header(&buffer[0])?;
+        used += 1;
 
-            // deserialize transport codes (if they exist)
-            let transport_codes = if header.route_type.has_transport_codes() {
-                let transport_codes_0 = u16::from_le_bytes(
-                    buffer[used..(used + 2)]
-                        .try_into()
-                        .expect("invalid dimensions"),
-                );
-                used += 2;
-                let transport_codes_1 = u16::from_le_bytes(
-                    buffer[used..(used + 2)]
-                        .try_into()
-                        .expect("invalid dimensions"),
-                );
-                used += 2;
+        // deserialize transport codes (if they exist)
+        let transport_codes = if header.route_type.has_transport_codes() {
+            let transport_codes_0 = u16::from_le_bytes(
+                buffer[used..(used + 2)]
+                    .try_into()
+                    .expect("invalid dimensions"),
+            );
+            used += 2;
+            let transport_codes_1 = u16::from_le_bytes(
+                buffer[used..(used + 2)]
+                    .try_into()
+                    .expect("invalid dimensions"),
+            );
+            used += 2;
 
-                Some([transport_codes_0, transport_codes_1])
-            } else {
-                None
-            };
-
-            if let Some((path, path_used)) = MeshCorePath::from_buffer(&buffer[used..]) {
-                used += path_used;
-
-                // deserialized all the data, the rest is payload
-                return Some(Self {
-                    header,
-                    transport_codes,
-                    path,
-                    payload: &buffer[used..],
-                });
-            } else {
-                // invalid path
-                return None;
-            }
+            Some([transport_codes_0, transport_codes_1])
         } else {
-            // invalid header
-            return None;
+            None
+        };
+
+        if let Some((path, path_used)) = MeshCorePath::from_buffer(&buffer[used..]) {
+            used += path_used;
+
+            // deserialized all the data, the rest is payload
+            Some(Self {
+                header,
+                transport_codes,
+                path,
+                payload: &buffer[used..],
+            })
+        } else {
+            // invalid path
+            None
         }
     }
 
@@ -111,22 +107,20 @@ impl MeshCoreHeader {
     /// * if Ok, returns valid header object
     /// * else None
     fn from_header(header: &u8) -> Option<Self> {
-        if let Some(version) = MeshCoreVersion::from_header(header) {
-            if let Some(payload_type) = MeshCorePayloadType::from_header(header) {
-                if let Some(route_type) = MeshCoreRouteType::from_header(header) {
+        if let Some(version) = MeshCoreVersion::from_header(header)
+            && let Some(payload_type) = MeshCorePayloadType::from_header(header)
+                && let Some(route_type) = MeshCoreRouteType::from_header(header) {
                     return Some(Self {
                         version,
                         payload_type,
                         route_type,
                     });
                 };
-            };
-        };
 
         None
     }
 
-    fn to_header(&self, buffer: &mut u8) {
+    fn to_header(self, buffer: &mut u8) {
         *buffer = ((self.version as u8) << 6)
             | ((self.payload_type as u8) << 2)
             | (self.route_type as u8);
@@ -141,10 +135,10 @@ impl MeshCoreVersion {
     fn from_header(header: &u8) -> Option<Self> {
         let version_value = header >> 6;
 
-        return match version_value {
+        match version_value {
             id if id == Self::_1 as u8 => Some(Self::_1),
             _ => None,
-        };
+        }
     }
 }
 
@@ -184,7 +178,7 @@ impl MeshCorePayloadType {
     fn from_header(header: &u8) -> Option<Self> {
         const PAYLOAD_TYPE_MASK: u8 = 0b0011_1100;
         let payload_type_value = (header & PAYLOAD_TYPE_MASK) >> 2;
-        return match payload_type_value {
+        match payload_type_value {
             id if id == Self::REQ as u8 => Some(Self::REQ),
             id if id == Self::RESPONSE as u8 => Some(Self::RESPONSE),
             id if id == Self::TEXT_MSG as u8 => Some(Self::TEXT_MSG),
@@ -200,7 +194,7 @@ impl MeshCorePayloadType {
             id if id == Self::RAW_CUSTOM as u8 => Some(Self::RAW_CUSTOM),
             // no patterns matched
             _ => None,
-        };
+        }
     }
 }
 
@@ -222,21 +216,21 @@ impl MeshCoreRouteType {
     fn from_header(header: &u8) -> Option<Self> {
         const ROUTE_TYPE_MASK: u8 = 0b0000_0011;
         let route_type_value = header & ROUTE_TYPE_MASK;
-        return match route_type_value {
+        match route_type_value {
             id if id == Self::TRANSPORT_FLOOD as u8 => Some(Self::TRANSPORT_FLOOD),
             id if id == Self::FLOOD as u8 => Some(Self::FLOOD),
             id if id == Self::DIRECT as u8 => Some(Self::DIRECT),
             id if id == Self::TRANSPORT_DIRECT as u8 => Some(Self::TRANSPORT_DIRECT),
             // no patterns matched
             _ => None,
-        };
+        }
     }
 
     fn has_transport_codes(&self) -> bool {
-        return match self {
+        match self {
             Self::TRANSPORT_FLOOD | Self::TRANSPORT_DIRECT => true,
             Self::FLOOD | Self::DIRECT => false,
-        };
+        }
     }
 }
 
@@ -247,7 +241,7 @@ pub struct MeshCorePath<'a> {
     path_data: &'a [u8],
 }
 impl<'a> MeshCorePath<'a> {
-    fn to_buffer(&self, buffer: &mut [u8]) -> usize {
+    fn to_buffer(self, buffer: &mut [u8]) -> usize {
         let mut used: usize = 0;
 
         // serialize the header (aka path_length)
@@ -306,7 +300,7 @@ impl MeshCoreHashSize {
     /// * if Ok, returns path hash size object
     /// * else None
     pub fn from_byte(value: &u8) -> Option<Self> {
-        return match value {
+        match value {
             0 => Some(Self::LEGACY),
             1 => Some(Self::_2),
             2 => Some(Self::_3),
@@ -318,22 +312,22 @@ impl MeshCoreHashSize {
     /// * else None
     fn from_path_length(path_length: &u8) -> Option<Self> {
         let hash_size = path_length >> 6;
-        return match hash_size {
+        match hash_size {
             id if id == Self::LEGACY as u8 => Some(Self::LEGACY),
             id if id == Self::_2 as u8 => Some(Self::_2),
             id if id == Self::_3 as u8 => Some(Self::_3),
             // no patterns matched
             _ => None
-        };
+        }
     }
 
     /// returns the size (in bytes) of the hash size
     const fn len(&self) -> usize {
-        return match self {
+        match self {
             Self::LEGACY => 1,
             Self::_2 => 2,
             Self::_3 => 3,
-        };
+        }
     }
 }
 

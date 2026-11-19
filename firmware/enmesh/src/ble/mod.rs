@@ -46,16 +46,14 @@ pub async fn run(
     let global_state_lock = global_state.read().await;
     let stored_bonds = global_state_lock.settings.ble_settings.bonds.clone();
     drop(global_state_lock);
-    for stored_bond in stored_bonds {
-        if let Some(bond) = stored_bond {
-            let bond_information: trouble_host::BondInformation = bond.into();
-            match stack.add_bond_information(bond_information.clone()) {
-                Ok(()) => {
-                    debug!("{TAG} adding bond information: [{:?}]", bond_information);
-                }
-                Err(e) => {
-                    warn!("{TAG} failed to add bond information: {:?}", e);
-                }
+    for bond in stored_bonds.into_iter().flatten() {
+        let bond_information: trouble_host::BondInformation = bond.into();
+        match stack.add_bond_information(bond_information.clone()) {
+            Ok(()) => {
+                debug!("{TAG} adding bond information: [{:?}]", bond_information);
+            }
+            Err(e) => {
+                warn!("{TAG} failed to add bond information: {:?}", e);
             }
         }
     }
@@ -199,7 +197,7 @@ async fn handle_connection<P: PacketPool>(
                         global_state_lock
                             .settings
                             .ble_settings
-                            .add_binding(bond_information.into());
+                            .add_binding(bond_information);
                         drop(global_state_lock);
                     }
                 }
@@ -233,7 +231,7 @@ fn handle_gatt_event<'server, 'stack, P: PacketPool>(
     event: GattEvent<'stack, 'server, P>,
     _meshcore_gatt_handler: &'server mut MeshCoreGattHandler,
 ) -> Result<Reply<'stack, P>, Error> {
-    return match event {
+    match event {
         GattEvent::Read(event) => {
             let handle = event.handle();
             // handle meshcore
@@ -270,7 +268,7 @@ fn handle_gatt_event<'server, 'stack, P: PacketPool>(
         }
         // use the trouble reply to other events
         _ => event.accept(),
-    };
+    }
 }
 
 /// support for storing BLE bonds

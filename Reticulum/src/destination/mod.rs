@@ -733,13 +733,10 @@ impl Type for Group {
 #[cfg(test)]
 mod tests {
     // use rand_core::OsRng;
-    use serde::Serialize;
 
     use super::*;
 
-    use crate::buffer::OutputBuffer;
     use crate::hash::Hash;
-    use crate::identity::PrivateIdentity;
 
     // FIXME
     // #[test]

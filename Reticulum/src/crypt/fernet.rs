@@ -47,7 +47,8 @@
 use crate::error::RnsError;
 
 use aes::cipher::block_padding::Pkcs7;
-use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt, Key, KeyIvInit};
+use aes::cipher::common::Generate;
+use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt, Iv, Key, KeyIvInit};
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
 
@@ -209,8 +210,7 @@ impl<R: rand_core::CryptoRng + Copy> Fernet<R> {
     pub fn new_rand(mut rng: R) -> Self {
         let mut sign_key = [0u8; AES_KEY_SIZE];
         rng.fill_bytes(&mut sign_key);
-        // FIXME
-        let enc_key = AesCbcEnc::generate_key(&mut rng);
+        let enc_key = Key::<AesCbcEnc>::generate_from_rng(&mut rng);
 
         Self {
             rng,
@@ -260,8 +260,7 @@ impl<R: rand_core::CryptoRng + Copy> Fernet<R> {
         let mut out_len = 0;
 
         // Generate random IV
-        // FIXME
-        let iv = AesCbcEnc::generate_iv(&mut self.rng);
+        let iv = Iv::<AesCbcEnc>::generate_from_rng(&mut self.rng);
         out_buf[..iv.len()].copy_from_slice(iv.as_slice());
 
         out_len += iv.len();

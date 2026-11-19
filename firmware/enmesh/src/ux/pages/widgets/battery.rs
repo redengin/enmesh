@@ -89,6 +89,6 @@ impl crate::ux::pages::View for BatteryWidget {
             return true;
         }
 
-        return false;
+        false
     }
 }

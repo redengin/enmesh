@@ -45,7 +45,7 @@
 //! ```
 
 #[cfg(feature = "std")]
-use std::fmt::{self, Write};
+use std::fmt::Write;
 
 // use alloc::fmt::Write;
 // use alloc::string::String;

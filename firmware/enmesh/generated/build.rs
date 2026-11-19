@@ -37,27 +37,26 @@ fn main() {
         .unwrap();
 
     // read the entries in the assets folder
-    for result in
-        std::fs::read_dir(ASSETS_PATH).expect("ERROR: assets folder must exist at root of project")
+    for entry in std::fs::read_dir(ASSETS_PATH)
+        .expect("ERROR: assets folder must exist at root of project")
+        .flatten()
     {
-        if let Ok(entry) = result {
-            // ignores subdirectories
-            if entry.path().is_file() {
-                // the file name extension to determine how to handle the file
-                if let Some(extension) = entry.path().extension() {
-                    /// provide access to transformations
-                    use generators::*;
-                    match extension
-                        .to_ascii_uppercase()
-                        .to_str()
-                        .expect("ERROR: file name is not ascii")
-                    {
-                        "OTF" => ttf_generate(&entry.path(), &out_dir, &mut fonts_rs),
-                        "TTF" => ttf_generate(&entry.path(), &out_dir, &mut fonts_rs),
-                        "SVG" => svg_generate(&entry.path(), &out_dir, &mut images_rs),
-                        _ => {
-                            println!("cargo::warning=Unrecognized asset {:?}", entry.file_name());
-                        }
+        // ignores subdirectories
+        if entry.path().is_file() {
+            // the file name extension to determine how to handle the file
+            if let Some(extension) = entry.path().extension() {
+                /// provide access to transformations
+                use generators::*;
+                match extension
+                    .to_ascii_uppercase()
+                    .to_str()
+                    .expect("ERROR: file name is not ascii")
+                {
+                    "OTF" => ttf_generate(&entry.path(), &out_dir, &mut fonts_rs),
+                    "TTF" => ttf_generate(&entry.path(), &out_dir, &mut fonts_rs),
+                    "SVG" => svg_generate(&entry.path(), &out_dir, &mut images_rs),
+                    _ => {
+                        println!("cargo::warning=Unrecognized asset {:?}", entry.file_name());
                     }
                 }
             }

@@ -36,6 +36,8 @@ pub struct BleSettings {
 impl BleSettings {
     /// add a new paired binding
     /// * if no binding slots are available, replaces the oldest binding slot
+    // MAX_BLE_BONDS is a tunable constant. Keep the wrap-around for values above 1.
+    #[allow(clippy::modulo_one)]
     pub fn add_binding(&mut self, new_bond: trouble_host::BondInformation) {
         // find an None to fill
         for bond in self.bonds.iter_mut() {

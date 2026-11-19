@@ -10,11 +10,7 @@ macro_rules! scan {
 }
 /// use the MeshCore seperators
 fn is_separator(c: char) -> bool {
-    return if c.is_whitespace() || (c == ',') {
-        true
-    } else {
-        false
-    };
+    c.is_whitespace() || (c == ',')
 }
 
 /// https://docs.meshcore.io/cli_commands/
@@ -339,8 +335,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "time ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u32);
                 if let Some(time) = values.0 {
                     return Ok(Self::SetClock(time));
                 } else {
@@ -380,8 +376,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "neighbors.remove ";
-            if s.starts_with(COMMAND_STRING) {
-                let neighbor_string = &s[COMMAND_STRING.len()..];
+            if let Some(neighbor_string) = s.strip_prefix(COMMAND_STRING) {
                 return Ok(Self::RemoveNeighbor(neighbor_string));
             }
         }
@@ -459,8 +454,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set radio ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32, u16, u8, u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32, u16, u8, u8);
                 if let Some(freq) = values.0 {
                     if let Some(bw_khz) = values.1 {
                         if let Some(sf) = values.2 {
@@ -488,8 +483,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set tx ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], i8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, i8);
                 if let Some(tx_power) = values.0 {
                     return Ok(Self::SetTxPower(tx_power));
                 } else {
@@ -499,8 +494,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "tempradio ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32, f32, u8, u8, u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32, f32, u8, u8, u8);
                 if let Some(freq) = values.0 {
                     if let Some(bw) = values.1 {
                         if let Some(sf) = values.2 {
@@ -540,8 +535,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set freq ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(freq) = values.0 {
                     return Ok(Self::SetFreq(freq));
                 } else {
@@ -557,8 +552,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set radio.rxgain ";
-            if s.starts_with(COMMAND_STRING) {
-                let setting_str = &s[COMMAND_STRING.len()..];
+            if let Some(setting_str) = s.strip_prefix(COMMAND_STRING) {
                 if setting_str.eq("on") {
                     return Ok(Self::SetRxGain(true));
                 }
@@ -576,9 +570,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set name ";
-            if s.starts_with(COMMAND_STRING) {
-                let name = &s[COMMAND_STRING.len()..];
-                if name.len() > 0 {
+            if let Some(name) = s.strip_prefix(COMMAND_STRING) {
+                if !name.is_empty() {
                     return Ok(Self::SetName(name));
                 } else {
                     return Err("<name> no provided");
@@ -593,8 +586,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set lat ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(lat) = values.0 {
                     return Ok(Self::SetLat(lat));
                 } else {
@@ -610,8 +603,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set lon ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(lon) = values.0 {
                     return Ok(Self::SetLon(lon));
                 } else {
@@ -627,21 +620,17 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set prv.key ";
-            if s.starts_with(COMMAND_STRING) {
-                let prv_key = &s[COMMAND_STRING.len()..];
-                if prv_key.len() > 0 {
+            if let Some(prv_key) = s.strip_prefix(COMMAND_STRING)
+                && !prv_key.is_empty() {
                     return Ok(Self::SetPrivateKey(prv_key));
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "password ";
-            if s.starts_with(COMMAND_STRING) {
-                let password = &s[COMMAND_STRING.len()..];
-                if password.len() > 0 {
+            if let Some(password) = s.strip_prefix(COMMAND_STRING)
+                && !password.is_empty() {
                     return Ok(Self::SetAdminPassword(password));
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "get guest.password";
@@ -651,12 +640,10 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set guest.password ";
-            if s.starts_with(COMMAND_STRING) {
-                let password = &s[COMMAND_STRING.len()..];
-                if password.len() > 0 {
+            if let Some(password) = s.strip_prefix(COMMAND_STRING)
+                && !password.is_empty() {
                     return Ok(Self::SetGuestPassword(password));
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "get owner.info";
@@ -666,8 +653,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set owner.info ";
-            if s.starts_with(COMMAND_STRING) {
-                let info = &s[COMMAND_STRING.len()..];
+            if let Some(info) = s.strip_prefix(COMMAND_STRING) {
                 return Ok(Self::SetOwnerInfo(info));
             }
         }
@@ -679,8 +665,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set adc.multiplier ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(gain) = values.0 {
                     return Ok(Self::SetBatteryGain(gain));
                 } else {
@@ -708,8 +694,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "powersaving ";
-            if s.starts_with(COMMAND_STRING) {
-                let setting_str = &s[COMMAND_STRING.len()..];
+            if let Some(setting_str) = s.strip_prefix(COMMAND_STRING) {
                 if setting_str.eq("on") {
                     return Ok(Self::SetPowerSavingState(true));
                 }
@@ -727,8 +712,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set repeat ";
-            if s.starts_with(COMMAND_STRING) {
-                let setting_str = &s[COMMAND_STRING.len()..];
+            if let Some(setting_str) = s.strip_prefix(COMMAND_STRING) {
                 if setting_str.eq("on") {
                     return Ok(Self::SetRepeatState(true));
                 }
@@ -746,8 +730,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set path.hash.mode ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(value) = &values.0 {
                     if let Some(hash_size) = MeshCoreHashSize::from_byte(value) {
                         return Ok(Self::SetHashSize(hash_size));
@@ -765,8 +749,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set loop.detect ";
-            if s.starts_with(COMMAND_STRING) {
-                let setting_str = &s[COMMAND_STRING.len()..];
+            if let Some(setting_str) = s.strip_prefix(COMMAND_STRING) {
                 return match setting_str {
                     "off" => Ok(Self::SetLoopDetection(LoopDetection::Off)),
                     "minimal" => Ok(Self::SetLoopDetection(LoopDetection::Minimal)),
@@ -784,8 +767,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set txdelay ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(tx_delay) = values.0 {
                     return Ok(Self::SetTransmitDelay(tx_delay));
                 } else {
@@ -801,8 +784,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set rxdelay ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(rx_delay) = values.0 {
                     return Ok(Self::SetReceiveDelay(rx_delay));
                 } else {
@@ -818,8 +801,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set dutycycle ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(duty_cycle) = values.0 {
                     return Ok(Self::SetDutyCycle(duty_cycle));
                 } else {
@@ -835,8 +818,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set af ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(af) = values.0 {
                     return Ok(Self::SetAirtimeFactor(af));
                 } else {
@@ -852,8 +835,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set int.thresh ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], f32);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, f32);
                 if let Some(int_thresh) = values.0 {
                     return Ok(Self::SetInterferenceThreshold(int_thresh));
                 } else {
@@ -869,8 +852,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set agc.reset.interval ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(agc_reset_interval) = values.0 {
                     return Ok(Self::SetAgcResetInterval(agc_reset_interval));
                 } else {
@@ -886,8 +869,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set multi.acks ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(mode) = values.0 {
                     match mode {
                         0 => return Ok(Self::SetMultiAcksEnabled(false)),
@@ -907,8 +890,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set advert.interval ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(interval) = values.0 {
                     return Ok(Self::SetAdvertInterval(interval));
                 } else {
@@ -924,8 +907,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set flood.max.unscoped ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(hops) = values.0 {
                     return Ok(Self::SetUnscopedMaxHopCount(hops));
                 } else {
@@ -941,8 +924,8 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set flood.max.advert ";
-            if s.starts_with(COMMAND_STRING) {
-                let values = scan!(s[COMMAND_STRING.len()..], u8);
+            if let Some(rest) = s.strip_prefix(COMMAND_STRING) {
+                let values = scan!(rest, u8);
                 if let Some(hops) = values.0 {
                     return Ok(Self::SetFloodAdvertMaxHopCount(hops));
                 } else {
@@ -986,8 +969,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set allow.read.only ";
-            if s.starts_with(COMMAND_STRING) {
-                let setting_str = &s[COMMAND_STRING.len()..];
+            if let Some(setting_str) = s.strip_prefix(COMMAND_STRING) {
                 if setting_str.eq("on") {
                     return Ok(Self::SetRoomAccess(RoomAccess::ReadOnly));
                 }
@@ -1034,37 +1016,31 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "region allowf ";
-            if s.starts_with(COMMAND_STRING) {
-                let name = &s[COMMAND_STRING.len()..];
-                if name.len() > 0 {
+            if let Some(name) = s.strip_prefix(COMMAND_STRING)
+                && !name.is_empty() {
                     return Ok(Self::AllowRegionForwarding { name });
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "region denyf ";
-            if s.starts_with(COMMAND_STRING) {
-                let name = &s[COMMAND_STRING.len()..];
-                if name.len() > 0 {
+            if let Some(name) = s.strip_prefix(COMMAND_STRING)
+                && !name.is_empty() {
                     return Ok(Self::DenyRegionForwarding { name });
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "region get ";
-            if s.starts_with(COMMAND_STRING) {
-                let name = &s[COMMAND_STRING.len()..];
-                if name.len() > 0 {
+            if let Some(name) = s.strip_prefix(COMMAND_STRING)
+                && !name.is_empty() {
                     return Ok(Self::GetRegion { name });
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "region home";
             if s.starts_with(COMMAND_STRING) {
                 if s.len() > COMMAND_STRING.len() {
                     let name = &s[COMMAND_STRING.len() + 1..];
-                    if name.len() > 0 {
+                    if !name.is_empty() {
                         return Ok(Self::SetHomeRegion { name: Some(name) });
                     } else {
                         return Ok(Self::SetHomeRegion { name: None });
@@ -1078,7 +1054,7 @@ impl<'a> CliCommands<'a> {
             if s.starts_with(COMMAND_STRING) {
                 if s.len() > COMMAND_STRING.len() {
                     let name = &s[COMMAND_STRING.len() + 1..];
-                    if name.len() > 0 {
+                    if !name.is_empty() {
                         return match name {
                             "<null>" => Ok(Self::SetDefaultRegion { name: None }),
                             _ => Ok(Self::SetDefaultRegion { name: Some(name) }),
@@ -1099,7 +1075,7 @@ impl<'a> CliCommands<'a> {
                     used += name_end + 1;
 
                     let parent_name = &s[used..];
-                    if parent_name.len() > 0 {
+                    if !parent_name.is_empty() {
                         return Ok(Self::CreateRegion {
                             name,
                             parent_name: Some(parent_name),
@@ -1129,21 +1105,17 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "region remove ";
-            if s.starts_with(COMMAND_STRING) {
-                let name = &s[COMMAND_STRING.len()..];
-                if name.len() > 0 {
+            if let Some(name) = s.strip_prefix(COMMAND_STRING)
+                && !name.is_empty() {
                     return Ok(Self::RemoveRegion { name });
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "region list ";
-            if s.starts_with(COMMAND_STRING) {
-                let filter = &s[COMMAND_STRING.len()..];
-                if filter.len() > 0 {
+            if let Some(filter) = s.strip_prefix(COMMAND_STRING)
+                && !filter.is_empty() {
                     return Ok(Self::GetRegionList { filter });
                 }
-            }
         }
         {
             const COMMAND_STRING: &str = "gps";
@@ -1153,8 +1125,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "gps ";
-            if s.starts_with(COMMAND_STRING) {
-                let subcommand = &s[COMMAND_STRING.len()..];
+            if let Some(subcommand) = s.strip_prefix(COMMAND_STRING) {
                 if subcommand == "on" {
                     return Ok(Self::SetGpsEnabled(true));
                 };
@@ -1234,8 +1205,7 @@ impl<'a> CliCommands<'a> {
         }
         {
             const COMMAND_STRING: &str = "set bridge.enabled ";
-            if s.starts_with(COMMAND_STRING) {
-                let setting_str = &s[COMMAND_STRING.len()..];
+            if let Some(setting_str) = s.strip_prefix(COMMAND_STRING) {
                 if setting_str.eq("on") {
                     return Ok(Self::SetBridgeEnabled(true));
                 }
@@ -1373,13 +1343,13 @@ pub enum PermissionLevel {
 }
 impl PermissionLevel {
     fn from_byte(value: u8) -> Option<Self> {
-        return match value {
+        match value {
             0 => Some(Self::Guest),
             1 => Some(Self::ReadOnly),
             2 => Some(Self::ReadWrite),
             3 => Some(Self::Admin),
             _ => None,
-        };
+        }
     }
 }
 

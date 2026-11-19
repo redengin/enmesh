@@ -78,10 +78,10 @@ pub enum LoRaProtocol {
 }
 impl LoRaProtocol {
     pub fn next(&self) -> LoRaProtocol {
-        return match self {
+        match self {
             LoRaProtocol::Meshtastic => LoRaProtocol::MeshCore,
             LoRaProtocol::MeshCore => LoRaProtocol::Meshtastic,
-        };
+        }
     }
 }
 impl core::fmt::Display for LoRaProtocol {

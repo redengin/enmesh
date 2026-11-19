@@ -36,7 +36,7 @@ pub const PERSISTED_SETTINGS_HEADER_BUFFER_SZ: usize = crate::storage::utils::bu
 pub(crate) struct PersistedSettingsHeader {
     /// format used in this store (aka PersistedSettings_0, PersistedSettings_1, etc.)
     /// * if the store version differs from the current version, the settings will
-    ///      be transmuted to the current version (using defaults for non-stored values)
+    ///   be transmuted to the current version (using defaults for non-stored values)
     pub version: u8,
 }
 impl PersistedSettingsHeader {
@@ -60,7 +60,7 @@ impl PersistedSettingsHeader {
         }
 
         // deserialize the buffer
-        return match postcard::from_bytes::<PersistedSettingsHeader>(
+        match postcard::from_bytes::<PersistedSettingsHeader>(
             &buffer[..PERSISTED_SETTINGS_HEADER_SZ + 1],
         ) {
             Ok(header) => {
@@ -71,7 +71,7 @@ impl PersistedSettingsHeader {
                 error!("{TAG} deserialization failed [buffer_sz: {}]: {e}", buffer.len());
                 None
             }
-        };
+        }
     }
 
     /// Write the persisted settings header to storage
@@ -83,13 +83,12 @@ impl PersistedSettingsHeader {
         match postcard::to_slice(&header, &mut buffer) {
             Ok(bytes) => {
                 debug!("{TAG} serialization successful");
-                if PERSISTED_SETTINGS_HEADER_SZ != bytes.len() {
-                    if PERSISTED_SETTINGS_HEADER_SZ < bytes.len() {
+                if PERSISTED_SETTINGS_HEADER_SZ != bytes.len()
+                    && PERSISTED_SETTINGS_HEADER_SZ < bytes.len() {
                         // (see test validate_PERSISTED_SETTINGS_HEADER_SZ to find correct value)
                         warn!("{TAG} incorrect PERSISTED_SETTINGS_HEADER_SZ \
                             (is: {PERSISTED_SETTINGS_HEADER_SZ}, should be at least: {})", bytes.len());
                     }
-                }
             }
             Err(e) => {
                 error!("{TAG} serialization failed [buffer_sz: {PERSISTED_SETTINGS_HEADER_BUFFER_SZ}]: {e}");
@@ -97,14 +96,14 @@ impl PersistedSettingsHeader {
         }
 
         // write the header to storage
-        return match settings_partition.write(0, &buffer) {
+        match settings_partition.write(0, &buffer) {
             Ok(()) => {
                 debug!("{TAG} wrote to storage");
             }
             Err(e) => {
                 error!("{TAG} failed write to storage: {:?}", e);
             }
-        };
+        }
     }
 }
 

@@ -189,7 +189,7 @@ impl PersistedSettings {
         }
 
         // deserialize the buffer (using current version)
-        return match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ]) {
+        match postcard::from_bytes::<PersistedSettings>(&buffer[..PERSISTED_SETTINGS_SZ]) {
             Ok(settings) => {
                 debug!("{TAG} deserialized settings");
                 Some(settings)
@@ -201,7 +201,7 @@ impl PersistedSettings {
                 );
                 None
             }
-        };
+        }
     }
 
     /// Write the persisted settings to storage
