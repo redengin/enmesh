@@ -24,23 +24,16 @@ impl<'a> MeshCoreLoraPacket<'a> {
         let mut used: usize = 0;
 
         // deserialize the header
-        if let Some(header) = MeshCoreHeader::from_header(&buffer[0]) {
+        let header_byte = buffer.first()?;
+        if let Some(header) = MeshCoreHeader::from_header(header_byte) {
             used += 1;
 
             // deserialize transport codes (if they exist)
             let transport_codes = if header.route_type.has_transport_codes() {
-                let transport_codes_0 = u16::from_le_bytes(
-                    buffer[used..(used + 2)]
-                        .try_into()
-                        .expect("invalid dimensions"),
-                );
-                used += 2;
-                let transport_codes_1 = u16::from_le_bytes(
-                    buffer[used..(used + 2)]
-                        .try_into()
-                        .expect("invalid dimensions"),
-                );
-                used += 2;
+                let codes = buffer.get(used..(used + 4))?;
+                let transport_codes_0 = u16::from_le_bytes([codes[0], codes[1]]);
+                let transport_codes_1 = u16::from_le_bytes([codes[2], codes[3]]);
+                used += 4;
 
                 Some([transport_codes_0, transport_codes_1])
             } else {
@@ -267,14 +260,14 @@ impl<'a> MeshCorePath<'a> {
         let mut used: usize = 0;
 
         // parse the header (aka path_length)
-        let path_length = buffer[0];
+        let path_length = *buffer.first()?;
         let hop_count = path_length & 0b00111111;
         if let Some(hash_size) = MeshCoreHashSize::from_path_length(&buffer[0]) {
             used += 1;
 
             // take the sized slice
             let path_size = (hop_count as usize) * hash_size.len();
-            let path_data = &buffer[used..(used + path_size)];
+            let path_data = buffer.get(used..(used + path_size))?;
             used += path_size;
 
             return Some((
@@ -431,5 +424,42 @@ mod tests {
         };
 
         serde_harness(&PACKET);
+    }
+
+    /// An empty buffer is not a packet.
+    #[test]
+    #[allow(non_snake_case)]
+    fn deserialize_MeshCorePacket_Empty() {
+        assert_eq!(MeshCoreLoraPacket::from_buffer(&[]), None);
+    }
+
+    /// A buffer that ends inside the transport codes is not a packet.
+    #[test]
+    #[allow(non_snake_case)]
+    fn deserialize_MeshCorePacket_TruncatedTransportCodes() {
+        // header: version 0, REQ (0), TRANSPORT_FLOOD (0) - needs 4 code bytes
+        const BUFFER: [u8; 3] = [0x00, 0x01, 0x00];
+
+        assert_eq!(MeshCoreLoraPacket::from_buffer(&BUFFER), None);
+    }
+
+    /// A buffer without a path length byte is not a packet.
+    #[test]
+    #[allow(non_snake_case)]
+    fn deserialize_MeshCorePacket_MissingPathLength() {
+        // header: version 0, ACK (3), DIRECT (2)
+        const BUFFER: [u8; 1] = [0x0E];
+
+        assert_eq!(MeshCoreLoraPacket::from_buffer(&BUFFER), None);
+    }
+
+    /// A buffer that ends inside the path is not a packet.
+    #[test]
+    #[allow(non_snake_case)]
+    fn deserialize_MeshCorePacket_TruncatedPath() {
+        // path length byte claims 2 hops of 1 byte, but only 1 byte follows
+        const BUFFER: [u8; 3] = [0x0E, 0b0000_0010, 0xAA];
+
+        assert_eq!(MeshCoreLoraPacket::from_buffer(&BUFFER), None);
     }
 }
