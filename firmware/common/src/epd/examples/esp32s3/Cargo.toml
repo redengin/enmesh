@@ -1,3 +1,7 @@
+# This crate is the root of its own workspace.
+# Build this crate with the `esp` toolchain.
+[workspace]
+
 [package]
 name = "epd-drivers-example-esp32s3"
 version = "0.1.0"

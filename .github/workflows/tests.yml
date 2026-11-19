@@ -1,0 +1,24 @@
+# This workflow runs the tests of the host workspace.
+# The ESP32 firmware is not in this workflow.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  cargo-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The UX examples link to SDL2.
+      - name: Install SDL2
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+
+      # The Reticulum tests use the std feature.
+      - name: Run the tests
+        run: cargo test --locked --workspace --features reticulum/std

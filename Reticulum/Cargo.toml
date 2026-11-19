@@ -33,7 +33,7 @@ hkdf = { version = "*", default-features = false }
 hmac = { version = "*", default-features = false }
 
 [dev-dependencies]
-serde = { version = "*", features = ["derive"] }
+serde = { version = "*", default-features = false, features = ["derive"] }
 
 [features]
 # enable std support (default no-std)

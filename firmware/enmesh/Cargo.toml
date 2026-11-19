@@ -25,12 +25,6 @@ embedded-graphics-simulator = { version = "*", default-features = false, feature
     "with-sdl",
 ] }
 
-[build-dependencies]
-# used to generate fonts and bitmaps from assets (see generators/)
-resvg = "*"
-qoi = "*"
-
-
 [features]
 
 # ux choice for demonstrations

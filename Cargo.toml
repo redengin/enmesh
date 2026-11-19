@@ -1,0 +1,22 @@
+# This workspace contains the crates that build for the host computer.
+# The ESP32 firmware is not in this workspace.
+# The ESP32 firmware uses the `esp` toolchain, an xtensa target, and its own build profiles.
+# The ESP32 firmware uses these crates as path dependencies.
+# Refer to firmware/boards/heltec_esp32.
+[workspace]
+resolver = "3"
+members = [
+    "Enmesh",
+    "MeshCore",
+    "Meshtastic",
+    "Reticulum",
+    "firmware/common",
+    "firmware/common/src/epd",
+    "firmware/enmesh",
+    "firmware/enmesh/generated",
+]
+exclude = [
+    "firmware/boards/heltec_esp32",
+    "firmware/soc/esp32",
+    "firmware/common/src/epd/examples/esp32s3",
+]
